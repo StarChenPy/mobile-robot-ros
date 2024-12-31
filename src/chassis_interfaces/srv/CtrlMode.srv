@@ -1,0 +1,11 @@
+
+#控制模式服务
+uint8 OPERATION_SET = 0 #操作-设置目标模式
+uint8 OPERATION_GET = 1 #操作-获取目标模式
+uint8 MODE_AUTO = 0     #模式-自动模式
+uint8 MODE_MANUAL = 1   #模式-手动模式
+
+uint8 operation         #操作
+uint8 mode              #模式
+---
+uint8 current_mode      #当前模式
