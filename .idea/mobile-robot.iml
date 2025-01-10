@@ -8,6 +8,8 @@
       <sourceFolder url="file://$MODULE_DIR$/install/vmxpi_interfaces/local/lib/python3.10/dist-packages" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/install/revise_interfaces/local/lib/python3.10/dist-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/install/camera_interfaces/local/lib/python3.10/dist-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/install/vision_interfaces/local/lib/python3.10/dist-packages" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/build" />
       <excludeFolder url="file://$MODULE_DIR$/install" />
       <excludeFolder url="file://$MODULE_DIR$/log" />

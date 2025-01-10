@@ -1,0 +1,6 @@
+#请求拍照[彩色图, 深度图]
+---
+bool success                  #成功
+string path_color             #拍照保存的路径
+string path_depth             #拍照保存的路径
+sensor_msgs/Image image

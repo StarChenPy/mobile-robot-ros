@@ -7,7 +7,7 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(vmxpi_interfaces REQUIRED)
+find_package(std_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 if(BUILD_TESTING)
@@ -23,11 +23,31 @@ if(BUILD_TESTING)
 endif()
 
 rosidl_generate_interfaces(${PROJECT_NAME}
+  "action/NavigationActionCMD.action"
+
+  "msg/AxisParam.msg"
+  "msg/Encoder.msg"
+  "msg/Feedback.msg"
   "msg/Imu.msg"
+  "msg/MotionFeedback.msg"
+  "msg/NavParam.msg"
+  "msg/OriginParam.msg"
   "msg/Pose.msg"
+  "msg/ReviseData.msg"
   "msg/RobotCtrl.msg"
   "msg/RobotData.msg"
-  DEPENDENCIES vmxpi_interfaces
+  "msg/TitanInfo.msg"
+  "msg/TitanLimSW.msg"
+
+  "srv/BaseMotion.srv"
+  "srv/CtrlImpl.srv"
+  "srv/CtrlMode.srv"
+  "srv/ResetEncoder.srv"
+  "srv/ResetOdom.srv"
+  "srv/ReviseService.srv"
+  "srv/TitanEnable.srv"
+  "srv/ZeroImu.srv"
+  DEPENDENCIES std_msgs
 )
 
 ament_package()

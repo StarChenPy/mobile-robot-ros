@@ -1,0 +1,16 @@
+#控制接口
+
+#命令字
+uint8 READ_FEEDBACK = 0     #读取反馈
+uint8 BACK_ORIGIN = 1       #回原点
+uint8 SET_POSITION = 2      #设置位置
+uint8 DISABLE = 3           #关闭
+
+#######################################
+uint8 cmd                   #命令字
+float32 target_pose         #目标位置(脉冲)
+OriginParam origin_param    #回原点参数
+AxisParam ctrl_param        #位置环控制参数
+---
+bool success                #操作成功
+Feedback feedback           #反馈数据

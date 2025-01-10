@@ -1,0 +1,7 @@
+uint8 motion_mode       #运动模式 0:查询，1:停止运动, 2:直线  3:旋转
+float32 set_point       #设定值
+AxisParam line_param    #参数
+AxisParam rotate_param  #参数
+---
+MotionFeedback feedback #反馈
+bool success            #成功状态
