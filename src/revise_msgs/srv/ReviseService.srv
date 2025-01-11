@@ -1,7 +1,0 @@
-float32 set_revise_x    # x 修正设定值
-float32 set_revise_y    # y 修正设定值
-float32 set_revise_yaw  # yaw ping0误差值
-int8 sensor_selection   # 0:ping0, 1:ping1 , 2:IR , 3:ping & yaw
-bool start   # 启动标志  // true:启动修正  false：不启动修正
----
-int8 status  #0:空闲, 1:驱动中, -1:错误
