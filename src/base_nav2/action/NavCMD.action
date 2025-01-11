@@ -1,0 +1,17 @@
+geometry_msgs/Pose2D[] points       #路径坐标点[x,y]
+float32 linear_vel                  #最大线速度m/s
+float32 rotation_vel                #最大旋转速度m/s
+float32 heading                     #最终点航向
+bool back                           #倒车
+
+---
+
+bool success                           #导航成功
+float32 err_linear                     #直线误差m
+float32 err_rotation                   #角度误差rad
+
+
+---
+float32 distance                    #实时点到点直线距离反馈
+int32 point_idx                     #当前点索引
+float32 curr_ld                     #当前前瞻距离ld

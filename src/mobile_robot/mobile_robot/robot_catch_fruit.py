@@ -10,12 +10,13 @@ class RobotCatchFruit(Node):
         super().__init__('robot_catch_fruit')
 
         self.robot = MobileRobot(self)
-
         self.run()
 
     def run(self):
-        self.robot.with_start_button()
-        self.robot.arm_reset()
+        # self.robot.with_start_button()
+        # self.robot.arm_reset()
+
+        self.robot.navigation.path_follow([{"x": 1, "y": 0}])
 
 
 def main():

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(base_motion_ros2)
+project(revise_msgs)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -18,20 +18,19 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(rosidl_default_generators REQUIRED)
 find_package(std_msgs REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
 
+# 设置自定义消息生成
 rosidl_generate_interfaces(${PROJECT_NAME}
-        # msg
-        "msg/AxisParam.msg"
-        "msg/MotionFeedback.msg"
-        # srv
-        "srv/BaseMotion.srv"
-        DEPENDENCIES std_msgs
+  "msg/ReviseData.msg"
+  "srv/ReviseService.srv"
+  DEPENDENCIES std_msgs  
 )
+
+#导出消息依赖
+ament_export_dependencies(rosidl_default_runtime)
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

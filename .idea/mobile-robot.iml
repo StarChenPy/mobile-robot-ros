@@ -12,6 +12,7 @@
       <sourceFolder url="file://$MODULE_DIR$/install/vmxpi_msgs/local/lib/python3.10/dist-packages" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/install/web_message_transform_ros2/local/lib/python3.10/dist-packages" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/install/base_nav2/local/lib/python3.10/dist-packages" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/build" />
       <excludeFolder url="file://$MODULE_DIR$/install" />
       <excludeFolder url="file://$MODULE_DIR$/log" />

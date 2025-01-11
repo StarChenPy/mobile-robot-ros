@@ -23,7 +23,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'robot_catch_fruit = mobile_robot.robot_catch_fruit:main'
+            'robot_catch_fruit = mobile_robot.robot_catch_fruit:main',
+            'arm_reset = mobile_robot.arm_reset:main'
         ],
     },
 )

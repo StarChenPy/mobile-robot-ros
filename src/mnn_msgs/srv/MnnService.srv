@@ -1,7 +1,7 @@
-uint8 cmd # 指令 // 1:捕获图像 2:模型推理
-string data # 预留
+uint8 cmd # 指令 // 1:本地图像推理 2:订阅图像推理
+string data # 本地图像路经
 ---
-bool success    #成功标志
+bool success    # 成功标志
 string[] label  # 类别标签
 float32[] confidence  # 置信度
 float32[] xmin  # 边界框 左

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(base_nav)
+project(base_nav2)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -17,17 +17,37 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(std_msgs REQUIRED)
-find_package(rosidl_default_generators REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(rclcpp_action REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)
+
+find_package(visualization_msgs REQUIRED)
+
+find_package(rosidl_default_generators REQUIRED)
+
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-        "msg/NavParam.msg"
-        "action/NavigationActionCMD.action"
-        DEPENDENCIES std_msgs
+  "msg/NavParam.msg"
+  "action/NavCMD.action"
+  DEPENDENCIES std_msgs geometry_msgs
 )
+
+
+
+
+# 导出消息依赖
+ament_export_dependencies(rosidl_default_runtime)
+
+
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
