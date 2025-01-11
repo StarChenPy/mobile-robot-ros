@@ -18,7 +18,7 @@ Pose robot_pose
 
 #IO
 bool[] di
-TitanLimSW[] titan_limit_sw
+vmxpi_msgs/TitanLimSW[] titan_limit_sw
 
 #导航状态
 int8 nav_status        #movebase导航状态 -1：未执行

@@ -1,6 +1,6 @@
 from rclpy.node import Node
 
-from vision_interfaces.srv import ReqImage
+from orbbec_opencv.srv import ReqImage
 from cv_bridge import CvBridge          # ROS与OpenCV图像转换类
 
 class CameraImpl:

@@ -4,9 +4,10 @@ import math
 from rclpy.node import Node
 from rclpy.action import ActionClient
 
-from mobile_robot.mobile_robot.robot.impl.io_impl import IoImpl
-from robot_interfaces.srv import BaseMotion, ResetOdom
-from robot_interfaces.action import NavigationActionCMD
+from .io_impl import IoImpl
+from base_motion_ros2.srv import BaseMotion
+from base_nav.action import NavigationActionCMD
+from chassis_msgs.srv import ResetOdom
 
 
 class NavigationImpl:
@@ -16,7 +17,7 @@ class NavigationImpl:
     def __init__(self, node: Node):
         self.__logger = node.get_logger()
 
-        self.__io = IoImpl(node)
+        self.__io = IoImpl.instance(node)
 
         self.__motion_srv = node.create_client(BaseMotion, '/base_motion')
         self.__odom_srv = node.create_client(ResetOdom, '/chassis/reset_odom') #, 'chassis_msgs/ResetOdom'

@@ -1,7 +1,7 @@
 ############################# 舵机参数配置 #############################
 
 # 定义舵机参数的基础模板
-def create_servo_param(pin, min_angle, max_angle, zero_duty, deg90_duty=None, min_duty=None, max_duty=None, itinerary=None):
+def create_servo_param(pin, min_angle, max_angle, zero_duty=None, deg90_duty=None, min_duty=None, max_duty=None, itinerary=None):
     return {
         'pin': pin,                # PWM端口
         'min': min_angle,          # 最小角度或最小物理量

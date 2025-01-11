@@ -5,7 +5,7 @@ from rclpy.node import Node
 from .robot.robot import MobileRobot
 
 
-class RobotCatchFruit(MobileRobot, Node):
+class RobotCatchFruit(Node):
     def __init__(self):
         super().__init__('robot_catch_fruit')
 

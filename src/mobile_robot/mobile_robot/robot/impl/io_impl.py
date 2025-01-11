@@ -2,15 +2,22 @@ import threading
 
 from rclpy.node import Node
 
-from robot_interfaces.msg import RobotCtrl
-from robot_interfaces.msg import RobotData
+from web_message_transform_ros2.msg import RobotCtrl
+from web_message_transform_ros2.msg import RobotData
 
-class IoImpl:
+class IoImpl(object):
+    """
+    由于 I/O 的特殊性，使用单例模式
+    应使用 instance 方法创建对象
+    """
+
     __robot_connect = False
     __robot_data = None
     _instance_lock = threading.Lock()
 
     def __init__(self, node: Node):
+        self.__logger = node.get_logger()
+
         # 等待ros连接
         self.__robot_ctrl_pub = node.create_publisher(RobotCtrl, '/web_transform_node/robot_ctrl', 10)
         self.__robot_data_sub = node.create_subscription(RobotData, '/web_transform_node/robot_data', self.__robot_data_callback, 10)
@@ -27,14 +34,12 @@ class IoImpl:
 
         self.timer = node.create_timer(0.5, self.__write_handle)
 
-    def __new__(cls, *args, **kwargs):
-        """
-        鉴于IO的特殊性，使用单例模式，加锁以保证线程安全
-        """
+        self.__logger.info('[I/O] 初始化完成')
+
+    @classmethod
+    def instance(cls, *args, **kwargs):
         if not hasattr(IoImpl, "_instance"):
-            with IoImpl._instance_lock:
-                if not hasattr(IoImpl, "_instance"):
-                    IoImpl._instance = object.__new__(cls)
+            IoImpl._instance = IoImpl(*args, **kwargs)
         return IoImpl._instance
 
     # 读取回调
@@ -69,7 +74,7 @@ class IoImpl:
         self.__robot_data_sub.destroy()
         self.timer.destroy()
 
-    def is_robot_connect(self):
+    def is_connect(self):
         return self.__robot_connect
 
     # 读取 DI 输入(端口: 0-1)

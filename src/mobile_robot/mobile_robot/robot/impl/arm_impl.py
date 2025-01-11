@@ -1,9 +1,9 @@
 from ..param import arm_param
 import time
 
+from .io_impl import IoImpl
 from rclpy.node import Node
-from io_impl import IoImpl
-from robot_interfaces.srv import CtrlImpl
+from position_motor_ros2.srv import CtrlImpl
 
 
 class ArmImpl:
@@ -12,8 +12,10 @@ class ArmImpl:
 
         self.__io = IoImpl(node)
 
-        self.__srv_rotate_motor = node.create_client(CtrlImpl,'/position_motor/arm_param.rotate_motor/ctrl')
+        self.__srv_rotate_motor = node.create_client(CtrlImpl,'/position_motor/rotate_motor/ctrl')
         self.__srv_lift_motor = node.create_client(CtrlImpl, '/position_motor/lift_motor/ctrl')
+
+        self.__logger.info("[机械臂] 初始化完成")
 
     #卡爪舵机 旋臂(角度)
     def gripper_rz(self, deg=0, release=False):
