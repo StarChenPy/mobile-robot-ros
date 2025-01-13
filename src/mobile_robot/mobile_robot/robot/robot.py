@@ -3,7 +3,7 @@ import rclpy
 
 from rclpy.node import Node
 
-from .impl import arm_impl, io_impl, navigation_impl, vision_impl
+from .impl import arm_impl, io_impl, navigation_impl
 from .param import robot_param
 
 
@@ -15,7 +15,6 @@ class MobileRobot:
         self.navigation = navigation_impl.NavigationImpl(self.__node)
         self.arm = arm_impl.ArmImpl(self.__node)
         self.io = io_impl.IoImpl.instance(self.__node)
-        self.camera = vision_impl.CameraImpl(self.__node)
 
         self.__logger.info("[机器人] 等待连接")
         while rclpy.ok():

@@ -1,5 +1,4 @@
 from setuptools import find_packages, setup
-from glob import glob
 
 package_name = 'mobile_robot'
 
@@ -10,9 +9,7 @@ setup(
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
-        ('share/' + package_name, ['package.xml']),
-        # 指定需要安装的文件夹
-        ('share/' + package_name + '/models', glob('models/*')),
+        ('share/' + package_name, ['package.xml'])
     ],
     install_requires=['setuptools', 'rclpy', 'python-opencv', 'onnxruntime'],
     zip_safe=True,

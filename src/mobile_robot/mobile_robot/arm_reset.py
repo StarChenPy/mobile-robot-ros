@@ -15,7 +15,7 @@ class MinimalService(Node):
         self.arm = arm_impl.ArmImpl(self)
         self.create_service(Trigger, 'arm/reset', self.arm_reset_callback)
 
-    def arm_reset_callback(self, _, response: Trigger.Response):
+    def arm_reset_callback(self, _, response):
         self.get_logger().info("[机械臂] 开始复位！")
         # 升降电机回原点
         self.arm.ctrl_lift_motor(arm_impl.RotateMotorCmd.BACK_ORIGIN)  # 回原点

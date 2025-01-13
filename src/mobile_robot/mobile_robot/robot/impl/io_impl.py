@@ -12,7 +12,7 @@ class IoImpl(object):
     """
 
     __robot_connect = False
-    __robot_data = None
+    __robot_data = RobotData()
     _instance_lock = threading.Lock()
 
     def __init__(self, node: Node):

@@ -68,6 +68,7 @@ class ArmImpl:
         angle = angle * (enc_ppi / 360.0)
 
         future = self.__call_motor(self.__srv_rotate_motor, cmd, angle, motor_param.origin_param, motor_param.ctrl_param)
+        self.__logger.warn(f"[机械臂电机] 旋转电机请求已发送")
         if not block:
             while not future.done():
                 pass
@@ -98,6 +99,7 @@ class ArmImpl:
         height = -height * ratio                                #计算目标脉冲
 
         future = self.__call_motor(self.__srv_lift_motor, cmd, height, motor_param.origin_param, motor_param.ctrl_param)
+        self.__logger.warn(f"[机械臂电机] 升降电机请求已发送")
         if not block:
             while not future.done():
                 pass

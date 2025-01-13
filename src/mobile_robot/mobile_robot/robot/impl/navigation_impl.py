@@ -1,5 +1,7 @@
 import time
 import math
+
+from enum import Enum
 from geometry_msgs.msg import Pose2D
 from rclpy.node import Node
 from rclpy.action import ActionClient
@@ -9,10 +11,21 @@ from base_nav2.action import NavCMD
 from chassis_msgs.srv import ResetOdom
 
 
+class ResetOdomMode(Enum):
+    RESET_ALL = 0
+    RESET_POSE = 1
+    RESET_YAW = 2
+
+
+class BaseMotionMode(Enum):
+    QUERY = 0
+    STOP = 1
+    LINE = 2
+    ROTATE = 3
+
+
 class NavigationImpl:
-    __send_goal_future = None
     __goal_handle = None
-    __navigating = False
 
     def __init__(self, node: Node):
         self.__logger = node.get_logger()
@@ -25,19 +38,22 @@ class NavigationImpl:
 
         self.__logger.info("[导航接口] 初始化完成.")
 
-    def init_pose(self, x=0.0, y=0.0, w=0.0, mode=0):
+
+# ===============================导航部分===============================
+
+
+    def init_pose(self, x=0.0, y=0.0, angle=0.0, mode=ResetOdomMode.RESET_ALL):
         """初始化机器人位置，支持重置odom不同模式"""
-        self.__logger.info("[导航接口] 初始化机器人位置 [{} {} {}]".format(x, y, w))
+        self.__logger.info(f"[导航接口] 初始化机器人位置 [{x}, {y}, {angle}] 模式为 {mode.name}")
 
         req = ResetOdom.Request()
-        req.clear_mode = mode
+        req.clear_mode = mode.value
         req.x = float(x)
         req.y = float(y)
 
-        if mode == 0:
-            angle = math.radians(w)
-            req.theta = float(angle)
-            self.__logger.info(f'输入角度转弧度: {angle}')
+        radian = math.radians(angle)
+        req.theta = float(radian)
+        self.__logger.info(f'输入角度 {angle} 转弧度 {radian}')
 
         res = self.__odom_srv.call(req)
 
@@ -48,30 +64,36 @@ class NavigationImpl:
             self.__logger.error("[导航接口] 重置 Odometry 错误")
             return False
 
-    def path_follow(self, points=[], heading=0.0, back=False, linear_vel=0.55, angular_vel=3.5):
-        """路径跟随: 输入路径点、最终角度等参数，发送导航请求"""
+    def navigation(self, points: tuple, heading=0.0, reverse=False, linear_speed=0.55, rotation_speed=3.5):
+        """
+        路径跟随: 输入路径点、最终角度等参数，发送导航请求
+        @param points 路径坐标点[x,y]
+        @param heading 最终点航向
+        @param reverse 倒车
+        @param linear_speed 最大线速度m/s
+        @param rotation_speed 最大旋转速度m/s
+        """
+
         goal_msg = NavCMD.Goal()
 
-        for pt in points:
+        for p in points:
             pose2d = Pose2D()
-            pose2d.x = float(pt['x'])
-            pose2d.y = float(pt['y'])
+            pose2d.x = float(p['x'])
+            pose2d.y = float(p['y'])
             pose2d.theta = 0.0
             goal_msg.points.append(pose2d)
 
         goal_msg.heading = float(heading)
-        goal_msg.back = bool(back)
-        goal_msg.linear_vel = float(linear_vel)
-        goal_msg.rotation_vel = float(angular_vel)
+        goal_msg.back = bool(reverse)
+        goal_msg.linear_vel = float(linear_speed)
+        goal_msg.rotation_vel = float(rotation_speed)
 
         self.__logger.info("[导航接口] 等待导航服务")
         self.__navigation_action.wait_for_server()
         self.__logger.info("[导航接口] base_nav2 正在发送新的导航请求")
 
-        self.__send_goal_future = self.__navigation_action.send_goal_async(goal_msg)
-        self.__send_goal_future.add_done_callback(self.__goal_response_callback)
-
-        self.__navigating = True
+        __send_goal_future = self.__navigation_action.send_goal_async(goal_msg)
+        __send_goal_future.add_done_callback(self.__goal_response_callback)
 
     def __goal_response_callback(self, future):
         """处理Goal响应"""
@@ -81,47 +103,75 @@ class NavigationImpl:
             return
 
         self.__logger.info("[导航接口] base_nav2 正在执行导航...")
-        self.__get_result_future = self.__goal_handle.get_result_async()
-        self.__get_result_future.add_done_callback(self.__get_result_callback)
+        __get_result_future = self.__goal_handle.get_result_async()
+        __get_result_future.add_done_callback(self.__get_result_callback)
 
     def __get_result_callback(self, future):
         """处理Goal完成回调"""
         nav_result = future.result().result
         self.__logger.info(f"[导航接口] base_nav2 导航完成: {nav_result}")
-        self.__navigating = False
 
-    def wait_finished_path_follow(self):
-        """等待路径跟随完成"""
+    def wait_navigation_finish(self):
+        """等待导航完成"""
         self.__logger.info("[导航接口] base_nav2 等待导航结束中...")
-        while self.__navigating:
-            time.sleep(0.1)
+        while not self.__goal_handle.done():
+            pass
         self.__logger.info("[导航接口] base_nav2 导航结束.")
 
-    def get_path_follow_status(self):
-        """获取导航状态"""
-        return self.__navigating
-
-    def cancel_path_follow(self):
+    def cancel_navigation(self):
         """取消路径跟随"""
         self.__logger.info("[导航接口] 取消导航...")
         if self.__goal_handle:
             self.__goal_handle.cancel_goal_async()
 
-    def base_motion(self, mode='rotate', set_deg=0.0, max_vel=0.0):
+
+# ===============================基础运动部分===============================
+
+
+    def __call_srv_base_motion(self, mode: BaseMotionMode, set_point, speed):
+        """调用基础运动服务"""
+        req = BaseMotion.Request()
+        req.motion_mode = mode.value
+        req.set_point = float(set_point)
+
+        match mode:
+            case BaseMotionMode.LINE:
+                req.line_param.kp = 1.8
+                req.line_param.ti = 0.0
+                req.line_param.td = 0.0
+                req.line_param.max_vel = float(speed)
+                req.line_param.max_acc = 3.0
+                req.line_param.low_pass = 0.8
+                req.line_param.ek = 0.02
+                req.line_param.steady_clk = 5
+            case BaseMotionMode.ROTATE:
+                req.rotate_param.kp = 2.8
+                req.rotate_param.ti = 0.0
+                req.rotate_param.td = 0.0001
+                req.rotate_param.max_vel = float(speed)
+                req.rotate_param.max_acc = 600.0
+                req.rotate_param.low_pass = 0.7
+                req.rotate_param.ek = 1.0
+                req.rotate_param.steady_clk = 10
+
+        return self.__motion_srv.call(req)
+
+    def base_motion_line(self, distance, speed=10):
         """基础运动: 直线或旋转模式"""
-        self.__logger.info(f'[基础运动] 模式: {mode}, 设定值: {set_deg}, 速度: {max_vel}')
+        self.__logger.info(f'[基础运动] 直线运动 距离 {distance} 速度 {speed}')
 
-        mode_tbl = {
-            'line': 2,
-            'rotate': 3
-        }
-
-        motion_mode = mode_tbl.get(mode)
-        if motion_mode is None:
-            self.__logger.error("[基础运动] 无效的模式!")
+        res = self.__call_srv_base_motion(BaseMotionMode.LINE, distance, speed)
+        if not res.success:
+            self.__logger.error('[基础运动] 错误, 无法直线运动!')
             return False
 
-        res = self.__call_srv_base_motion(motion_mode, set_deg, max_vel)
+        return True
+
+    def base_motion_rotate(self, angle=0.0, speed=0.0):
+        """基础运动: 直线或旋转模式"""
+        self.__logger.info(f'[基础运动] 旋转运动 角度 {angle} 速度 {speed}')
+
+        res = self.__call_srv_base_motion(BaseMotionMode.ROTATE, angle, speed)
         if not res.success:
             self.__logger.error('[基础运动] 错误, 无法启动运动!')
             return False
@@ -130,37 +180,10 @@ class NavigationImpl:
 
     def stop_base_motion(self):
         """停止基础运动"""
-        time.sleep(0.8)
         self.__logger.info("[基础运动] 停止中...")
-        res = self.__call_srv_base_motion(1, 0, 0)
+        res = self.__call_srv_base_motion(BaseMotionMode.STOP, 0, 0)
         if res.success:
             self.__logger.info('[基础运动] 停止完成.')
         else:
             self.__logger.error('[基础运动] 停止失败.')
         return res.success
-
-    def __call_srv_base_motion(self, motion_mode, set_point, max_vel):
-        """调用基础运动服务"""
-        req = BaseMotion.Request()
-        req.motion_mode = motion_mode
-        req.set_point = float(set_point)
-        req.line_param.kp = 1.8
-        req.line_param.ti = 0.0
-        req.line_param.td = 0.0
-        req.line_param.max_vel = float(max_vel)
-        req.line_param.max_acc = 3.0
-        req.line_param.low_pass = 0.8
-        req.line_param.ek = 0.02
-        req.line_param.steady_clk = 5
-
-        if motion_mode == 3:  # Rotate mode specific params
-            req.rotate_param.kp = 2.8
-            req.rotate_param.ti = 0.0
-            req.rotate_param.td = 0.0001
-            req.rotate_param.max_vel = float(max_vel)
-            req.rotate_param.max_acc = 600.0
-            req.rotate_param.low_pass = 0.7
-            req.rotate_param.ek = 1.0
-            req.rotate_param.steady_clk = 10
-
-        return self.__motion_srv.call(req)
