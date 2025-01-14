@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/mobile-robot.iml" filepath="$PROJECT_DIR$/.idea/mobile-robot.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/mobile-robot-ros.iml" filepath="$PROJECT_DIR$/.idea/mobile-robot-ros.iml" />
     </modules>
   </component>
 </project>

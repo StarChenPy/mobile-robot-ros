@@ -12,16 +12,15 @@ class ArmImpl:
         self.__logger = node.get_logger()
         self.__io = io_impl.IoImpl(node)
 
-        self.__srv_rotate_motor = node.create_client(srv.CtrlImpl,'/position_motor/rotate_motor/ctrl')
+        self.__srv_rotate_motor = node.create_client(srv.CtrlImpl, '/position_motor/rotate_motor/ctrl')
         self.__srv_lift_motor = node.create_client(srv.CtrlImpl, '/position_motor/lift_motor/ctrl')
 
         self.__logger.info("[机械臂] 初始化完成")
 
+    # ===============================电机部分===============================
 
-# ===============================电机部分===============================
-
-
-    def __call_motor(self, srv_client: Client, cmd: RotateMotorCmd, target: float, origin: msg.OriginParam, ctrl: msg.AxisParam):
+    def __call_motor(self, srv_client: Client, cmd: RotateMotorCmd, target: float, origin: msg.OriginParam,
+                     ctrl: msg.AxisParam):
         """
         通过服务控制电机运动
         @param srv_client 具体的电机服务
@@ -43,7 +42,7 @@ class ArmImpl:
 
         return future
 
-    def ctrl_rotate_motor(self, cmd: RotateMotorCmd, angle = 0, speed = 50.0, block = True):
+    def ctrl_rotate_motor(self, cmd: RotateMotorCmd, angle=0, speed=50.0, block=True):
         """
         控制旋转电机运动
         @param cmd 控制命令类型
@@ -67,14 +66,15 @@ class ArmImpl:
         enc_ppi = 1750.0 * 4.0
         angle = angle * (enc_ppi / 360.0)
 
-        future = self.__call_motor(self.__srv_rotate_motor, cmd, angle, motor_param.origin_param, motor_param.ctrl_param)
+        future = self.__call_motor(self.__srv_rotate_motor, cmd, angle, motor_param.origin_param,
+                                   motor_param.ctrl_param)
         self.__logger.warn(f"[机械臂电机] 旋转电机请求已发送")
         if not block:
             while not future.done():
                 pass
         return future
 
-    def ctrl_lift_motor(self, cmd: RotateMotorCmd, height = 0, speed = 50.0, block = True):
+    def ctrl_lift_motor(self, cmd: RotateMotorCmd, height=0, speed=50.0, block=True):
         """
         控制升降电机运动
         @param cmd 控制命令类型
@@ -96,7 +96,7 @@ class ArmImpl:
             height = motor_param.min_value
 
         ratio = motor_param.coding_step / motor_param.coding_dis  #得到每个cm多少个脉冲
-        height = -height * ratio                                #计算目标脉冲
+        height = -height * ratio  #计算目标脉冲
 
         future = self.__call_motor(self.__srv_lift_motor, cmd, height, motor_param.origin_param, motor_param.ctrl_param)
         self.__logger.warn(f"[机械臂电机] 升降电机请求已发送")
@@ -105,9 +105,7 @@ class ArmImpl:
                 pass
         return future
 
-
-# ===============================舵机部分===============================
-
+    # ===============================舵机部分===============================
 
     def set_servo(self, servo_param_type: Servo, value, enable):
         """
@@ -149,28 +147,28 @@ class ArmImpl:
 
         self.__io.write_pwm(servo_param.pin, duty)
 
-    def rotary_servo(self, angle, enable = True):
+    def rotary_servo(self, angle, enable=True):
         """
         卡爪舵机 旋转
         原 gripper_rz
         """
         self.set_servo(Servo.ROTARY_SERVO, angle, enable)
 
-    def nod_servo(self, angle=0, enable = True):
+    def nod_servo(self, angle=0, enable=True):
         """
         卡爪舵机 点头(角度)
         原 gripper_ry
         """
         self.set_servo(Servo.NOD_SERVO, angle, enable)
 
-    def telescopic_servo(self, distance=0, enable = True):
+    def telescopic_servo(self, distance=0, enable=True):
         """
         卡爪舵机 伸缩 ( cm )
         原 telescopic
         """
         self.set_servo(Servo.TELESCOPIC_SERVO, distance, enable)
 
-    def gripper_servo(self, distance=0, enable = True):
+    def gripper_servo(self, distance=0, enable=True):
         """
         卡爪舵机 夹合 ( cm )
         原 gripper

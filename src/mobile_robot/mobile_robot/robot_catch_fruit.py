@@ -2,7 +2,6 @@ import rclpy
 
 from rclpy.node import Node
 
-from mobile_robot.mobile_robot.robot.param.navigation_path import NavPath
 from .robot.robot import MobileRobot
 
 
@@ -14,10 +13,9 @@ class RobotCatchFruit(Node):
         self.run()
 
     def run(self):
-        # self.robot.with_start_button()
-        # self.robot.arm_reset()
+        self.robot.with_start_button()
+        self.robot.arm_reset()
 
-        self.robot.navigation.navigation(NavPath.STARTING_POINT2TURNING_POINT.value)
 
 
 def main():

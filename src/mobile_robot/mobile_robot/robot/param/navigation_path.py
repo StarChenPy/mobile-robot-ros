@@ -30,4 +30,5 @@ class NavPoint(Enum):
 
 
 class NavPath(Enum):
-    STARTING_POINT2TURNING_POINT = (NavPoint.STARTING_POINT, NavPoint.TURNING_POINT)
+    STARTING_POINT2PICKING_POINT = (NavPoint.STARTING_POINT, NavPoint.TURNING_POINT, NavPoint.PICKING_ENTRANCE,
+                                    NavPoint.PICKING_CORRIDOR_1_START)

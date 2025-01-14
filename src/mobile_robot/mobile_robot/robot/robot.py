@@ -4,7 +4,8 @@ import rclpy
 from rclpy.node import Node
 
 from .impl import arm_impl, io_impl, navigation_impl
-from .param import robot_param
+from .param.arm_movement import ArmMovementParam
+from .param.navigation_path import NavPath
 
 
 class MobileRobot:
@@ -42,18 +43,29 @@ class MobileRobot:
                 break
             time.sleep(0.2)
 
+    def arm_control(self, movement: ArmMovementParam):
+        if movement.value.motor is not None:
+            if movement.value.motor.lift == 0:
+                self.arm.ctrl_lift_motor(arm_impl.RotateMotorCmd.BACK_ORIGIN)  # 回原点
+            else:
+                self.arm.ctrl_lift_motor(arm_impl.RotateMotorCmd.SET_POSITION, movement.value.motor.lift)
+
+            if movement.value.motor.rotate == 0:
+                self.arm.ctrl_lift_motor(arm_impl.RotateMotorCmd.BACK_ORIGIN)  # 回原点
+                self.arm.ctrl_lift_motor(arm_impl.RotateMotorCmd.SET_POSITION, 0.5, 50)
+            else:
+                self.arm.ctrl_rotate_motor(arm_impl.RotateMotorCmd.SET_POSITION, movement.value.motor.rotate)
+
+        if movement.value.servo is not None:
+            self.arm.telescopic_servo(ArmMovementParam.RESET.value.servo.telescopic)
+            self.arm.nod_servo(ArmMovementParam.RESET.value.servo.nod)
+            self.arm.gripper_servo(ArmMovementParam.RESET.value.servo.gripper)
+            self.arm.rotary_servo(ArmMovementParam.RESET.value.servo.rotary)
+
     def arm_reset(self):
         self.__logger.info("[机械臂] 开始复位！")
-        # 升降电机回原点
-        self.arm.ctrl_lift_motor(arm_impl.RotateMotorCmd.BACK_ORIGIN)  # 回原点
-        self.arm.ctrl_lift_motor(arm_impl.RotateMotorCmd.SET_POSITION, 0.5, 50) # 升降控制
-
-        # 旋转电机回原点
-        self.arm.ctrl_rotate_motor(arm_impl.RotateMotorCmd.BACK_ORIGIN)  # 回原点
-
-        self.arm.telescopic_servo(robot_param.TelescopicParams.复位.value) # 伸缩控制
-        self.arm.nod_servo(robot_param.GripperRyParams.复位.value) # 摆臂控制
-        self.arm.gripper_servo(robot_param.GripperParams.复位.value) # 卡爪控制
-        self.arm.rotary_servo(robot_param.GripperRzParams.复位.value) # 旋臂控制
-
+        self.arm_control(ArmMovementParam.RESET)
         self.__logger.info("[机械臂] 复位完成！")
+
+    def navigation(self, nav_path: NavPath):
+        self.navigation.navigation(nav_path.value)
