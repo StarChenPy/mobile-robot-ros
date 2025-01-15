@@ -22,107 +22,110 @@ class ArmImpl:
 
     # ===============================电机部分===============================
 
-    def __call_motor(self, srv_client: Client, cmd: RotateMotorCmd, target: float, origin: msg.OriginParam,
-                     ctrl: msg.AxisParam):
+    def __call_motor(self, srv_client: Client, cmd: MotorCmd, target: float, origin: msg.OriginParam, ctrl: msg.AxisParam):
         """
         通过服务控制电机运动
-        @param srv_client 具体的电机服务
-        @param cmd 控制命令类型
-        @param target 目标值
-        @param origin 回原点参数
-        @param ctrl 轴闭环控制参数、滤波器参数与跳出条件
+        @param srv_client: 具体的电机服务
+        @param cmd: 控制命令类型
+        @param target: 目标值
+        @param origin: 回原点参数
+        @param ctrl: 轴闭环控制参数、滤波器参数与跳出条件
         """
+        request = srv.CtrlImpl.Request(
+            cmd=cmd.value,
+            target_pose=target,
+            origin_param=origin,
+            ctrl_param=ctrl
+        )
 
-        request = srv.CtrlImpl.Request()
-        request.cmd = cmd.value
-        request.target_pose = target
-        request.origin_param = origin
-        request.ctrl_param = ctrl
-
-        self.__logger.debug(f"[机械臂电机] 正在调用 {srv_client.srv_name}")
+        self.__logger.info(f"[机械臂电机] 正在调用 {srv_client.srv_name}")
         future = srv_client.call_async(request)
-        self.__logger.debug(f"[机械臂电机] 调用完成 {srv_client.srv_name}")
+        self.__logger.info(f"[机械臂电机] 调用完成 {srv_client.srv_name}")
 
         return future
 
-    def ctrl_rotate_motor(self, cmd: RotateMotorCmd, angle=0, speed=50.0, block=True):
+
+    def _ctrl_motor(self, motor_type: Motor, cmd: MotorCmd, target: float, speed: float, is_block: bool):
+        """
+        通用的电机控制方法，用于旋转和升降电机
+        @param motor_type: 电机类型（旋转或升降）
+        @param cmd: 控制命令类型
+        @param target: 目标值（角度或高度）
+        @param speed: 速度
+        @param is_block: 是否阻塞等待运动完成
+        """
+        motor_param = motor_type.value
+        self.__logger.info(f"[机械臂电机] {motor_type.name} 电机 命令: {cmd} 目标: {target} 速度: {speed}")
+
+        # 设置最大速度
+        motor_param.ctrl_param.max_vel = float(speed)
+
+        # 获取目标值的范围限制
+        min_val, max_val = motor_param.min_value, motor_param.max_value
+        if target > max_val:
+            self.__logger.warning(f"[机械臂电机] 目标 {motor_type.name} 角度/高度 {target} 超过最大值 {max_val}")
+            target = max_val
+        elif target < min_val:
+            self.__logger.warning(f"[机械臂电机] 目标 {motor_type.name} 角度/高度 {target} 低于最小值 {min_val}")
+            target = min_val
+
+        # 根据电机类型转换目标值
+        if motor_type == Motor.ROTATE:
+            enc_ppi = 1750.0 * 4.0
+            target_pulses = target * (enc_ppi / 360.0)
+        elif motor_type == Motor.LIFT:
+            ratio = motor_param.coding_step / motor_param.coding_dis
+            target_pulses = -target * ratio
+        else:
+            self.__logger.error(f"未知的电机类型: {motor_type}")
+            return None
+
+        # 调用电机服务
+        srv_client = self.__srv_rotate_motor if motor_type == Motor.ROTATE else self.__srv_lift_motor
+        future = self.__call_motor(
+            srv_client, cmd, target_pulses, motor_param.origin_param, motor_param.ctrl_param
+        )
+        self.__logger.info(f"[机械臂电机] {motor_type.name} 电机请求已发送")
+
+        # 阻塞等待运动完成
+        if is_block:
+            self.wait_motor_finish(motor_type)
+
+        return future
+
+    def wait_motor_finish(self, motor_type: Motor):
+        client = self.__srv_lift_motor if motor_type == Motor.LIFT else self.__srv_rotate_motor
+        future = self.__call_motor(client, MotorCmd.READ_FEEDBACK, 0, motor_type.value.origin_param, motor_type.value.ctrl_param)
+
+        while rclpy.ok():
+            rclpy.spin_once(self.__node)
+            if not future.done():
+                continue
+            if future.result().feedback.reached:
+                self.__logger.info(f"[机械臂电机] {motor_type.name} 电机运动已完成")
+                break
+
+    def ctrl_rotate_motor(self, cmd: MotorCmd, angle=0, speed=50.0, is_block=True):
         """
         控制旋转电机运动
-        @param cmd 控制命令类型
-        @param angle 旋转角度
-        @param speed 旋转速度
-        @param block 是否阻塞
+        @param cmd: 控制命令类型
+        @param angle: 旋转角度
+        @param speed: 旋转速度
+        @param is_block: 是否阻塞
         """
+        return self._ctrl_motor(Motor.ROTATE, cmd, angle, speed, is_block)
 
-        self.__logger.info(f'[机械臂电机] 旋转电机 命令: {cmd} 目标角度: {angle} 速度: {speed}')
 
-        motor_param = Motor.ROTATE.value
-        motor_param.ctrl_param.max_vel = float(speed)
-
-        if angle > motor_param.max_value:
-            self.__logger.warn(f"[机械臂电机] 目标旋转电机角度 {angle} 超过最大值 {motor_param.max_value}")
-            angle = motor_param.max_value
-        elif angle < motor_param.min_value:
-            self.__logger.warn(f"[机械臂电机] 目标旋转电机角度 {angle} 超过最小值 {motor_param.min_value}")
-            angle = motor_param.min_value
-
-        enc_ppi = 1750.0 * 4.0
-        angle = angle * (enc_ppi / 360.0)
-
-        future = self.__call_motor(self.__srv_rotate_motor, cmd, angle, motor_param.origin_param,
-                                   motor_param.ctrl_param)
-        self.__logger.info(f"[机械臂电机] 旋转电机请求已发送")
-        if block:
-            while True:
-                result = self.__call_motor(self.__srv_lift_motor, RotateMotorCmd.READ_FEEDBACK, angle,
-                                           motor_param.origin_param, motor_param.ctrl_param).result()
-                if result is None:
-                    continue
-                if result.feedback.reached:
-                    self.__logger.info("[机械臂电机] 旋转电机运动已完成")
-                    break
-                rclpy.spin_once(self.__node, timeout_sec=0.2)
-                pass
-        return future
-
-    def ctrl_lift_motor(self, cmd: RotateMotorCmd, height=0, speed=10.0, block=True):
+    def ctrl_lift_motor(self, cmd: MotorCmd, height=0, speed=10.0, is_block=True):
         """
         控制升降电机运动
-        @param cmd 控制命令类型
-        @param height 升降距离
-        @param speed 升降速度
-        @param block 是否阻塞
+        @param cmd: 控制命令类型
+        @param height: 升降距离
+        @param speed: 升降速度
+        @param is_block: 是否阻塞
         """
+        return self._ctrl_motor(Motor.LIFT, cmd, height, speed, is_block)
 
-        self.__logger.info(f'[机械臂电机] 升降电机 命令: {cmd} 目标高度: {height} 速度: {speed}')
-
-        motor_param = Motor.LIFT.value
-        motor_param.ctrl_param.max_vel = float(speed)
-
-        if height > motor_param.max_value:
-            self.__logger.warn(f"[机械臂电机] 目标升降电机距离 {height} 超过最大值 {motor_param.max_value}")
-            height = motor_param.max_value
-        elif height < motor_param.min_value:
-            self.__logger.warn(f"[机械臂电机] 目标升降电机距离 {height} 超过最大值 {motor_param.min_value}")
-            height = motor_param.min_value
-
-        ratio = motor_param.coding_step / motor_param.coding_dis  # 得到每个cm多少个脉冲
-        height = -height * ratio  # 计算目标脉冲
-
-        future = self.__call_motor(self.__srv_lift_motor, cmd, height, motor_param.origin_param, motor_param.ctrl_param)
-        self.__logger.info(f"[机械臂电机] 升降电机请求已发送")
-        if block:
-            while True:
-                result = self.__call_motor(self.__srv_lift_motor, RotateMotorCmd.READ_FEEDBACK, height,
-                                           motor_param.origin_param, motor_param.ctrl_param).result()
-                if result is None:
-                    continue
-                if result.feedback.reached:
-                    self.__logger.info("[机械臂电机] 升降电机运动已完成")
-                    break
-                rclpy.spin_once(self.__node, timeout_sec=0.2)
-                pass
-        return future
 
     # ===============================舵机部分===============================
 

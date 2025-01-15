@@ -4,7 +4,7 @@ from enum import Enum
 from position_motor_ros2 import msg
 
 
-class RotateMotorCmd(Enum):
+class MotorCmd(Enum):
     READ_FEEDBACK = 0
     BACK_ORIGIN = 1
     SET_POSITION = 2

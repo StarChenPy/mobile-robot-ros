@@ -48,15 +48,15 @@ class MobileRobot:
         self.__logger.info(f"[机器人] 机械臂控制 {movement.name}")
         if movement.value.motor is not None:
             if movement.value.motor.lift == 0:
-                self.__arm.ctrl_lift_motor(arm_impl.RotateMotorCmd.BACK_ORIGIN)  # 回原点
+                self.__arm.ctrl_lift_motor(arm_impl.MotorCmd.BACK_ORIGIN)  # 回原点
             else:
-                self.__arm.ctrl_lift_motor(arm_impl.RotateMotorCmd.SET_POSITION, movement.value.motor.lift)
+                self.__arm.ctrl_lift_motor(arm_impl.MotorCmd.SET_POSITION, movement.value.motor.lift)
 
             if movement.value.motor.rotate == 0:
-                self.__arm.ctrl_rotate_motor(arm_impl.RotateMotorCmd.BACK_ORIGIN)  # 回原点
-                self.__arm.ctrl_rotate_motor(arm_impl.RotateMotorCmd.SET_POSITION, 0.5, 50)
+                self.__arm.ctrl_rotate_motor(arm_impl.MotorCmd.BACK_ORIGIN)  # 回原点
+                self.__arm.ctrl_rotate_motor(arm_impl.MotorCmd.SET_POSITION, 0.5, 50)
             else:
-                self.__arm.ctrl_rotate_motor(arm_impl.RotateMotorCmd.SET_POSITION, movement.value.motor.rotate)
+                self.__arm.ctrl_rotate_motor(arm_impl.MotorCmd.SET_POSITION, movement.value.motor.rotate)
 
         if movement.value.servo is not None:
             self.__arm.telescopic_servo(ArmMovementParam.RESET.value.servo.telescopic)
