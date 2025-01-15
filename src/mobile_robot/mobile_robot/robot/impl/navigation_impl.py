@@ -38,9 +38,7 @@ class NavigationImpl:
 
         self.__logger.info("[导航接口] 初始化完成.")
 
-
-# ===============================导航部分===============================
-
+    # ===============================导航部分===============================
 
     def init_pose(self, x=0.0, y=0.0, angle=0.0, mode=ResetOdomMode.RESET_ALL):
         """初始化机器人位置，支持重置odom不同模式"""
@@ -124,9 +122,7 @@ class NavigationImpl:
         if self.__goal_handle:
             self.__goal_handle.cancel_goal_async()
 
-
-# ===============================基础运动部分===============================
-
+    # ===============================基础运动部分===============================
 
     def __call_srv_base_motion(self, mode: BaseMotionMode, set_point, speed):
         """调用基础运动服务"""

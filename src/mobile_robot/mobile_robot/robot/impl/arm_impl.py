@@ -1,3 +1,6 @@
+import time
+
+import rclpy
 from rclpy.client import Client
 from rclpy.node import Node
 
@@ -68,13 +71,21 @@ class ArmImpl:
 
         future = self.__call_motor(self.__srv_rotate_motor, cmd, angle, motor_param.origin_param,
                                    motor_param.ctrl_param)
-        self.__logger.warn(f"[机械臂电机] 旋转电机请求已发送")
-        if not block:
-            while not future.done():
+        self.__logger.info(f"[机械臂电机] 旋转电机请求已发送")
+        if block:
+            while True:
+                result = self.__call_motor(self.__srv_lift_motor, RotateMotorCmd.READ_FEEDBACK, angle,
+                                           motor_param.origin_param, motor_param.ctrl_param).result()
+                if result is None:
+                    continue
+                if result.feedback.reached:
+                    self.__logger.info("[机械臂电机] 旋转电机运动已完成")
+                    break
+                rclpy.spin_once(self.__node, timeout_sec=0.2)
                 pass
         return future
 
-    def ctrl_lift_motor(self, cmd: RotateMotorCmd, height=0, speed=50.0, block=True):
+    def ctrl_lift_motor(self, cmd: RotateMotorCmd, height=0, speed=10.0, block=True):
         """
         控制升降电机运动
         @param cmd 控制命令类型
@@ -95,13 +106,21 @@ class ArmImpl:
             self.__logger.warn(f"[机械臂电机] 目标升降电机距离 {height} 超过最大值 {motor_param.min_value}")
             height = motor_param.min_value
 
-        ratio = motor_param.coding_step / motor_param.coding_dis  #得到每个cm多少个脉冲
-        height = -height * ratio  #计算目标脉冲
+        ratio = motor_param.coding_step / motor_param.coding_dis  # 得到每个cm多少个脉冲
+        height = -height * ratio  # 计算目标脉冲
 
         future = self.__call_motor(self.__srv_lift_motor, cmd, height, motor_param.origin_param, motor_param.ctrl_param)
-        self.__logger.warn(f"[机械臂电机] 升降电机请求已发送")
-        if not block:
-            while not future.done():
+        self.__logger.info(f"[机械臂电机] 升降电机请求已发送")
+        if block:
+            while True:
+                result = self.__call_motor(self.__srv_lift_motor, RotateMotorCmd.READ_FEEDBACK, height,
+                                           motor_param.origin_param, motor_param.ctrl_param).result()
+                if result is None:
+                    continue
+                if result.feedback.reached:
+                    self.__logger.info("[机械臂电机] 升降电机运动已完成")
+                    break
+                rclpy.spin_once(self.__node, timeout_sec=0.2)
                 pass
         return future
 
@@ -144,6 +163,8 @@ class ArmImpl:
             case _:
                 coeff = (servo_param.deg90_duty - servo_param.zero_duty) / 90.0
                 duty = servo_param.zero_duty + value * coeff
+
+        self.__logger.info(f"[机械臂舵机] 写入 pwm 占空比为 {duty}")
 
         self.__io.write_pwm(servo_param.pin, duty)
 

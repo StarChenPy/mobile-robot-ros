@@ -60,7 +60,7 @@ class IoImpl(object):
 
     # 设置 pwm (端口: 0-4, duty: 0-100%)
     def write_pwm(self, port, duty):
-        duty = min(max(duty, 0), 100)
+        duty = float(min(max(duty, 0), 100))
 
         match port:
             case 0: self.__robot_ctrl.pwm0 = duty
@@ -69,10 +69,7 @@ class IoImpl(object):
             case 3: self.__robot_ctrl.pwm3 = duty
             case 4: self.__robot_ctrl.pwm4 = duty
 
-    def close(self):
-        self.__robot_ctrl_pub.destroy()
-        self.__robot_data_sub.destroy()
-        self.timer.destroy()
+        # print(self.__robot_ctrl)
 
     def is_connect(self):
         return self.__robot_connect

@@ -1,8 +1,10 @@
+import time
 import rclpy
 
 from rclpy.node import Node
 
 from .robot.robot import MobileRobot
+from .robot.param.arm_movement import ArmMovementParam
 
 
 class RobotCatchFruit(Node):
@@ -16,6 +18,8 @@ class RobotCatchFruit(Node):
         self.robot.with_start_button()
         self.robot.arm_reset()
 
+        self.robot.ping_revise(20, 0)
+
 
 
 def main():
@@ -25,7 +29,6 @@ def main():
 
     rclpy.spin(robot)
 
-    # 这个调用应该放在节点内部
     robot.destroy_node()
     rclpy.shutdown()
 
