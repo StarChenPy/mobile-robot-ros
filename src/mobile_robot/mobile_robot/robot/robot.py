@@ -3,9 +3,9 @@ import rclpy
 
 from rclpy.node import Node
 
-from .impl import arm_impl, io_impl, navigation_impl, revise_impl
+from .impl import arm_impl, io_impl, navigation_impl, revise_impl, vision_impl
 from .param.arm_movement import ArmMovementParam
-from .param.navigation_path import NavPath
+from .param.navigation_path import NavPath, Pose
 
 
 class MobileRobot:
@@ -17,6 +17,7 @@ class MobileRobot:
         self.__arm = arm_impl.ArmImpl(self.__node)
         self.__io = io_impl.IoImpl.instance(self.__node)
         self.__revise = revise_impl.ReviseImpl(self.__node)
+        self.__vision = vision_impl.VisionImpl(self.__node)
 
         self.__logger.info("[机器人] 等待连接")
         while rclpy.ok():
@@ -47,22 +48,24 @@ class MobileRobot:
     def arm_control(self, movement: ArmMovementParam):
         self.__logger.info(f"[机器人] 机械臂控制 {movement.name}")
         if movement.value.motor is not None:
-            if movement.value.motor.lift == 0:
+            if movement.value.motor.lift == -1:
                 self.__arm.ctrl_lift_motor(arm_impl.MotorCmd.BACK_ORIGIN)  # 回原点
             else:
                 self.__arm.ctrl_lift_motor(arm_impl.MotorCmd.SET_POSITION, movement.value.motor.lift)
 
-            if movement.value.motor.rotate == 0:
+            if movement.value.motor.rotate == -1:
                 self.__arm.ctrl_rotate_motor(arm_impl.MotorCmd.BACK_ORIGIN)  # 回原点
                 self.__arm.ctrl_rotate_motor(arm_impl.MotorCmd.SET_POSITION, 0.5, 50)
             else:
                 self.__arm.ctrl_rotate_motor(arm_impl.MotorCmd.SET_POSITION, movement.value.motor.rotate)
 
         if movement.value.servo is not None:
-            self.__arm.telescopic_servo(ArmMovementParam.RESET.value.servo.telescopic)
-            self.__arm.nod_servo(ArmMovementParam.RESET.value.servo.nod)
-            self.__arm.gripper_servo(ArmMovementParam.RESET.value.servo.gripper)
-            self.__arm.rotary_servo(ArmMovementParam.RESET.value.servo.rotary)
+            self.__arm.telescopic_servo(movement.value.servo.telescopic)
+            self.__arm.nod_servo(movement.value.servo.nod)
+            self.__arm.gripper_servo(movement.value.servo.gripper)
+            self.__arm.rotary_servo(movement.value.servo.rotary)
+
+        time.sleep(3)
 
     def arm_reset(self):
         self.__logger.info("[机械臂] 开始复位！")
@@ -72,8 +75,9 @@ class MobileRobot:
         self.__logger.info("[机械臂] 复位完成！")
 
     def navigation(self, nav_path: NavPath):
-        start_point = nav_path.value[0]
-        self.__navigation.init_pose(start_point[0], start_point[1], start_point[2])
+        print(nav_path.value)
+        start_point = nav_path.value[0].value
+        self.__navigation.init_pose(start_point.x, start_point.y, start_point.yaw)
 
         path = nav_path.value[1:]
         self.__navigation.navigation(path)
@@ -83,3 +87,7 @@ class MobileRobot:
 
     def ir_revise(self, dis: float, yaw: float):
         self.__revise.ir_revise(dis, yaw)
+
+    def vision(self):
+        self.__vision.send_mnn_request()
+        print(self.__vision.mnn_result())

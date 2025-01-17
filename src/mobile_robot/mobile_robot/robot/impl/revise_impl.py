@@ -39,8 +39,6 @@ class ReviseImpl:
         msg_pub.start = True
         msg_pub.status = 1
         self.__revise_data_pub.publish(msg_pub)
-        # time.sleep(0.5)
-        # self.__revise_data_pub.publish(msg_pub)
 
     def ping_revise(self, dis: float, yaw: float):
         self.__pub_revise(dis, yaw, ReviseSensorSelect.PING)

@@ -22,7 +22,8 @@ class ArmImpl:
 
     # ===============================电机部分===============================
 
-    def __call_motor(self, srv_client: Client, cmd: MotorCmd, target: float, origin: msg.OriginParam, ctrl: msg.AxisParam):
+    def __call_motor(self, srv_client: Client, cmd: MotorCmd, target: float, origin: msg.OriginParam,
+                     ctrl: msg.AxisParam):
         """
         通过服务控制电机运动
         @param srv_client: 具体的电机服务
@@ -33,17 +34,11 @@ class ArmImpl:
         """
         request = srv.CtrlImpl.Request(
             cmd=cmd.value,
-            target_pose=target,
+            target_pose=float(target),
             origin_param=origin,
             ctrl_param=ctrl
         )
-
-        self.__logger.info(f"[机械臂电机] 正在调用 {srv_client.srv_name}")
-        future = srv_client.call_async(request)
-        self.__logger.info(f"[机械臂电机] 调用完成 {srv_client.srv_name}")
-
-        return future
-
+        return srv_client.call_async(request)
 
     def _ctrl_motor(self, motor_type: Motor, cmd: MotorCmd, target: float, speed: float, is_block: bool):
         """
@@ -55,7 +50,7 @@ class ArmImpl:
         @param is_block: 是否阻塞等待运动完成
         """
         motor_param = motor_type.value
-        self.__logger.info(f"[机械臂电机] {motor_type.name} 电机 命令: {cmd} 目标: {target} 速度: {speed}")
+        self.__logger.debug(f"[机械臂电机] {motor_type.name} 电机 命令: {cmd} 目标: {target} 速度: {speed}")
 
         # 设置最大速度
         motor_param.ctrl_param.max_vel = float(speed)
@@ -95,15 +90,24 @@ class ArmImpl:
 
     def wait_motor_finish(self, motor_type: Motor):
         client = self.__srv_lift_motor if motor_type == Motor.LIFT else self.__srv_rotate_motor
-        future = self.__call_motor(client, MotorCmd.READ_FEEDBACK, 0, motor_type.value.origin_param, motor_type.value.ctrl_param)
+        flag = True
 
-        while rclpy.ok():
-            rclpy.spin_once(self.__node)
-            if not future.done():
-                continue
-            if future.result().feedback.reached:
-                self.__logger.info(f"[机械臂电机] {motor_type.name} 电机运动已完成")
-                break
+        # 这里鉴于非同步式的特殊性质，需要双层while循环请求并验证是否有效
+        while flag:
+            future = self.__call_motor(client, MotorCmd.READ_FEEDBACK, 0, motor_type.value.origin_param,
+                                       motor_type.value.ctrl_param)
+            while rclpy.ok():
+                rclpy.spin_once(self.__node)
+                if not future.done():
+                    continue
+                result = future.result()
+                if result.feedback.reached:
+                    self.__logger.info(f"[机械臂电机] {motor_type.name} 电机运动已完成")
+                    flag = False
+                    break
+                else:
+                    break
+            time.sleep(0.2)
 
     def ctrl_rotate_motor(self, cmd: MotorCmd, angle=0, speed=50.0, is_block=True):
         """
@@ -115,8 +119,7 @@ class ArmImpl:
         """
         return self._ctrl_motor(Motor.ROTATE, cmd, angle, speed, is_block)
 
-
-    def ctrl_lift_motor(self, cmd: MotorCmd, height=0, speed=10.0, is_block=True):
+    def ctrl_lift_motor(self, cmd: MotorCmd, height=0, speed=30.0, is_block=True):
         """
         控制升降电机运动
         @param cmd: 控制命令类型
@@ -125,7 +128,6 @@ class ArmImpl:
         @param is_block: 是否阻塞
         """
         return self._ctrl_motor(Motor.LIFT, cmd, height, speed, is_block)
-
 
     # ===============================舵机部分===============================
 
@@ -145,7 +147,7 @@ class ArmImpl:
             self.__io.write_pwm(servo_param.pin, 0)
             return
 
-        self.__logger.info(f'[机械臂舵机] 设置 {type_name}: {value}')
+        self.__logger.debug(f'[机械臂舵机] 设置 {type_name}: {value}')
 
         # 限位处理
         if value < servo_param.min_value:
@@ -166,8 +168,6 @@ class ArmImpl:
             case _:
                 coeff = (servo_param.deg90_duty - servo_param.zero_duty) / 90.0
                 duty = servo_param.zero_duty + value * coeff
-
-        self.__logger.info(f"[机械臂舵机] 写入 pwm 占空比为 {duty}")
 
         self.__io.write_pwm(servo_param.pin, duty)
 

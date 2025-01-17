@@ -2,6 +2,8 @@ import time
 import math
 
 from enum import Enum
+
+import rclpy
 from geometry_msgs.msg import Pose2D
 from rclpy.node import Node
 from rclpy.action import ActionClient
@@ -28,6 +30,7 @@ class NavigationImpl:
     __goal_handle = None
 
     def __init__(self, node: Node):
+        self.__node = node
         self.__logger = node.get_logger()
 
         self.__io = IoImpl.instance(node)
@@ -51,22 +54,27 @@ class NavigationImpl:
 
         radian = math.radians(angle)
         req.theta = float(radian)
-        self.__logger.info(f'输入角度 {angle} 转弧度 {radian}')
 
-        res = self.__odom_srv.call(req)
+        future = self.__odom_srv.call_async(req)
 
-        if res.success:
-            self.__logger.info("[导航接口] 重置 Odometry 成功")
-            return True
-        else:
-            self.__logger.error("[导航接口] 重置 Odometry 错误")
-            return False
+        while rclpy.ok():
+            rclpy.spin_once(self.__node)
 
-    def navigation(self, points: tuple, heading=0.0, reverse=False, linear_speed=0.55, rotation_speed=3.5):
+            if not future.done():
+                continue
+
+            result = future.result()
+            if result.success:
+                self.__logger.info("[导航接口] 重置 Odometry 成功")
+                return True
+            else:
+                self.__logger.error("[导航接口] 重置 Odometry 错误")
+                return False
+
+    def navigation(self, points: list, reverse=False, linear_speed=0.55, rotation_speed=3.5):
         """
         路径跟随: 输入路径点、最终角度等参数，发送导航请求
         @param points 路径坐标点[x,y]
-        @param heading 最终点航向
         @param reverse 倒车
         @param linear_speed 最大线速度m/s
         @param rotation_speed 最大旋转速度m/s
@@ -76,12 +84,13 @@ class NavigationImpl:
 
         for p in points:
             pose2d = Pose2D()
-            pose2d.x = float(p['x'])
-            pose2d.y = float(p['y'])
+            pose2d.x = float(p.value.x)
+            pose2d.y = float(p.value.y)
             pose2d.theta = 0.0
             goal_msg.points.append(pose2d)
 
-        goal_msg.heading = float(heading)
+        # 这里要获取导航最后一个点的角度并赋给heading
+        goal_msg.heading = float(points[-1].value.yaw)
         goal_msg.back = bool(reverse)
         goal_msg.linear_vel = float(linear_speed)
         goal_msg.rotation_vel = float(rotation_speed)

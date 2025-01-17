@@ -14,8 +14,8 @@ class MotorCmd(Enum):
 # 定义电机参数的数据类
 @dataclass
 class MotorParams:
-    max_value: float      # 最大值 (例如：角度或距离)
-    min_value: float      # 最小值 (例如：角度或距离)
+    max_value: float  # 最大值 (例如：角度或距离)
+    min_value: float  # 最小值 (例如：角度或距离)
     origin_param: msg.OriginParam  # 回原点参数
     ctrl_param: msg.AxisParam  # 位环控制参数
     coding_step: float = None
@@ -25,14 +25,14 @@ class MotorParams:
 # 定义舵机参数的数据类
 @dataclass
 class ServoParams:
-    pin: int                    # 控制引脚编号
-    min_value: float            # 最小角度或距离 (可选)
-    max_value: float            # 最大角度或距离 (可选)
-    zero_duty: float = None     # 零位时的占空比 (可选)
-    deg90_duty: float = None    # 90度时的占空比 (可选)
-    min_duty: float = None      # 最小占空比 (可选)
-    max_duty: float = None      # 最大占空比 (可选)
-    itinerary: float = None     # 行程 (角度或距离) (可选)
+    pin: int  # 控制引脚编号
+    min_value: float  # 最小角度或距离 (可选)
+    max_value: float  # 最大角度或距离 (可选)
+    zero_duty: float = None  # 零位时的占空比 (可选)
+    deg90_duty: float = None  # 90度时的占空比 (可选)
+    min_duty: float = None  # 最小占空比 (可选)
+    max_duty: float = None  # 最大占空比 (可选)
+    itinerary: float = None  # 行程 (角度或距离) (可选)
 
 
 # 定义舵机枚举
@@ -53,7 +53,7 @@ class Servo(Enum):
     )  # 卡爪舵机 点头(角度)
     TELESCOPIC_SERVO = ServoParams(
         pin=2,
-        min_value=-100, # 并没有最小最大值，随便写的
+        min_value=-100,  # 并没有最小最大值，随便写的
         max_value=100,
         min_duty=12,
         max_duty=49,

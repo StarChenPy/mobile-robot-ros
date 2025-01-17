@@ -1,4 +1,7 @@
-from rclpy import Node
+import time
+
+import rclpy
+from rclpy.node import Node
 from mnn_msgs.srv import MnnService  # 导入 mnn 服务接口
 
 
@@ -7,6 +10,8 @@ class VisionImpl:
         """
         初始化 VisionImpl 类实例
         """
+        self.__future = None
+        self.__node = node
         self.__logger = node.get_logger()
         self.__mnn_client = node.create_client(MnnService, '/mnn/mnn_cmd')  # 创建服务客户端
 
@@ -23,10 +28,14 @@ class VisionImpl:
         request.cmd = 2
         request.data = ""
 
-        future = self.__mnn_client.call_async(request)
+        self.__future = self.__mnn_client.call_async(request)
         self.__logger.info("[视觉] MNN 请求已发送")
 
-        while not future.done():
-            pass
-
-        return future.result()
+    def mnn_result(self):
+        if self.__future is None:
+            return
+        while rclpy.ok():
+            rclpy.spin_once(self.__node)
+            if self.__future.done():
+                return self.__future.result()
+            time.sleep(0.2)
