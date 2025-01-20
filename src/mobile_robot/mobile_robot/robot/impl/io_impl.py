@@ -1,9 +1,11 @@
 import threading
+import time
 
 from rclpy.node import Node
 
 from web_message_transform_ros2.msg import RobotCtrl
 from web_message_transform_ros2.msg import RobotData
+
 
 class IoImpl(object):
     """
@@ -20,7 +22,8 @@ class IoImpl(object):
 
         # 等待ros连接
         self.__robot_ctrl_pub = node.create_publisher(RobotCtrl, '/web_transform_node/robot_ctrl', 10)
-        self.__robot_data_sub = node.create_subscription(RobotData, '/web_transform_node/robot_data', self.__robot_data_callback, 10)
+        self.__robot_data_sub = node.create_subscription(RobotData, '/web_transform_node/robot_data',
+                                                         self.__robot_data_callback, 10)
 
         self.__robot_ctrl = RobotCtrl()
         self.__robot_ctrl.do0 = False
@@ -32,7 +35,7 @@ class IoImpl(object):
         self.__robot_ctrl.pwm3 = 0.0
         self.__robot_ctrl.pwm4 = 0.0
 
-        self.timer = node.create_timer(0.5, self.__write_handle)
+        threading.Thread(target=self.__write_handle, daemon=True).start()
 
         self.__logger.info('[I/O] 初始化完成')
 
@@ -49,27 +52,35 @@ class IoImpl(object):
 
     # 通过定时器自动发布话题
     def __write_handle(self):
-        self.__robot_ctrl_pub.publish(self.__robot_ctrl)
+        while True:
+            self.__robot_ctrl_pub.publish(self.__robot_ctrl)
+            time.sleep(0.2)
 
     # 设置DO输出(端口: 0-2, 电平: T/F)
     def write_do(self, port, state: bool):
         match port:
-            case 0: self.__robot_ctrl.do0 = state
-            case 1: self.__robot_ctrl.do1 = state
-            case 2: self.__robot_ctrl.do2 = state
+            case 0:
+                self.__robot_ctrl.do0 = state
+            case 1:
+                self.__robot_ctrl.do1 = state
+            case 2:
+                self.__robot_ctrl.do2 = state
 
     # 设置 pwm (端口: 0-4, duty: 0-100%)
     def write_pwm(self, port, duty):
         duty = float(min(max(duty, 0), 100))
 
         match port:
-            case 0: self.__robot_ctrl.pwm0 = duty
-            case 1: self.__robot_ctrl.pwm1 = duty
-            case 2: self.__robot_ctrl.pwm2 = duty
-            case 3: self.__robot_ctrl.pwm3 = duty
-            case 4: self.__robot_ctrl.pwm4 = duty
-
-        # print(self.__robot_ctrl)
+            case 0:
+                self.__robot_ctrl.pwm0 = duty
+            case 1:
+                self.__robot_ctrl.pwm1 = duty
+            case 2:
+                self.__robot_ctrl.pwm2 = duty
+            case 3:
+                self.__robot_ctrl.pwm3 = duty
+            case 4:
+                self.__robot_ctrl.pwm4 = duty
 
     def is_connect(self):
         return self.__robot_connect
