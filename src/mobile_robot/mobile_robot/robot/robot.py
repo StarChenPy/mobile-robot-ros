@@ -68,14 +68,14 @@ class MobileRobot:
             self.__arm.gripper_servo(movement.value.servo.gripper)
             self.__arm.rotary_servo(movement.value.servo.rotary)
 
-        time.sleep(2)
+        time.sleep(1)
 
     def arm_reset(self):
         self.__logger.info("[机械臂] 开始复位！")
         self.arm_control(ArmMovementParam.RESET)
         self.__logger.info("[机械臂] 复位完成！")
 
-    def navigation(self, nav_path: NavPath, speed=0.5, is_block=True, init_pose=True):
+    def navigation(self, nav_path: NavPath, speed=0.3, is_block=True, init_pose=True):
         """
         通过路径进行导航
         @param nav_path 路径列表

@@ -80,7 +80,7 @@ class ArmImpl:
         future = self.__call_motor(
             srv_client, cmd, target_pulses, motor_param.origin_param, motor_param.ctrl_param
         )
-        self.__logger.info(f"[机械臂电机] {motor_type.name} 电机请求已发送")
+        self.__logger.debug(f"[机械臂电机] {motor_type.name} 电机请求已发送")
 
         # 阻塞等待运动完成
         if is_block:
@@ -104,7 +104,7 @@ class ArmImpl:
                     continue
 
                 if future.result().feedback.reached:
-                    self.__logger.info(f"[机械臂电机] {motor_type.name} 电机运动已完成")
+                    self.__logger.debug(f"[机械臂电机] {motor_type.name} 电机运动已完成")
                     flag = False
                     break
                 else:
@@ -145,7 +145,7 @@ class ArmImpl:
         type_name = servo_param_type.name.lower()
 
         if not enable:
-            self.__logger.info(f'[机械臂舵机] 已设置 {type_name} 舵机松使能')
+            self.__logger.debug(f'[机械臂舵机] 已设置 {type_name} 舵机松使能')
             self.__io.write_pwm(servo_param.pin, 0)
             return
 

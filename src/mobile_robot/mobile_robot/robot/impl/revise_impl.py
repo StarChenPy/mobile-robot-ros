@@ -36,11 +36,15 @@ class ReviseImpl:
         self.__revise_data_pub.publish(msg_pub)
         time.sleep(1)
         self.__revise_data_pub.publish(msg_pub)
+        time.sleep(1)
+        self.__revise_data_pub.publish(msg_pub)
 
     def ping_revise(self, dis: float, yaw: float):
+        self.__logger.info("[矫正] 开始超声波矫正")
         self.__pub_revise(dis, yaw, ReviseSensorSelect.PING)
 
     def ir_revise(self, dis: float, yaw: float):
+        self.__logger.info("[矫正] 开始红外矫正")
         self.__pub_revise(dis, yaw, ReviseSensorSelect.IR)
 
     # 等待修正结束
@@ -52,4 +56,6 @@ class ReviseImpl:
         rclpy.spin_once(self.__node)
         while self.__revise_data.status != 0:
             rclpy.spin_once(self.__node)
+
         self.__logger.info("[矫正] 矫正已结束")
+        time.sleep(1)

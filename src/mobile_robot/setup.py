@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'robot_catch_fruit = mobile_robot.robot_catch_fruit:main',
+            'b_module = mobile_robot.b_module:main',
         ],
     },
 )

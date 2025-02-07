@@ -61,7 +61,7 @@ class NavigationImpl:
                 self.__logger.error("[导航接口] 重置 Odometry 错误")
                 break
 
-    def navigation(self, points: list[NavPoint], linear_speed=0.3, rotation_speed=2, is_block=True) -> None:
+    def navigation(self, points: list[NavPoint], linear_speed=0.3, rotation_speed=1, is_block=True) -> None:
         """
         路径跟随: 输入路径点、最终角度等参数，发送导航请求
         @param points 路径坐标点[x,y]
