@@ -25,7 +25,7 @@ class ReviseImpl:
         self.__revise_data = msg
 
     # 控制状态发布
-    def __pub_revise(self, distance, yaw, sensor_selection: ReviseSensorSelect):
+    def __pub_revise(self, distance, yaw, sensor_selection: CorrectiveSensor):
         msg_pub = ReviseData()
         msg_pub.set_revise_x = float(distance)
         msg_pub.set_revise_y = float(0)
@@ -41,11 +41,11 @@ class ReviseImpl:
 
     def ping_revise(self, dis: float, yaw: float):
         self.__logger.info("[矫正] 开始超声波矫正")
-        self.__pub_revise(dis, yaw, ReviseSensorSelect.PING)
+        self.__pub_revise(dis, yaw, CorrectiveSensor.PING)
 
     def ir_revise(self, dis: float, yaw: float):
         self.__logger.info("[矫正] 开始红外矫正")
-        self.__pub_revise(dis, yaw, ReviseSensorSelect.IR)
+        self.__pub_revise(dis, yaw, CorrectiveSensor.IR)
 
     # 等待修正结束
     def wait_controls_end(self):

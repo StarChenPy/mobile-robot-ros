@@ -33,16 +33,15 @@ class NavigationImpl:
 
     # ===============================导航部分===============================
 
-    def init_pose(self, x=0.0, y=0.0, angle=0.0, mode=ResetOdomMode.RESET_ALL) -> None:
+    def init_pose(self, pose: Pose, mode=ResetOdomMode.RESET_ALL) -> None:
         """初始化机器人位置，支持重置odom不同模式"""
-        self.__logger.info(f"[导航接口] 初始化机器人位置 [{x}, {y}, {angle}] 模式为 {mode.name}")
+        self.__logger.info(f"[导航接口] 初始化机器人位置 [{pose.x}, {pose.y}, {pose.yaw}] 模式为 {mode.name}")
 
         req = ResetOdom.Request()
         req.clear_mode = mode.value
-        req.x = float(x)
-        req.y = float(y)
-
-        radian = math.radians(angle)
+        req.x = float(pose.x)
+        req.y = float(pose.y)
+        radian = math.radians(pose.yaw)
         req.theta = float(radian)
 
         future = self.__odom_srv.call_async(req)
@@ -61,7 +60,7 @@ class NavigationImpl:
                 self.__logger.error("[导航接口] 重置 Odometry 错误")
                 break
 
-    def navigation(self, points: list[NavPoint], linear_speed=0.3, rotation_speed=1, is_block=True) -> None:
+    def navigation(self, points: list[Pose], linear_speed=0.5, rotation_speed=2.5, is_block=True) -> None:
         """
         路径跟随: 输入路径点、最终角度等参数，发送导航请求
         @param points 路径坐标点[x,y]
@@ -74,13 +73,13 @@ class NavigationImpl:
 
         for p in points:
             pose2d = Pose2D()
-            pose2d.x = float(p.value.x)
-            pose2d.y = float(p.value.y)
+            pose2d.x = float(p.x)
+            pose2d.y = float(p.y)
             pose2d.theta = 0.0
             goal_msg.points.append(pose2d)
 
         # 这里要获取导航最后一个点的角度并赋给heading
-        goal_msg.heading = float(points[-1].value.yaw)
+        goal_msg.heading = float(points[-1].yaw)
         goal_msg.back = False
         goal_msg.linear_vel = float(linear_speed)
         goal_msg.rotation_vel = float(rotation_speed)
@@ -156,17 +155,18 @@ class NavigationImpl:
         req.motion_mode = mode.value
         req.set_point = float(set_point)
 
+        req.line_param.kp = 1.8
+        req.line_param.ti = 0.0
+        req.line_param.td = 0.0
+        req.line_param.max_vel = float(speed)
+        req.line_param.max_acc = 3.0
+        req.line_param.low_pass = 0.8
+        req.line_param.ek = 0.02
+        req.line_param.steady_clk = 5
+
         match mode:
             case BaseMotionMode.LINE:
-                req.line_param.kp = 1.8
-                req.line_param.ti = 0.0
-                req.line_param.td = 0.0
-                req.line_param.max_vel = float(speed)
-                req.line_param.max_acc = 3.0
-                req.line_param.low_pass = 0.8
-                req.line_param.ek = 0.02
-                req.line_param.steady_clk = 5
-                # rotate ?
+                # 为什么有 rotate ?
                 req.rotate_param.kp = 1.8
                 req.rotate_param.ti = 0.0
                 req.rotate_param.td = 0.0001
@@ -188,7 +188,7 @@ class NavigationImpl:
         return self.__motion_srv.call_async(req)
 
     def base_motion_line(self, distance: float, speed: float, is_block=True):
-        """基础运动: 直线或旋转模式"""
+        """基础运动: 直线模式"""
         self.__logger.info(f'[基础运动] 直线运动 距离 {distance} 速度 {speed}')
 
         future = self.__call_srv_base_motion(BaseMotionMode.LINE, distance, speed)
@@ -202,15 +202,13 @@ class NavigationImpl:
             if not future.result().success:
                 self.__logger.error('[基础运动] 错误, 无法直线运动!')
                 return
-
-            self.__logger.info("[基础运动] 直线运动结束")
             break
 
         if is_block:
             self.wait_base_motion()
 
     def base_motion_rotate(self, angle: float, speed: float, is_block=True):
-        """基础运动: 直线或旋转模式"""
+        """基础运动: 旋转模式"""
         self.__logger.info(f'[基础运动] 旋转运动 角度 {angle} 速度 {speed}')
 
         future = self.__call_srv_base_motion(BaseMotionMode.ROTATE, angle, speed)

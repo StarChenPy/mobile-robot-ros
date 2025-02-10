@@ -37,8 +37,8 @@ class ServoMotor:
 
 @dataclass
 class ArmMovement:
-    motor: MotorMovement | None
-    servo: ServoMotor | None
+    motor: MotorMovement = None
+    servo: ServoMotor = None
 
 
 class MotorCmd(Enum):
@@ -88,7 +88,7 @@ class BaseMotionMode(Enum):
 
 # ============================ impl/revise_impl.py ============================
 
-class ReviseSensorSelect(Enum):
+class CorrectiveSensor(Enum):
     PING0 = 0
     PING1 = 1
     IR = 2
@@ -101,3 +101,15 @@ class MnnResult:
     classId: str
     confidence: float
     box: Rectangle
+
+# ============================ param/navigation_param.py ============================
+
+@dataclass
+class Corrective:
+    sensor: CorrectiveSensor
+    distance: float
+
+@dataclass
+class NavigationPoint:
+    pose: Pose
+    corrective : Corrective = None

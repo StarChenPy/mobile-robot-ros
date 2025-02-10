@@ -3,6 +3,7 @@ import rclpy
 
 from rclpy.node import Node
 
+from .data_type import CorrectiveSensor
 from .impl import arm_impl, io_impl, navigation_impl, revise_impl, vision_impl
 from .param.arm_movement import ArmMovementParam
 from .param.arm_param import Motor
@@ -75,20 +76,39 @@ class MobileRobot:
         self.arm_control(ArmMovementParam.RESET)
         self.__logger.info("[机械臂] 复位完成！")
 
-    def navigation(self, nav_path: NavPath, speed=0.3, is_block=True, init_pose=True):
+    def navigation(self, nav_path: NavPath, speed=0.4, is_block=True):
         """
         通过路径进行导航
         @param nav_path 路径列表
         @param speed 移送速度
         @param is_block 是否阻塞
-        @param init_pose 若为True，路径中的第一个坐标会被视为精确点赋给odom
         """
-        if init_pose:
-            start_point = nav_path.value[0].value
-            self.__navigation.init_pose(start_point.x, start_point.y, start_point.yaw)
 
-        path = nav_path.value[1:]
-        self.__navigation.navigation(path, speed, is_block=is_block)
+        path1 = []
+
+        for path in nav_path.value:
+            corrective = path.value.corrective
+
+            # 如果该导航点需要矫正
+            if corrective is not None:
+                # 如果已经有一条路径待出发，就先出发
+                if path1 is not None:
+                    self.__navigation.navigation(path1, speed)
+
+                # 矫正
+                if corrective.sensor == CorrectiveSensor.PING:
+                    self.ping_revise(corrective.distance)
+                elif corrective.sensor == CorrectiveSensor.IR:
+                    self.ir_revise(corrective.distance)
+                self.__navigation.init_pose(path.value.pose)
+            # 如果不需要矫正，说明是普通路径点，加入列表以待导航
+            else:
+                path1.append(path.value.pose)
+
+        # 路径结束，将剩余导航走完
+        if path1 is not None:
+            self.__navigation.navigation(path1, speed, is_block=is_block)
+
 
     def cancel_navigation(self):
         self.__navigation.cancel_navigation()
@@ -102,8 +122,8 @@ class MobileRobot:
     def rotate(self, angle: float, speed=120):
         self.__navigation.base_motion_rotate(angle, speed)
 
-    def ping_revise(self, dis: float, yaw: float, is_block=True):
-        self.__revise.ping_revise(dis, yaw)
+    def ping_revise(self, dis: float, is_block=True):
+        self.__revise.ping_revise(dis, 0)
         if is_block:
             self.__revise.wait_controls_end()
 

@@ -21,7 +21,7 @@ class BModule(Node):
                 case 1:
                     self.robot.navigation(NavPath.B_MODULE_1)
                 case 2:
-                    self.robot.rotate(90)
+                    self.robot.rotate(180)
                 case 3:
                     self.robot.arm_control(ArmMovementParam.RESET)
                     self.robot.arm_control(ArmMovementParam.READY_GRAB_APPLE)
@@ -30,7 +30,6 @@ class BModule(Node):
                 case 4:
                     self.robot.arm_control(ArmMovementParam.RESET)
                     self.robot.arm_control(ArmMovementParam.MOVING)
-                    self.robot.ping_revise(30, 0)
                     self.robot.navigation(NavPath.B_MODULE_4)
 
                 case 5:

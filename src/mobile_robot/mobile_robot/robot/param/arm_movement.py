@@ -10,7 +10,7 @@ class ArmMovementParam(Enum):
     # 抓篮子用
     READY_GRAB_BASKET_1 = ArmMovement(MotorMovement(90, 0.5), ServoMotor(0, 7, 0, 24))
     READY_GRAB_BASKET_2 = ArmMovement(MotorMovement(90, 0.5), ServoMotor(0, 7, 10, 24))
-    GRAB_BASKET = ArmMovement(None, ServoMotor(0, 7, 10, 19))
+    GRAB_BASKET = ArmMovement(servo=ServoMotor(0, 7, 10, 19))
 
     # 放篮子动作
     READY_PUT_BASKET = ArmMovement(MotorMovement(0, 0.5), ServoMotor(90, -90, 10, 19))
@@ -32,4 +32,4 @@ class ArmMovementParam(Enum):
 
     # 放水果到框子动作
     READY_PUT_FRUIT_INTO_BASKET = ArmMovement(MotorMovement(0, 0.5), ServoMotor(0, -90, 10, 0))
-    PUT_FRUIT_INTO_BASKET = ArmMovement(None, ServoMotor(0, -90, 10, 10))
+    PUT_FRUIT_INTO_BASKET = ArmMovement(servo=ServoMotor(0, -90, 10, 10))
