@@ -10,7 +10,6 @@ from ..data_type import *
 class ReviseImpl:
     __revise_data = None
 
-
     def __init__(self, node: Node):
         self.__node = node
         self.__logger = node.get_logger()
@@ -21,6 +20,7 @@ class ReviseImpl:
         self.__revise_data_sub = node.create_subscription(ReviseData, '/robot/correct_cmd', self.__revise_callback, 1)
 
         # 控制参数状态回调
+
     def __revise_callback(self, msg):
         self.__revise_data = msg
 
@@ -36,8 +36,6 @@ class ReviseImpl:
         self.__revise_data_pub.publish(msg_pub)
         time.sleep(1)
         self.__revise_data_pub.publish(msg_pub)
-        time.sleep(1)
-        self.__revise_data_pub.publish(msg_pub)
 
     def ping_revise(self, dis: float, yaw: float):
         self.__logger.info("[矫正] 开始超声波矫正")
@@ -50,12 +48,11 @@ class ReviseImpl:
     # 等待修正结束
     def wait_controls_end(self):
         rclpy.spin_once(self.__node)
-        rclpy.spin_once(self.__node)
-        rclpy.spin_once(self.__node)
-        rclpy.spin_once(self.__node)
+        time.sleep(3)
         rclpy.spin_once(self.__node)
         while self.__revise_data.status != 0:
+            print("等待中", self.__revise_data)
             rclpy.spin_once(self.__node)
-
+        print("等待结束", self.__revise_data)
         self.__logger.info("[矫正] 矫正已结束")
         time.sleep(1)

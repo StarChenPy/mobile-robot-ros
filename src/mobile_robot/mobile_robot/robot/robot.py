@@ -87,28 +87,29 @@ class MobileRobot:
         path1 = []
 
         for path in nav_path.value:
-            corrective = path.value.corrective
+            corrective = path.corrective
 
             # 如果该导航点需要矫正
             if corrective is not None:
                 # 如果已经有一条路径待出发，就先出发
-                if path1 is not None:
+                if path1:
+                    print(path1)
                     self.__navigation.navigation(path1, speed)
+                    path1 = []
 
                 # 矫正
                 if corrective.sensor == CorrectiveSensor.PING:
                     self.ping_revise(corrective.distance)
                 elif corrective.sensor == CorrectiveSensor.IR:
                     self.ir_revise(corrective.distance)
-                self.__navigation.init_pose(path.value.pose)
+                self.__navigation.init_pose(path.pose)
             # 如果不需要矫正，说明是普通路径点，加入列表以待导航
             else:
-                path1.append(path.value.pose)
+                path1.append(path.pose)
 
         # 路径结束，将剩余导航走完
-        if path1 is not None:
+        if path1:
             self.__navigation.navigation(path1, speed, is_block=is_block)
-
 
     def cancel_navigation(self):
         self.__navigation.cancel_navigation()
@@ -123,12 +124,12 @@ class MobileRobot:
         self.__navigation.base_motion_rotate(angle, speed)
 
     def ping_revise(self, dis: float, is_block=True):
-        self.__revise.ping_revise(dis, 0)
+        self.__revise.ping_revise(dis, 0.1)
         if is_block:
             self.__revise.wait_controls_end()
 
     def ir_revise(self, dis: float, is_block=True):
-        self.__revise.ir_revise(dis, 0)
+        self.__revise.ir_revise(dis, 0.1)
         if is_block:
             self.__revise.wait_controls_end()
 

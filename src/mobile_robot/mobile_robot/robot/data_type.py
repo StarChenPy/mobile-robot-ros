@@ -13,11 +13,13 @@ class Rectangle:
     x2: float
     y2: float
 
+
 @dataclass
 class Pose:
     x: float
     y: float
     yaw: float
+
 
 # ============================ param/arm_movement.py ============================
 
@@ -47,6 +49,7 @@ class MotorCmd(Enum):
     SET_POSITION = 2
     DISABLE = 3
 
+
 # ============================ param/arm_param.py ============================
 
 # 定义电机参数的数据类
@@ -72,6 +75,7 @@ class ServoParams:
     max_duty: float = None  # 最大占空比 (可选)
     itinerary: float = None  # 行程 (角度或距离) (可选)
 
+
 # ============================ impl/navigation_impl.py ============================
 
 class ResetOdomMode(Enum):
@@ -86,6 +90,7 @@ class BaseMotionMode(Enum):
     LINE = 2
     ROTATE = 3
 
+
 # ============================ impl/revise_impl.py ============================
 
 class CorrectiveSensor(Enum):
@@ -93,6 +98,7 @@ class CorrectiveSensor(Enum):
     PING1 = 1
     IR = 2
     PING = 3
+
 
 # ============================ impl/vision_impl.py ============================
 
@@ -102,6 +108,7 @@ class MnnResult:
     confidence: float
     box: Rectangle
 
+
 # ============================ param/navigation_param.py ============================
 
 @dataclass
@@ -109,7 +116,8 @@ class Corrective:
     sensor: CorrectiveSensor
     distance: float
 
+
 @dataclass
 class NavigationPoint:
     pose: Pose
-    corrective : Corrective = None
+    corrective: Corrective = None
