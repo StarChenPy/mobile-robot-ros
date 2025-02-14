@@ -1,13 +1,30 @@
+import enum
 import time
 import rclpy
 
 from rclpy.node import Node
 
-from .data_type import CorrectiveSensor
+from .util.data_type import CorrectiveSensor, MotorCmd
 from .impl import arm_impl, io_impl, navigation_impl, revise_impl, vision_impl
 from .param.arm_movement import ArmMovementParam
 from .param.arm_param import Motor
-from .param.navigation_path import NavPath, Pose
+from .param.navigation_path import NavPath
+from .util.math import calculate_rectangle_center
+
+
+class FruitHeight(enum.Enum):
+    TALL = 0
+    MIDDLE = 1
+    LOW = 2
+
+
+def get_fruit_height(height: float) -> FruitHeight:
+    if height < 150:
+        return FruitHeight.TALL
+    elif height < 280:
+        return FruitHeight.MIDDLE
+    else:
+        return FruitHeight.LOW
 
 
 class MobileRobot:
@@ -49,15 +66,15 @@ class MobileRobot:
         self.__logger.info(f"[机器人] 机械臂控制 {movement.name}")
         if movement.value.motor is not None:
             if movement.value.motor.lift == -1:
-                self.__arm.ctrl_lift_motor(arm_impl.MotorCmd.BACK_ORIGIN, is_block=is_block)  # 回原点
+                self.__arm.ctrl_lift_motor(MotorCmd.BACK_ORIGIN, is_block=is_block)  # 回原点
             else:
-                self.__arm.ctrl_lift_motor(arm_impl.MotorCmd.SET_POSITION, movement.value.motor.lift, is_block=is_block)
+                self.__arm.ctrl_lift_motor(MotorCmd.SET_POSITION, movement.value.motor.lift, is_block=is_block)
 
             if movement.value.motor.rotate == -1:
-                self.__arm.ctrl_rotate_motor(arm_impl.MotorCmd.BACK_ORIGIN, is_block=True)  # 回原点
-                self.__arm.ctrl_rotate_motor(arm_impl.MotorCmd.SET_POSITION, 0.5, 50, is_block=is_block)
+                self.__arm.ctrl_rotate_motor(MotorCmd.BACK_ORIGIN, is_block=True)  # 回原点
+                self.__arm.ctrl_rotate_motor(MotorCmd.SET_POSITION, 0.5, 50, is_block=is_block)
             else:
-                self.__arm.ctrl_rotate_motor(arm_impl.MotorCmd.SET_POSITION, movement.value.motor.rotate, is_block=is_block)
+                self.__arm.ctrl_rotate_motor(MotorCmd.SET_POSITION, movement.value.motor.rotate, is_block=is_block)
 
             if not is_block:
                 self.__arm.wait_motor_finish(Motor.LIFT)
@@ -136,3 +153,46 @@ class MobileRobot:
     def vision(self):
         self.__vision.send_mnn_request()
         return self.__vision.mnn_result()
+
+    def grab_fruits(self, nav_path: NavPath, fruits: list):
+        """
+        扫描并抓取水果
+        """
+        self.arm_control(ArmMovementParam.READY_RECOGNITION_ORCHARD)
+        self.arm_control(ArmMovementParam.RECOGNITION_ORCHARD)
+        self.navigation(nav_path, 0.05, False)
+        while rclpy.ok() and self.get_navigation_state():
+            result_list = self.vision()
+            for result in result_list:
+                if result.classId not in fruits:
+                    continue
+
+                center_x, center_y = calculate_rectangle_center(result.box)
+                print(f"x {center_x}, y {center_y}")
+
+                if not 180 < center_x < 400:
+                    continue
+
+                self.cancel_navigation()
+
+                # 调用不同高度下的抓取程序
+                match get_fruit_height(center_y):
+                    case FruitHeight.TALL:
+                        self.arm_control(ArmMovementParam.READY_GRAB_APPLE_TALL)
+                        self.arm_control(ArmMovementParam.GRAB_APPLE_TALL)
+                    case FruitHeight.MIDDLE:
+                        self.arm_control(ArmMovementParam.READY_GRAB_APPLE_MIDDLE)
+                        self.arm_control(ArmMovementParam.GRAB_APPLE_MIDDLE)
+                    case FruitHeight.LOW:
+                        self.arm_control(ArmMovementParam.READY_GRAB_APPLE_LOW)
+                        self.arm_control(ArmMovementParam.GRAB_APPLE_LOW)
+
+                # 收回夹爪
+                self.arm_control(ArmMovementParam.READY_PUT_FRUIT_INTO_BASKET, True)
+                self.arm_control(ArmMovementParam.PUT_FRUIT_INTO_BASKET)
+
+                self.arm_control(ArmMovementParam.READY_RECOGNITION_ORCHARD)
+                self.arm_control(ArmMovementParam.RECOGNITION_ORCHARD)
+
+                self.navigation(nav_path, 0.05, False)
+        self.arm_control(ArmMovementParam.MOVING)

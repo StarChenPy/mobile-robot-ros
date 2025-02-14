@@ -10,7 +10,7 @@ from .io_impl import IoImpl
 from base_motion_ros2.srv import BaseMotion
 from base_nav2.action import NavCMD
 from chassis_msgs.srv import ResetOdom
-from ..data_type import *
+from ..util.data_type import Pose, ResetOdomMode, BaseMotionMode
 
 
 class NavigationImpl:

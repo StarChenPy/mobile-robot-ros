@@ -1,11 +1,12 @@
-from enum import Enum
+import enum
 
 from position_motor_ros2 import msg
-from ..data_type import *
+
+from ..util.data_type import ServoParams, MotorParams
 
 
 # 定义舵机枚举
-class Servo(Enum):
+class Servo(enum.Enum):
     ROTARY_SERVO = ServoParams(
         pin=4,
         min_value=-40,
@@ -39,7 +40,7 @@ class Servo(Enum):
 
 
 # 定义电机枚举
-class Motor(Enum):
+class Motor(enum.Enum):
     ROTATE = MotorParams(
         max_value=180.0,
         min_value=-90.0,

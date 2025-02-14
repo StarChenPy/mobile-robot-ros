@@ -1,9 +1,7 @@
-import time
-
 import rclpy
 from rclpy.node import Node
 from mnn_msgs.srv import MnnService  # 导入 mnn 服务接口
-from ..data_type import *
+from ..util.data_type import Rectangle, MnnResult
 
 
 class VisionImpl:

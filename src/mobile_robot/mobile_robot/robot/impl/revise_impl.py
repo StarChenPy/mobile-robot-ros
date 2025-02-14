@@ -4,7 +4,7 @@ import rclpy
 
 from rclpy.node import Node
 from revise_msgs.msg import ReviseData
-from ..data_type import *
+from ..util.data_type import CorrectiveSensor
 
 
 class ReviseImpl:
@@ -48,7 +48,7 @@ class ReviseImpl:
     # 等待修正结束
     def wait_controls_end(self):
         rclpy.spin_once(self.__node)
-        time.sleep(3)
+        time.sleep(20)
         rclpy.spin_once(self.__node)
         while self.__revise_data.status != 0:
             print("等待中", self.__revise_data)

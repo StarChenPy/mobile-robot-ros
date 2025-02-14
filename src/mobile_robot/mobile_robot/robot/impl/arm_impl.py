@@ -7,6 +7,7 @@ from rclpy.node import Node
 from position_motor_ros2 import srv
 from . import io_impl
 from ..param.arm_param import *
+from ..util.data_type import MotorCmd
 
 
 class ArmImpl:
@@ -121,7 +122,7 @@ class ArmImpl:
         """
         return self._ctrl_motor(Motor.ROTATE, cmd, angle, speed, is_block)
 
-    def ctrl_lift_motor(self, cmd: MotorCmd, height=0, speed=30.0, is_block=True):
+    def ctrl_lift_motor(self, cmd: MotorCmd, height=0, speed=20.0, is_block=True):
         """
         控制升降电机运动
         @param cmd: 控制命令类型
