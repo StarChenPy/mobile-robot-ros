@@ -4,7 +4,7 @@ import rclpy
 
 from rclpy.node import Node
 
-from .util.data_type import CorrectiveSensor, MotorCmd
+from .util.data_type import CorrectiveSensor, MotorCmd, Pose
 from .impl import arm_impl, io_impl, navigation_impl, revise_impl, vision_impl
 from .param.arm_movement import ArmMovementParam
 from .param.arm_param import Motor
@@ -93,6 +93,9 @@ class MobileRobot:
         self.arm_control(ArmMovementParam.RESET)
         self.__logger.info("[机械臂] 复位完成！")
 
+    def init_pose(self, pose: Pose):
+        self.__navigation.init_pose(pose)
+
     def navigation(self, nav_path: NavPath, speed=0.4, is_block=True):
         """
         通过路径进行导航
@@ -119,7 +122,7 @@ class MobileRobot:
                     self.ping_revise(corrective.distance)
                 elif corrective.sensor == CorrectiveSensor.IR:
                     self.ir_revise(corrective.distance)
-                self.__navigation.init_pose(path.pose)
+                self.init_pose(path.pose)
             # 如果不需要矫正，说明是普通路径点，加入列表以待导航
             else:
                 path1.append(path.pose)
@@ -168,7 +171,6 @@ class MobileRobot:
                     continue
 
                 center_x, center_y = calculate_rectangle_center(result.box)
-                print(f"x {center_x}, y {center_y}")
 
                 if not 180 < center_x < 400:
                     continue

@@ -19,8 +19,7 @@ class ReviseImpl:
         # 获取控制状态 话题
         self.__revise_data_sub = node.create_subscription(ReviseData, '/robot/correct_cmd', self.__revise_callback, 1)
 
-        # 控制参数状态回调
-
+    # 控制参数状态回调
     def __revise_callback(self, msg):
         self.__revise_data = msg
 
@@ -47,12 +46,9 @@ class ReviseImpl:
 
     # 等待修正结束
     def wait_controls_end(self):
-        rclpy.spin_once(self.__node)
-        time.sleep(20)
-        rclpy.spin_once(self.__node)
-        while self.__revise_data.status != 0:
-            print("等待中", self.__revise_data)
+        for i in range(0, 100):
             rclpy.spin_once(self.__node)
-        print("等待结束", self.__revise_data)
+        while self.__revise_data.status != 0:
+            rclpy.spin_once(self.__node)
         self.__logger.info("[矫正] 矫正已结束")
         time.sleep(1)

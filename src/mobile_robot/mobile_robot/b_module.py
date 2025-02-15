@@ -2,10 +2,10 @@ import rclpy
 from rclpy.node import Node
 
 from .robot.robot import MobileRobot, FruitHeight
-from .robot.param.navigation_path import NavPath
+from .robot.param.navigation_path import NavPath, ORCHARD_1_POINT
 from .robot.param.arm_movement import ArmMovementParam
 from .robot.util.math import calculate_rectangle_center
-from .robot.robot import get_fruit_height
+from .robot.robot import get_fruit_height, Pose
 
 
 class BModule(Node):
@@ -17,10 +17,15 @@ class BModule(Node):
         select = int(input("等待按键按下, 1 - 15, 0 退出\n"))
 
         match select:
+            case -1:
+                self.robot.ping_revise(30)
+                self.robot.ping_revise(50)
+                self.robot.ping_revise(10)
             case 0:
                 exit(0)
             case 1:
                 # 直线1米
+                self.robot.init_pose(Pose(0, 0, 0))
                 self.robot.navigation(NavPath.B_MODULE_1)
             case 2:
                 # 旋转180度
@@ -28,8 +33,8 @@ class BModule(Node):
             case 3:
                 # 抓水果
                 self.robot.arm_control(ArmMovementParam.RESET)
-                self.robot.arm_control(ArmMovementParam.READY_GRAB_APPLE_LOW)
-                self.robot.arm_control(ArmMovementParam.GRAB_APPLE_LOW, is_block=True)
+                self.robot.arm_control(ArmMovementParam.READY_GRAB_APPLE_TALL)
+                self.robot.arm_control(ArmMovementParam.GRAB_APPLE_TALL, is_block=True)
                 self.robot.arm_control(ArmMovementParam.GRAB_APPLE_END, is_block=True)
             case 4:
                 # 果仓1到起始区
@@ -48,6 +53,7 @@ class BModule(Node):
                 self.robot.arm_control(ArmMovementParam.RESET)
                 self.robot.arm_control(ArmMovementParam.MOVING)
 
+                self.robot.init_pose(ORCHARD_1_POINT)
                 self.robot.navigation(NavPath.B_MODULE_6)
             case 7:
                 # 起始区到采摘1
@@ -67,10 +73,10 @@ class BModule(Node):
                 self.robot.arm_control(ArmMovementParam.GRAB_APPLE_END)
             case 9:
                 # 起始区到采摘1抓中水果
-                # self.robot.arm_control(ArmMovementParam.RESET)
-                # self.robot.arm_control(ArmMovementParam.MOVING)
-                #
-                # self.robot.navigation(NavPath.B_MODULE_7)
+                self.robot.arm_control(ArmMovementParam.RESET)
+                self.robot.arm_control(ArmMovementParam.MOVING)
+
+                self.robot.navigation(NavPath.B_MODULE_7)
 
                 self.robot.arm_control(ArmMovementParam.READY_GRAB_APPLE_MIDDLE)
                 self.robot.arm_control(ArmMovementParam.GRAB_APPLE_MIDDLE)
@@ -117,7 +123,7 @@ class BModule(Node):
                 self.robot.arm_control(ArmMovementParam.PULL_GUO_CANG)
                 self.robot.arm_control(ArmMovementParam.MOVING)
             case 13:
-            # 起始区到果仓识别一个水果
+                # 起始区到果仓识别一个水果
                 self.robot.arm_control(ArmMovementParam.RESET)
                 self.robot.arm_control(ArmMovementParam.MOVING)
 
@@ -135,9 +141,9 @@ class BModule(Node):
             case 14:
                 # 起始区到果园识别一个水果
                 self.robot.arm_control(ArmMovementParam.RESET)
-                # self.robot.arm_control(ArmMovementParam.MOVING)
-                #
-                # self.robot.navigation(NavPath.B_MODULE_7)
+                self.robot.arm_control(ArmMovementParam.MOVING)
+
+                self.robot.navigation(NavPath.B_MODULE_7)
 
                 self.robot.arm_control(ArmMovementParam.READY_RECOGNITION_ORCHARD)
                 self.robot.arm_control(ArmMovementParam.RECOGNITION_ORCHARD)
@@ -150,10 +156,10 @@ class BModule(Node):
                     print(self.robot.vision())
             case 15:
                 # 起始区到果园识别一个水果的高低
-                # self.robot.arm_control(ArmMovementParam.RESET)
-                # self.robot.arm_control(ArmMovementParam.MOVING)
-                #
-                # self.robot.navigation(NavPath.B_MODULE_7)
+                self.robot.arm_control(ArmMovementParam.RESET)
+                self.robot.arm_control(ArmMovementParam.MOVING)
+
+                self.robot.navigation(NavPath.B_MODULE_7)
 
                 self.robot.arm_control(ArmMovementParam.READY_RECOGNITION_ORCHARD)
                 self.robot.arm_control(ArmMovementParam.RECOGNITION_ORCHARD)
@@ -169,12 +175,14 @@ class BModule(Node):
                         _, center_y = calculate_rectangle_center(e.box)
                         print(center_y)
                         match get_fruit_height(center_y):
-                            case FruitHeight.TALL: print("高水果")
-                            case FruitHeight.MIDDLE: print("中水果")
-                            case FruitHeight.LOW: print("低水果")
+                            case FruitHeight.TALL:
+                                print("高水果")
+                            case FruitHeight.MIDDLE:
+                                print("中水果")
+                            case FruitHeight.LOW:
+                                print("低水果")
         rclpy.shutdown()
         exit(0)
-
 
 
 def main():

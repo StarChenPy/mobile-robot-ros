@@ -6,7 +6,7 @@ from ..util.data_type import ArmMovement, MotorMovement, ServoMotor
 class ArmMovementParam(enum.Enum):
     # 基础动作
     RESET = ArmMovement(MotorMovement(-1, -1), ServoMotor(0, 0, 0, 5))
-    TEST = ArmMovement(servo=ServoMotor(0, 0, 16, 3.5))
+    TEST = ArmMovement(servo=ServoMotor(0, 0, 0, 20))
     MOVING = ArmMovement(MotorMovement(0, 15), ServoMotor(0, 9, 0, 5))
     BASKET_MOVING = ArmMovement(MotorMovement(180, 15), ServoMotor(0, 0, 0, 5))
 
@@ -37,7 +37,7 @@ class ArmMovementParam(enum.Enum):
     GRAB_APPLE_END = ArmMovement(MotorMovement(0, 10), ServoMotor(0, 0, 7, 7))
 
     # 放水果到果仓
-    READY_PULL_GUO_CANG = ArmMovement(MotorMovement(175, 10), ServoMotor(0, 0, 14, 5))
+    READY_PULL_GUO_CANG = ArmMovement(MotorMovement(175, 10), ServoMotor(0, 0, 14, 7))
     PULL_GUO_CANG = ArmMovement(MotorMovement(175, 10), ServoMotor(0, 0, 14, 20))
 
     # 放水果到框子动作

@@ -43,6 +43,6 @@ class VisionImpl:
                         result.label, result.confidence, result.xmin, result.ymin, result.xmax, result.ymax):
                     result_list.append(MnnResult(label, confidence, Rectangle(x_min, y_min, x_max, y_max)))
 
-                self.__logger.info(f"[视觉] 识别结果: {result}")
+                self.__logger.debug(f"[视觉] 识别结果: {result}")
 
                 return result_list
