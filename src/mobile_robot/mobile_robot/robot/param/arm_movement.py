@@ -7,7 +7,7 @@ class ArmMovementParam(enum.Enum):
     # 基础动作
     RESET = ArmMovement(MotorMovement(-1, -1), ServoMotor(0, 0, 0, 5))
     TEST = ArmMovement(servo=ServoMotor(0, 0, 0, 20))
-    MOVING = ArmMovement(MotorMovement(0, 15), ServoMotor(0, 9, 0, 5))
+    MOVING = ArmMovement(MotorMovement(0, 15), ServoMotor(0, 9, 0, 7))
     BASKET_MOVING = ArmMovement(MotorMovement(180, 15), ServoMotor(0, 0, 0, 5))
 
     # 抓篮子用
@@ -42,4 +42,6 @@ class ArmMovementParam(enum.Enum):
 
     # 放水果到框子动作
     READY_PUT_FRUIT_INTO_BASKET = ArmMovement(MotorMovement(0, 0.5), ServoMotor(0, -90, 10, 0))
-    PUT_FRUIT_INTO_BASKET = ArmMovement(servo=ServoMotor(0, -90, 10, 10))
+    PUT_FRUIT_INTO_BASKET_1 = ArmMovement(MotorMovement(-20, 0.5), ServoMotor(0, -90, 10, 10))
+    PUT_FRUIT_INTO_BASKET_2 = ArmMovement(servo=ServoMotor(0, -90, 10, 10))
+    PUT_FRUIT_INTO_BASKET_3 = ArmMovement(MotorMovement(20, 0.5), ServoMotor(0, -90, 10, 10))

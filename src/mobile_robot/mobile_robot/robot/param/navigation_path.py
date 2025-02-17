@@ -67,7 +67,8 @@ class NavPath(enum.Enum):
 
     B_MODULE_7 = (NavigationPoint(START_POINT, Corrective(CorrectiveSensor.PING, 20)),
                   NavigationPoint(START_ENTER_POINT), NavigationPoint(ORCHARD_ENTER_POINT),
-                  NavigationPoint(ORCHARD_CORRIDOR_ENTER_1_POINT), NavigationPoint(ORCHARD_1_POINT))
+                  NavigationPoint(ORCHARD_CORRIDOR_ENTER_1_POINT),
+                  NavigationPoint(ORCHARD_CORRIDOR_ENTER_1_POINT, Corrective(CorrectiveSensor.PING, 7)),)
 
     B_MODULE_11 = (NavigationPoint(START_POINT, Corrective(CorrectiveSensor.PING, 20)),
                    NavigationPoint(START_ENTER_POINT), NavigationPoint(WAREHOUSE_ENTER_1_POINT),
@@ -81,3 +82,11 @@ class NavPath(enum.Enum):
                    NavigationPoint(WAREHOUSE_ENTER_3_POINT), NavigationPoint(WAREHOUSE_1_POINT))
 
     ORCHARD_CORRIDOR_ENTER_1 = (NavigationPoint(ORCHARD_CORRIDOR_EXIT_1_POINT), )
+
+    ORCHARD_CORRIDOR_ENTER_2 = (NavigationPoint(ORCHARD_CORRIDOR_EXIT_2_POINT),
+                                NavigationPoint(ORCHARD_CORRIDOR_ENTER_2_POINT))
+
+    C_MODULE_1 = (NavigationPoint(ORCHARD_CORRIDOR_EXIT_1_POINT, Corrective(CorrectiveSensor.PING, 30)),
+                  NavigationPoint(ORCHARD_CORRIDOR_ENTER_1_POINT), NavigationPoint(ORCHARD_ENTER_POINT),
+                  NavigationPoint(WAREHOUSE_ENTER_1_POINT), NavigationPoint(WAREHOUSE_ENTER_2_POINT),
+                  NavigationPoint(WAREHOUSE_ENTER_3_POINT), NavigationPoint(WAREHOUSE_1_POINT))

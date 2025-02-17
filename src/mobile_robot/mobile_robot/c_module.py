@@ -12,12 +12,19 @@ class CModule(Node):
 
         self.robot = MobileRobot(self)
 
+        input("按任意键开始游戏...")
+
         self.robot.arm_control(ArmMovementParam.RESET)
         self.robot.arm_control(ArmMovementParam.MOVING)
 
         self.robot.navigation(NavPath.B_MODULE_7)
 
-        self.robot.grab_fruits(NavPath.ORCHARD_CORRIDOR_ENTER_1, ["Red Apple"])
+        task = {1: ["Red Apple", "Red Apple"], 2: ["Red Apple"]}
+        self.robot.grab_fruits(NavPath.ORCHARD_CORRIDOR_ENTER_1, task)
+
+        print(task)
+
+        # self.robot.navigation(NavPath.C_MODULE_1)
 
 
 def main():

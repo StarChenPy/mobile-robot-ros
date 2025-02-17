@@ -157,22 +157,33 @@ class MobileRobot:
         self.__vision.send_mnn_request()
         return self.__vision.mnn_result()
 
-    def grab_fruits(self, nav_path: NavPath, fruits: list):
+    def grab_fruits(self, nav_path: NavPath, task: dict[int, list[str]]):
         """
         扫描并抓取水果
         """
         self.arm_control(ArmMovementParam.READY_RECOGNITION_ORCHARD)
         self.arm_control(ArmMovementParam.RECOGNITION_ORCHARD)
+
         self.navigation(nav_path, 0.05, False)
+
         while rclpy.ok() and self.get_navigation_state():
             result_list = self.vision()
             for result in result_list:
-                if result.classId not in fruits:
-                    continue
-
                 center_x, center_y = calculate_rectangle_center(result.box)
 
                 if not 180 < center_x < 400:
+                    continue
+
+                select = 0
+                for key in task:
+                    if result.classId not in task[key]:
+                        continue
+                    else:
+                        select = key
+                        task[key].remove(result.classId)
+                        break
+
+                if select == 0:
                     continue
 
                 self.cancel_navigation()
@@ -189,12 +200,23 @@ class MobileRobot:
                         self.arm_control(ArmMovementParam.READY_GRAB_APPLE_LOW)
                         self.arm_control(ArmMovementParam.GRAB_APPLE_LOW)
 
-                # 收回夹爪
-                self.arm_control(ArmMovementParam.READY_PUT_FRUIT_INTO_BASKET, True)
-                self.arm_control(ArmMovementParam.PUT_FRUIT_INTO_BASKET)
+                # 收回夹爪，放水果到框子里
+                match select:
+                    case 1:
+                        self.arm_control(ArmMovementParam.READY_PUT_FRUIT_INTO_BASKET, True)
+                        self.arm_control(ArmMovementParam.PUT_FRUIT_INTO_BASKET_1)
+                    case 2:
+                        self.arm_control(ArmMovementParam.READY_PUT_FRUIT_INTO_BASKET, True)
+                        self.arm_control(ArmMovementParam.PUT_FRUIT_INTO_BASKET_2)
+                    case 3:
+                        self.arm_control(ArmMovementParam.READY_PUT_FRUIT_INTO_BASKET, True)
+                        self.arm_control(ArmMovementParam.PUT_FRUIT_INTO_BASKET_3)
+                    case 4:
+                        break
 
                 self.arm_control(ArmMovementParam.READY_RECOGNITION_ORCHARD)
                 self.arm_control(ArmMovementParam.RECOGNITION_ORCHARD)
 
                 self.navigation(nav_path, 0.05, False)
-        self.arm_control(ArmMovementParam.MOVING)
+
+        self.arm_control(ArmMovementParam.MOVING, True)
