@@ -157,66 +157,84 @@ class MobileRobot:
         self.__vision.send_mnn_request()
         return self.__vision.mnn_result()
 
-    def grab_fruits(self, nav_path: NavPath, task: dict[int, list[str]]):
+    def grab_fruits(self, nav_path: NavPath, task: dict[int, list[str]], direction = "left" or "right"):
         """
-        扫描并抓取水果
+        扫描并抓取水果，主控制流程
         """
-        self.arm_control(ArmMovementParam.READY_RECOGNITION_ORCHARD)
-        self.arm_control(ArmMovementParam.RECOGNITION_ORCHARD)
-
-        self.navigation(nav_path, 0.05, False)
+        self._prepare_for_recognition(direction)
+        self.navigation(nav_path)
 
         while rclpy.ok() and self.get_navigation_state():
-            result_list = self.vision()
-            for result in result_list:
-                center_x, center_y = calculate_rectangle_center(result.box)
+            results = self._get_valid_detections()
 
-                if not 180 < center_x < 400:
-                    continue
+            for result in results:
+                if self._process_single_fruit(result, task):
+                    break  # 遇到特殊篮子ID时提前终止当前检测循环
 
-                select = 0
-                for key in task:
-                    if result.classId not in task[key]:
-                        continue
-                    else:
-                        select = key
-                        task[key].remove(result.classId)
-                        break
-
-                if select == 0:
-                    continue
-
-                self.cancel_navigation()
-
-                # 调用不同高度下的抓取程序
-                match get_fruit_height(center_y):
-                    case FruitHeight.TALL:
-                        self.arm_control(ArmMovementParam.READY_GRAB_APPLE_TALL)
-                        self.arm_control(ArmMovementParam.GRAB_APPLE_TALL)
-                    case FruitHeight.MIDDLE:
-                        self.arm_control(ArmMovementParam.READY_GRAB_APPLE_MIDDLE)
-                        self.arm_control(ArmMovementParam.GRAB_APPLE_MIDDLE)
-                    case FruitHeight.LOW:
-                        self.arm_control(ArmMovementParam.READY_GRAB_APPLE_LOW)
-                        self.arm_control(ArmMovementParam.GRAB_APPLE_LOW)
-
-                # 收回夹爪，放水果到框子里
-                match select:
-                    case 1:
-                        self.arm_control(ArmMovementParam.READY_PUT_FRUIT_INTO_BASKET, True)
-                        self.arm_control(ArmMovementParam.PUT_FRUIT_INTO_BASKET_1)
-                    case 2:
-                        self.arm_control(ArmMovementParam.READY_PUT_FRUIT_INTO_BASKET, True)
-                        self.arm_control(ArmMovementParam.PUT_FRUIT_INTO_BASKET_2)
-                    case 3:
-                        self.arm_control(ArmMovementParam.READY_PUT_FRUIT_INTO_BASKET, True)
-                        self.arm_control(ArmMovementParam.PUT_FRUIT_INTO_BASKET_3)
-                    case 4:
-                        break
-
-                self.arm_control(ArmMovementParam.READY_RECOGNITION_ORCHARD)
-                self.arm_control(ArmMovementParam.RECOGNITION_ORCHARD)
-
-                self.navigation(nav_path, 0.05, False)
+            self._prepare_for_recognition(direction)
+            self.navigation(nav_path)
 
         self.arm_control(ArmMovementParam.MOVING, True)
+
+    # region 辅助方法
+    def _prepare_for_recognition(self, direction = "left" or "right"):
+        """准备视觉识别状态"""
+        if direction == "left":
+            self.arm_control(ArmMovementParam.RECOGNITION_ORCHARD_LEFT)
+        elif direction == "right":
+            self.arm_control(ArmMovementParam.RECOGNITION_ORCHARD_RIGHT)
+
+    def _get_valid_detections(self) -> list:
+        """获取有效检测结果并进行初步过滤"""
+        return [
+            result for result in self.vision()
+            if 180 < calculate_rectangle_center(result.box)[0] < 400
+        ]
+
+    def _process_single_fruit(self, result, task: dict) -> bool:
+        """处理单个水果的抓取流程，返回是否需要终止检测循环"""
+        # 篮子选择逻辑
+        basket_id = 0
+        for bid, target_classes in task.items():
+            if result.classId in target_classes:
+                task[bid].remove(result.classId)
+                basket_id = bid
+                break
+
+        if basket_id == 0:
+            return False
+
+        # 执行核心操作序列
+        self.cancel_navigation()
+        self._execute_grab_sequence(result.box)
+        return self._execute_placement_sequence(basket_id)
+
+    def _execute_grab_sequence(self, box):
+        """执行抓取动作序列"""
+        _, center_y = calculate_rectangle_center(box)
+        match get_fruit_height(center_y):
+            case FruitHeight.TALL:
+                self.arm_control(ArmMovementParam.READY_GRAB_APPLE_TALL)
+                self.arm_control(ArmMovementParam.GRAB_APPLE_TALL)
+            case FruitHeight.MIDDLE:
+                self.arm_control(ArmMovementParam.READY_GRAB_APPLE_MIDDLE)
+                self.arm_control(ArmMovementParam.GRAB_APPLE_MIDDLE)
+            case FruitHeight.LOW:
+                self.arm_control(ArmMovementParam.READY_GRAB_APPLE_LOW)
+                self.arm_control(ArmMovementParam.GRAB_APPLE_LOW)
+
+    def _execute_placement_sequence(self, basket_id: int) -> bool:
+        """执行放置动作序列，返回是否需要终止检测循环"""
+        self.arm_control(ArmMovementParam.READY_PUT_FRUIT_INTO_BASKET, True)
+
+        match basket_id:
+            case 1:
+                self.arm_control(ArmMovementParam.PUT_FRUIT_INTO_BASKET_1)
+            case 2:
+                self.arm_control(ArmMovementParam.PUT_FRUIT_INTO_BASKET_2)
+            case 3:
+                self.arm_control(ArmMovementParam.PUT_FRUIT_INTO_BASKET_3)
+            case 4:
+                return True  # 特殊终止信号
+
+        return False

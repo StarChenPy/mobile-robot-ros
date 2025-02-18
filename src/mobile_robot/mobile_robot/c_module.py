@@ -20,7 +20,7 @@ class CModule(Node):
         self.robot.navigation(NavPath.B_MODULE_7)
 
         task = {1: ["Red Apple", "Red Apple"], 2: ["Red Apple"]}
-        self.robot.grab_fruits(NavPath.ORCHARD_CORRIDOR_ENTER_1, task)
+        self.robot.grab_fruits(NavPath.ORCHARD_CORRIDOR_ENTER_1, task, "left")
 
         print(task)
 

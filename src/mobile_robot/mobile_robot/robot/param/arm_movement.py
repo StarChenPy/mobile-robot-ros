@@ -21,8 +21,8 @@ class ArmMovementParam(enum.Enum):
     FINISH_PUT_BASKET = ArmMovement(MotorMovement(0, 0.5), ServoMotor(90, -90, 10, 24))
 
     # 识别动作
-    READY_RECOGNITION_ORCHARD = ArmMovement(MotorMovement(-90, 0.5), ServoMotor(0, -30, 0, 20))
-    RECOGNITION_ORCHARD = ArmMovement(MotorMovement(-90, 25), ServoMotor(0, -30, 0, 20))
+    RECOGNITION_ORCHARD_RIGHT = ArmMovement(MotorMovement(-90, 25), ServoMotor(0, -30, 0, 20))
+    RECOGNITION_ORCHARD_LEFT = ArmMovement(MotorMovement(90, 25), ServoMotor(0, -30, 0, 20))
     RECOGNITION_WAREHOUSE = ArmMovement(MotorMovement(175, 15), ServoMotor(0, -90, 14, 20))
 
     # 抓苹果（上）
