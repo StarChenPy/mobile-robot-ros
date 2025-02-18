@@ -1,0 +1,7 @@
+#请求拍照 保存图片
+string path_color               #拍照彩色图保存的路径
+string path_depth               #拍照深度图保存的路径
+bool sync_snap                  #同步拍照模式
+---
+bool success                    #成功
+sensor_msgs/CameraInfo info     #相机内参数据

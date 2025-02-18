@@ -90,3 +90,9 @@ class NavPath(enum.Enum):
                   NavigationPoint(ORCHARD_CORRIDOR_ENTER_1_POINT), NavigationPoint(ORCHARD_ENTER_POINT),
                   NavigationPoint(WAREHOUSE_ENTER_1_POINT), NavigationPoint(WAREHOUSE_ENTER_2_POINT),
                   NavigationPoint(WAREHOUSE_ENTER_3_POINT), NavigationPoint(WAREHOUSE_1_POINT))
+
+    EXIT_1_TO_EXIT_2 = (NavigationPoint(ORCHARD_CORRIDOR_EXIT_1_POINT, Corrective(CorrectiveSensor.PING, 30)),
+                        NavigationPoint(ORCHARD_CORRIDOR_EXIT_2_POINT))
+
+    EXIT_2_TO_ENTER_2 = (NavigationPoint(ORCHARD_CORRIDOR_EXIT_2_POINT, Corrective(CorrectiveSensor.PING, 30)),
+                         NavigationPoint(ORCHARD_CORRIDOR_ENTER_2_POINT))

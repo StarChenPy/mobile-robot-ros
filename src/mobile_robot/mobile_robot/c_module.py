@@ -22,7 +22,14 @@ class CModule(Node):
         task = {1: ["Red Apple", "Red Apple"], 2: ["Red Apple"]}
         self.robot.grab_fruits(NavPath.ORCHARD_CORRIDOR_ENTER_1, task, "left")
 
-        print(task)
+        flag = False
+        for i in task:
+            if task[i]:
+                flag = True
+
+        if flag:
+            self.robot.navigation(NavPath.EXIT_1_TO_EXIT_2)
+            self.robot.grab_fruits(NavPath.EXIT_2_TO_ENTER_2, task, "left")
 
         # self.robot.navigation(NavPath.C_MODULE_1)
 

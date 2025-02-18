@@ -1,0 +1,13 @@
+float32 set_revise_x    # x 修正设定值(cm)
+float32 set_x0_comp     # yaw 传感器0补偿参数(cm)
+uint8 sensor_type       # 传感器类型 0: ping   1: ir
+uint8 correction_mode   # 修正模式   0：传感器0  1：传感器1  2：传感器0 && 1
+float32 deviation_x     # 允许误差x(cm)
+float32 deviation_w     # 允许误差w(cm)
+bool speed_reversal     # 修正速度取反
+bool start              # 启动标志  // true:启动修正  false：查询状态
+
+---
+
+bool success    # 成功标志  True: 执行结束  False: 执行中
+int8 err_data   # -1 : ping端口选择错误, -2 : ir端口选择错误 , -3 : 传感器类型错误 , -101 ：安全控制触发(急停)

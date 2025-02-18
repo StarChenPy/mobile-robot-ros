@@ -1,0 +1,14 @@
+#请求图像 返回Image消息
+
+#拍照命令
+uint8 ALL=0     #所有
+uint8 COLOR = 1 #彩色图
+uint8 DEPTH = 2 #深度图
+
+uint8 cmd
+bool sync_snap  #同步拍照模式
+---
+bool success                    #成功
+sensor_msgs/Image image_color   #彩色图msg
+sensor_msgs/Image image_depth   #深度图msg
+sensor_msgs/CameraInfo info     #相机内参数据

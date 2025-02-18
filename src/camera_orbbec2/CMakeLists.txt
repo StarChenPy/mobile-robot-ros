@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(revise_msgs)
+project(camera_orbbec2)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -18,18 +18,25 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+# uncomment the following section in order to fill in
+# further dependencies manually.
+# find_package(<dependency> REQUIRED)
+
 find_package(rosidl_default_generators REQUIRED)
 
-# 设置自定义消息生成
+
 rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/ReviseData.msg"
-  "srv/ReviseService.srv"
-  DEPENDENCIES std_msgs  
+  "srv/ReqImage.srv"
+  "srv/ReqSnap.srv"
+  DEPENDENCIES sensor_msgs std_msgs
 )
 
-#导出消息依赖
+
+# 导出消息依赖
 ament_export_dependencies(rosidl_default_runtime)
+
 
 
 if(BUILD_TESTING)
