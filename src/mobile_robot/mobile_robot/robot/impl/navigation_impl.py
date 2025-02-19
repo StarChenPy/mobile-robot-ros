@@ -10,7 +10,7 @@ from .io_impl import IoImpl
 from base_motion_ros2.srv import BaseMotion
 from base_nav2.action import NavCMD
 from chassis_msgs.srv import ResetOdom
-from ..util.data_type import Pose, ResetOdomMode, BaseMotionMode
+from ..util.data_type import ResetOdomMode, BaseMotionMode, NavigationPoint
 
 
 class NavigationImpl:
@@ -32,7 +32,7 @@ class NavigationImpl:
 
     # ===============================导航部分===============================
 
-    def init_pose(self, pose: Pose, mode=ResetOdomMode.RESET_ALL) -> None:
+    def init_pose(self, pose: NavigationPoint, mode=ResetOdomMode.RESET_ALL) -> None:
         """初始化机器人位置，支持重置odom不同模式"""
         self.__logger.info(f"[导航接口] 初始化机器人位置 [{pose.x}, {pose.y}, {pose.yaw}] 模式为 {mode.name}")
 
@@ -59,10 +59,10 @@ class NavigationImpl:
                 self.__logger.error("[导航接口] 重置 Odometry 错误")
                 break
 
-    def navigation(self, points: list[Pose], linear_speed=0.5, rotation_speed=2.5, is_block=True) -> None:
+    def navigation(self, points: list[NavigationPoint], linear_speed=0.5, rotation_speed=2.5, is_block=True) -> None:
         """
         路径跟随: 输入路径点、最终角度等参数，发送导航请求
-        @param points 路径坐标点[x,y]
+        @param points 路径坐标点[x,y, yaw]
         @param linear_speed 最大线速度m/s
         @param rotation_speed 最大旋转速度m/s
         @param is_block 是否阻塞

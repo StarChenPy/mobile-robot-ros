@@ -112,12 +112,18 @@ class MnnResult:
 # ============================ param/navigation_param.py ============================
 
 @dataclass
-class Corrective:
+class CorrectivePoint:
+    x: float
+    y: float
     sensor: SensorType
-    distance: float
+    yaw1: float
+    distance1: float
+    yaw2: float
+    distance2: float
 
 
 @dataclass
 class NavigationPoint:
-    pose: Pose
-    corrective: Corrective = None
+    x: float
+    y: float
+    yaw: float

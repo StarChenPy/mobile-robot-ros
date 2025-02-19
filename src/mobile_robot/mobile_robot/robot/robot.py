@@ -4,7 +4,7 @@ import rclpy
 
 from rclpy.node import Node
 
-from .util.data_type import SensorType, MotorCmd, Pose
+from .util.data_type import SensorType, MotorCmd, NavigationPoint, CorrectivePoint
 from .impl import arm_impl, io_impl, navigation_impl, revise_impl, vision_impl
 from .param.arm_movement import ArmMovementParam
 from .param.arm_param import Motor
@@ -93,7 +93,7 @@ class MobileRobot:
         self.arm_control(ArmMovementParam.RESET)
         self.__logger.info("[机械臂] 复位完成！")
 
-    def init_pose(self, pose: Pose):
+    def init_pose(self, pose: NavigationPoint):
         self.__navigation.init_pose(pose)
 
     def navigation(self, nav_path: NavPath, speed=0.4, is_block=True):
@@ -104,32 +104,28 @@ class MobileRobot:
         @param is_block 是否阻塞
         """
 
-        path1 = []
+        path = []
 
-        for path in nav_path.value:
-            corrective = path.corrective
+        for point in nav_path.value:
+            if isinstance(point, NavigationPoint):
+                path.append(point)
+            elif isinstance(point, CorrectivePoint):
+                correctivePoint1 = NavigationPoint(point.x, point.y, point.yaw1)
+                path.append(correctivePoint1)
+                self.__navigation.navigation(path, speed)
+                path = []
+                self.__navigation.wait_navigation_finish()
+                self.ping_revise(point.distance1)
+                self.init_pose(correctivePoint1)
 
-            # 如果该导航点需要矫正
-            if corrective is not None:
-                # 如果已经有一条路径待出发，就先出发
-                if path1:
-                    print(path1)
-                    self.__navigation.navigation(path1, speed)
-                    path1 = []
+                correctivePoint2 = NavigationPoint(point.x, point.y, point.yaw2)
+                self.__navigation.navigation([correctivePoint2])
+                self.__navigation.wait_navigation_finish()
+                self.ping_revise(point.distance2)
+                self.init_pose(correctivePoint2)
 
-                # 矫正
-                if corrective.sensor == SensorType.PING:
-                    self.ping_revise(corrective.distance)
-                elif corrective.sensor == SensorType.IR:
-                    self.ir_revise(corrective.distance)
-                self.init_pose(path.pose)
-            # 如果不需要矫正，说明是普通路径点，加入列表以待导航
-            else:
-                path1.append(path.pose)
+        self.__navigation.navigation(path, is_block)
 
-        # 路径结束，将剩余导航走完
-        if path1:
-            self.__navigation.navigation(path1, speed, is_block=is_block)
 
     def cancel_navigation(self):
         self.__navigation.cancel_navigation()
@@ -156,24 +152,31 @@ class MobileRobot:
     def vision(self):
         return self.__vision.send_mnn_request()
 
-    def grab_fruits(self, nav_path: NavPath, task: dict[int, list[str]], direction = "left" or "right"):
+    def grab_fruits(self, nav_path: NavPath, task: dict[int, list[str]], direction = "left" or "right") -> bool:
         """
-        扫描并抓取水果，主控制流程
+        扫描并抓取水果，主控制流程，带篮子
         """
         self._prepare_for_recognition(direction)
         self.navigation(nav_path)
 
+        flag = False
         while rclpy.ok() and self.get_navigation_state():
             results = self._get_valid_detections()
 
             for result in results:
                 if self._process_single_fruit(result, task):
-                    break  # 遇到特殊篮子ID时提前终止当前检测循环
+                    flag = True  # 遇到特殊篮子ID时提前终止当前检测循环
+
+                if flag:
+                    break
+            if flag:
+                break
 
             self._prepare_for_recognition(direction)
             self.navigation(nav_path)
 
         self.arm_control(ArmMovementParam.MOVING, True)
+        return flag
 
     # region 辅助方法
     def _prepare_for_recognition(self, direction = "left" or "right"):
@@ -206,7 +209,8 @@ class MobileRobot:
         # 执行核心操作序列
         self.cancel_navigation()
         self._execute_grab_sequence(result.box)
-        return self._execute_placement_sequence(basket_id)
+        # return self._execute_placement_sequence(basket_id)
+        return True
 
     def _execute_grab_sequence(self, box):
         """执行抓取动作序列"""
