@@ -1,6 +1,6 @@
 import enum
 
-from ..util.data_type import Pose, NavigationPoint, Corrective, CorrectiveSensor
+from ..util.data_type import Pose, NavigationPoint, Corrective, SensorType
 
 # # 省赛地图
 # # 第一个转弯点
@@ -32,6 +32,7 @@ WAREHOUSE_1_POINT = Pose(0.62, -1.04, 90)
 
 # 果园坐标
 ORCHARD_ENTER_POINT = Pose(0.5, -3.7, 0)
+
 ORCHARD_CORRIDOR_ENTER_1_POINT = Pose(2, -3.7, 90)
 ORCHARD_CORRIDOR_EXIT_1_POINT = Pose(2, -0.4, -90)
 
@@ -52,47 +53,74 @@ class NavPath(enum.Enum):
     # PICKING_CORRIDOR_1 = (PICKING_CORRIDOR_1_START, PICKING_CORRIDOR_1_END)
     B_MODULE_1 = (NavigationPoint(B_MODULE_1_POINT), )
 
-    B_MODULE_4 = (NavigationPoint(WAREHOUSE_1_POINT, Corrective(CorrectiveSensor.PING, 30)),
-                  NavigationPoint(WAREHOUSE_ENTER_3_POINT), NavigationPoint(WAREHOUSE_ENTER_2_POINT),
-                  NavigationPoint(WAREHOUSE_ENTER_1_POINT), NavigationPoint(START_ENTER_POINT),
+    B_MODULE_4 = (NavigationPoint(WAREHOUSE_1_POINT, Corrective(SensorType.PING, 30)),
+                  NavigationPoint(WAREHOUSE_ENTER_3_POINT),
+                  NavigationPoint(WAREHOUSE_ENTER_2_POINT),
+                  NavigationPoint(WAREHOUSE_ENTER_1_POINT),
+                  NavigationPoint(START_ENTER_POINT),
                   NavigationPoint(START_POINT))
 
-    B_MODULE_5 = (NavigationPoint(START_POINT, Corrective(CorrectiveSensor.PING, 20)),
-                  NavigationPoint(START_ENTER_POINT), NavigationPoint(WAREHOUSE_ENTER_1_POINT),
-                  NavigationPoint(WAREHOUSE_ENTER_2_POINT), NavigationPoint(WAREHOUSE_ENTER_3_POINT),
+    B_MODULE_5 = (NavigationPoint(START_POINT, Corrective(SensorType.PING, 20)),
+                  NavigationPoint(START_ENTER_POINT),
+                  NavigationPoint(WAREHOUSE_ENTER_1_POINT),
+                  NavigationPoint(WAREHOUSE_ENTER_2_POINT),
+                  NavigationPoint(WAREHOUSE_ENTER_3_POINT),
                   NavigationPoint(WAREHOUSE_1_POINT))
 
-    B_MODULE_6 = (NavigationPoint(ORCHARD_CORRIDOR_ENTER_1_POINT), NavigationPoint(ORCHARD_ENTER_POINT),
-                  NavigationPoint(START_ENTER_POINT), NavigationPoint(START_POINT))
+    B_MODULE_6 = (NavigationPoint(ORCHARD_CORRIDOR_ENTER_1_POINT),
+                  NavigationPoint(ORCHARD_ENTER_POINT),
+                  NavigationPoint(START_ENTER_POINT),
+                  NavigationPoint(START_POINT))
 
-    B_MODULE_7 = (NavigationPoint(START_POINT, Corrective(CorrectiveSensor.PING, 20)),
-                  NavigationPoint(START_ENTER_POINT), NavigationPoint(ORCHARD_ENTER_POINT),
+    START_TO_ORCHARD_ENTER_1 = (NavigationPoint(START_POINT, Corrective(SensorType.PING, 20)),
+                                NavigationPoint(START_ENTER_POINT),
+                                NavigationPoint(ORCHARD_ENTER_POINT),
+                                NavigationPoint(ORCHARD_CORRIDOR_ENTER_1_POINT),
+                                NavigationPoint(ORCHARD_CORRIDOR_ENTER_1_POINT, Corrective(SensorType.PING, 7)),)
+
+    B_MODULE_7 = (NavigationPoint(START_POINT, Corrective(SensorType.PING, 20)),
+                  NavigationPoint(START_ENTER_POINT),
+                  NavigationPoint(ORCHARD_ENTER_POINT),
                   NavigationPoint(ORCHARD_CORRIDOR_ENTER_1_POINT),
-                  NavigationPoint(ORCHARD_CORRIDOR_ENTER_1_POINT, Corrective(CorrectiveSensor.PING, 7)),)
+                  NavigationPoint(ORCHARD_1_POINT))
 
-    B_MODULE_11 = (NavigationPoint(START_POINT, Corrective(CorrectiveSensor.PING, 20)),
-                   NavigationPoint(START_ENTER_POINT), NavigationPoint(WAREHOUSE_ENTER_1_POINT),
-                   NavigationPoint(WAREHOUSE_ENTER_2_POINT), NavigationPoint(WAREHOUSE_ENTER_3_POINT),
+    B_MODULE_11 = (NavigationPoint(START_POINT, Corrective(SensorType.PING, 20)),
+                   NavigationPoint(START_ENTER_POINT),
+                   NavigationPoint(WAREHOUSE_ENTER_1_POINT),
+                   NavigationPoint(WAREHOUSE_ENTER_2_POINT),
+                   NavigationPoint(WAREHOUSE_ENTER_3_POINT),
                    NavigationPoint(WAREHOUSE_1_POINT),
-                   NavigationPoint(WAREHOUSE_1_POINT, Corrective(CorrectiveSensor.PING, 30)))
+                   NavigationPoint(WAREHOUSE_1_POINT, Corrective(SensorType.PING, 30)))
 
     B_MODULE_12 = (NavigationPoint(ORCHARD_ENTER_POINT),
-                   NavigationPoint(ORCHARD_ENTER_POINT, Corrective(CorrectiveSensor.PING, 30)),
-                   NavigationPoint(WAREHOUSE_ENTER_1_POINT), NavigationPoint(WAREHOUSE_ENTER_2_POINT),
-                   NavigationPoint(WAREHOUSE_ENTER_3_POINT), NavigationPoint(WAREHOUSE_1_POINT))
+                   NavigationPoint(ORCHARD_ENTER_POINT, Corrective(SensorType.PING, 30)),
+                   NavigationPoint(WAREHOUSE_ENTER_1_POINT),
+                   NavigationPoint(WAREHOUSE_ENTER_2_POINT),
+                   NavigationPoint(WAREHOUSE_ENTER_3_POINT),
+                   NavigationPoint(WAREHOUSE_1_POINT))
 
     ORCHARD_CORRIDOR_ENTER_1 = (NavigationPoint(ORCHARD_CORRIDOR_EXIT_1_POINT), )
 
     ORCHARD_CORRIDOR_ENTER_2 = (NavigationPoint(ORCHARD_CORRIDOR_EXIT_2_POINT),
                                 NavigationPoint(ORCHARD_CORRIDOR_ENTER_2_POINT))
 
-    C_MODULE_1 = (NavigationPoint(ORCHARD_CORRIDOR_EXIT_1_POINT, Corrective(CorrectiveSensor.PING, 30)),
-                  NavigationPoint(ORCHARD_CORRIDOR_ENTER_1_POINT), NavigationPoint(ORCHARD_ENTER_POINT),
-                  NavigationPoint(WAREHOUSE_ENTER_1_POINT), NavigationPoint(WAREHOUSE_ENTER_2_POINT),
-                  NavigationPoint(WAREHOUSE_ENTER_3_POINT), NavigationPoint(WAREHOUSE_1_POINT))
+    EXIT_1_POINT_TO_WAREHOUSE_1_POINT = (NavigationPoint(ORCHARD_CORRIDOR_EXIT_1_POINT, Corrective(SensorType.PING, 30)),
+                                         NavigationPoint(ORCHARD_CORRIDOR_ENTER_1_POINT),
+                                         NavigationPoint(ORCHARD_ENTER_POINT),
+                                         NavigationPoint(WAREHOUSE_ENTER_1_POINT),
+                                         NavigationPoint(WAREHOUSE_ENTER_2_POINT),
+                                         NavigationPoint(WAREHOUSE_ENTER_3_POINT),
+                                         NavigationPoint(WAREHOUSE_1_POINT))
 
-    EXIT_1_TO_EXIT_2 = (NavigationPoint(ORCHARD_CORRIDOR_EXIT_1_POINT, Corrective(CorrectiveSensor.PING, 30)),
+    ENTER_2_POINT_TO_WAREHOUSE_1_POINT = (NavigationPoint(ORCHARD_CORRIDOR_ENTER_2_POINT, Corrective(SensorType.PING, 7)),
+                                          NavigationPoint(ORCHARD_ENTER_POINT),
+                                          NavigationPoint(WAREHOUSE_ENTER_1_POINT),
+                                          NavigationPoint(WAREHOUSE_ENTER_2_POINT),
+                                          NavigationPoint(WAREHOUSE_ENTER_3_POINT),
+                                          NavigationPoint(WAREHOUSE_1_POINT))
+
+    EXIT_1_TO_EXIT_2 = (NavigationPoint(ORCHARD_CORRIDOR_EXIT_1_POINT, Corrective(SensorType.PING, 30)),
                         NavigationPoint(ORCHARD_CORRIDOR_EXIT_2_POINT))
 
-    EXIT_2_TO_ENTER_2 = (NavigationPoint(ORCHARD_CORRIDOR_EXIT_2_POINT, Corrective(CorrectiveSensor.PING, 30)),
+    EXIT_2_TO_ENTER_2 = (NavigationPoint(ORCHARD_CORRIDOR_EXIT_2_POINT, Corrective(SensorType.PING, 30)),
                          NavigationPoint(ORCHARD_CORRIDOR_ENTER_2_POINT))

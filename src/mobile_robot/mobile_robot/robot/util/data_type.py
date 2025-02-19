@@ -93,7 +93,7 @@ class BaseMotionMode(Enum):
 
 # ============================ impl/revise_impl.py ============================
 
-class CorrectiveSensor(Enum):
+class SensorType(Enum):
     PING0 = 0
     PING1 = 1
     IR = 2
@@ -113,7 +113,7 @@ class MnnResult:
 
 @dataclass
 class Corrective:
-    sensor: CorrectiveSensor
+    sensor: SensorType
     distance: float
 
 

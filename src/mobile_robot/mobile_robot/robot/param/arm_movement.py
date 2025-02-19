@@ -10,14 +10,18 @@ class ArmMovementParam(enum.Enum):
     MOVING = ArmMovement(MotorMovement(0, 15), ServoMotor(0, 9, 0, 7))
     BASKET_MOVING = ArmMovement(MotorMovement(180, 15), ServoMotor(0, 0, 0, 5))
 
-    # 抓篮子用
-    READY_GRAB_BASKET_1 = ArmMovement(MotorMovement(90, 0.5), ServoMotor(0, 7, 0, 24))
-    READY_GRAB_BASKET_2 = ArmMovement(MotorMovement(90, 0.5), ServoMotor(0, 7, 10, 24))
-    GRAB_BASKET = ArmMovement(servo=ServoMotor(0, 7, 10, 19))
+    # 抓篮子用(省赛)
+    # READY_GRAB_BASKET_1 = ArmMovement(MotorMovement(90, 0.5), ServoMotor(0, 7, 0, 24))
+    # READY_GRAB_BASKET_2 = ArmMovement(MotorMovement(90, 0.5), ServoMotor(0, 7, 10, 24))
+    # GRAB_BASKET = ArmMovement(servo=ServoMotor(0, 7, 10, 19))
 
-    # 放篮子动作
+    # 篮子动作
     READY_PUT_BASKET = ArmMovement(MotorMovement(0, 0.5), ServoMotor(90, -90, 10, 19))
-    PUT_BASKET_CENTER = ArmMovement(MotorMovement(0, 10), ServoMotor(90, -90, 10, 24))
+
+    PUT_BASKET_1 = ArmMovement(MotorMovement(20, 10), ServoMotor(90, -90, 10, 24))
+    PUT_BASKET_2 = ArmMovement(MotorMovement(0, 10), ServoMotor(90, -90, 10, 24))
+    PUT_BASKET_3 = ArmMovement(MotorMovement(-20, 10), ServoMotor(90, -90, 10, 24))
+
     FINISH_PUT_BASKET = ArmMovement(MotorMovement(0, 0.5), ServoMotor(90, -90, 10, 24))
 
     # 识别动作

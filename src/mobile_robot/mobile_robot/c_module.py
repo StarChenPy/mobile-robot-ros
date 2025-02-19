@@ -29,9 +29,10 @@ class CModule(Node):
 
         if flag:
             self.robot.navigation(NavPath.EXIT_1_TO_EXIT_2)
-            self.robot.grab_fruits(NavPath.EXIT_2_TO_ENTER_2, task, "left")
-
-        # self.robot.navigation(NavPath.C_MODULE_1)
+            self.robot.grab_fruits(NavPath.EXIT_2_TO_ENTER_2, task, "right")
+            self.robot.navigation(NavPath.ENTER_2_POINT_TO_WAREHOUSE_1_POINT)
+        else:
+            self.robot.navigation(NavPath.EXIT_1_POINT_TO_WAREHOUSE_1_POINT)
 
 
 def main():

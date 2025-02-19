@@ -145,7 +145,6 @@ class BModule(Node):
 
                 self.robot.navigation(NavPath.B_MODULE_7)
 
-                self.robot.arm_control(ArmMovementParam.READY_RECOGNITION_ORCHARD)
                 self.robot.arm_control(ArmMovementParam.RECOGNITION_ORCHARD_RIGHT)
 
                 while True:
@@ -161,7 +160,6 @@ class BModule(Node):
 
                 self.robot.navigation(NavPath.B_MODULE_7)
 
-                self.robot.arm_control(ArmMovementParam.READY_RECOGNITION_ORCHARD)
                 self.robot.arm_control(ArmMovementParam.RECOGNITION_ORCHARD_RIGHT)
 
                 while True:

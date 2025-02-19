@@ -4,7 +4,7 @@ import rclpy
 
 from rclpy.node import Node
 
-from .util.data_type import CorrectiveSensor, MotorCmd, Pose
+from .util.data_type import SensorType, MotorCmd, Pose
 from .impl import arm_impl, io_impl, navigation_impl, revise_impl, vision_impl
 from .param.arm_movement import ArmMovementParam
 from .param.arm_param import Motor
@@ -118,9 +118,9 @@ class MobileRobot:
                     path1 = []
 
                 # 矫正
-                if corrective.sensor == CorrectiveSensor.PING:
+                if corrective.sensor == SensorType.PING:
                     self.ping_revise(corrective.distance)
-                elif corrective.sensor == CorrectiveSensor.IR:
+                elif corrective.sensor == SensorType.IR:
                     self.ir_revise(corrective.distance)
                 self.init_pose(path.pose)
             # 如果不需要矫正，说明是普通路径点，加入列表以待导航
@@ -144,18 +144,17 @@ class MobileRobot:
         self.__navigation.base_motion_rotate(angle, speed)
 
     def ping_revise(self, dis: float, is_block=True):
-        self.__revise.ping_revise(dis, 0.1)
+        self.__revise.revise(dis, SensorType.PING)
         if is_block:
-            self.__revise.wait_controls_end()
+            self.__revise.wait_revise()
 
     def ir_revise(self, dis: float, is_block=True):
-        self.__revise.ir_revise(dis, 0.1)
+        self.__revise.revise(dis, SensorType.IR)
         if is_block:
-            self.__revise.wait_controls_end()
+            self.__revise.wait_revise()
 
     def vision(self):
-        self.__vision.send_mnn_request()
-        return self.__vision.mnn_result()
+        return self.__vision.send_mnn_request()
 
     def grab_fruits(self, nav_path: NavPath, task: dict[int, list[str]], direction = "left" or "right"):
         """
