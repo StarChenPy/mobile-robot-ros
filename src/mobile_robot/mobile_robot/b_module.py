@@ -1,11 +1,12 @@
 import rclpy
 from rclpy.node import Node
 
+from .robot.util.data_type import NavigationPoint
 from .robot.robot import MobileRobot, FruitHeight
 from .robot.param.navigation_path import NavPath, ORCHARD_1_POINT
 from .robot.param.arm_movement import ArmMovementParam
 from .robot.util.math import calculate_rectangle_center
-from .robot.robot import get_fruit_height, Pose
+from .robot.robot import get_fruit_height
 
 
 class BModule(Node):
@@ -18,14 +19,14 @@ class BModule(Node):
 
         match select:
             case -1:
-                self.robot.ping_revise(30)
-                self.robot.ping_revise(50)
-                self.robot.ping_revise(10)
+                self.robot.ping_revise(20)
+                self.robot.rotate(-90)
+                self.robot.ping_revise(15)
             case 0:
                 exit(0)
             case 1:
                 # 直线1米
-                self.robot.init_pose(Pose(0, 0, 0))
+                self.robot.init_pose(NavigationPoint(0, 0, 0))
                 self.robot.navigation(NavPath.B_MODULE_1)
             case 2:
                 # 旋转180度
@@ -41,6 +42,7 @@ class BModule(Node):
                 self.robot.arm_control(ArmMovementParam.RESET)
                 self.robot.arm_control(ArmMovementParam.MOVING)
 
+                self.robot.init_pose(NavigationPoint(0.62, -1.04, 90))
                 self.robot.navigation(NavPath.B_MODULE_4)
             case 5:
                 # 起始区到果仓1
@@ -114,8 +116,6 @@ class BModule(Node):
                 self.robot.arm_control(ArmMovementParam.GRAB_APPLE_TALL)
                 self.robot.arm_control(ArmMovementParam.GRAB_APPLE_END)
 
-                self.robot.ping_revise(20)
-
                 self.robot.navigation(NavPath.B_MODULE_12)
                 self.robot.rotate(90)
 
@@ -128,7 +128,6 @@ class BModule(Node):
                 self.robot.arm_control(ArmMovementParam.MOVING)
 
                 self.robot.navigation(NavPath.B_MODULE_5)
-                self.robot.ping_revise(20)
                 self.robot.rotate(90)
 
                 self.robot.arm_control(ArmMovementParam.RECOGNITION_WAREHOUSE)

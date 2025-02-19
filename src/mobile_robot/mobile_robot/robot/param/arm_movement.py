@@ -36,7 +36,7 @@ class ArmMovementParam(enum.Enum):
     READY_GRAB_APPLE_MIDDLE = ArmMovement(MotorMovement(-90, 15), ServoMotor(0, -50, 13, 23))
     GRAB_APPLE_MIDDLE = ArmMovement(MotorMovement(-90, 24), ServoMotor(0, -50, 13, 7))
     # 抓苹果（下）
-    READY_GRAB_APPLE_LOW = ArmMovement(MotorMovement(-90, 15), ServoMotor(0, -50, 13, 23))
+    READY_GRAB_APPLE_LOW = ArmMovement(MotorMovement(-90, 15), ServoMotor(0, -60, 13, 23))
     GRAB_APPLE_LOW = ArmMovement(MotorMovement(-90, 28), ServoMotor(0, -60, 14, 7))
     GRAB_APPLE_END = ArmMovement(MotorMovement(0, 10), ServoMotor(0, 0, 7, 7))
 

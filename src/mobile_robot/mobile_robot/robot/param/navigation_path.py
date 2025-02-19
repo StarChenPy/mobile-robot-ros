@@ -1,6 +1,6 @@
 import enum
 
-from ..util.data_type import Pose, NavigationPoint, CorrectivePoint, SensorType
+from ..util.data_type import NavigationPoint, CorrectivePoint, SensorType
 
 # # 省赛地图
 # # 第一个转弯点
@@ -23,9 +23,9 @@ from ..util.data_type import Pose, NavigationPoint, CorrectivePoint, SensorType
 B_MODULE_1_POINT = NavigationPoint(1.05, 0, 0)
 
 # 矫正点
-START_CORRECTIVE_POINT = CorrectivePoint(1.1, -2.9, SensorType.PING, 180, 30, 90, 20)
-ORCHARD_ENTER_CORRECTIVE_POINT = CorrectivePoint(0.5, -3.7, SensorType.PING, 0, 20, 90, 10)
-WAREHOUSE_CORRECTIVE_POINT = CorrectivePoint(1.15, -0.4, SensorType.PING, -180, 10, -90, 10)
+START_CORRECTIVE_POINT = CorrectivePoint(1.1, -2.9, SensorType.PING, -180, 20, 90, 16)
+ORCHARD_ENTER_CORRECTIVE_POINT = CorrectivePoint(0.4, -3.65, SensorType.PING, 0, 20, 90, 14)
+WAREHOUSE_CORRECTIVE_POINT = CorrectivePoint(1.15, -0.4, SensorType.PING, 180, 14, -90, 20)
 ORCHARD_CORRIDOR_EXIT_1_CORRECTIVE_POINT = CorrectivePoint(2, -0.4, SensorType.PING, -90, 10, -180, 10)
 
 START_POINT = NavigationPoint(1.1, -2.9, -180)
@@ -40,19 +40,19 @@ WAREHOUSE_2_POINT = NavigationPoint(0.62, -0.8, 90)
 WAREHOUSE_3_POINT = NavigationPoint(0.62, -0.4, 90)
 
 # 果园坐标
-ORCHARD_ENTER_POINT = NavigationPoint(0.5, -3.7, 0)
+ORCHARD_ENTER_POINT = NavigationPoint(0.4, -3.45, 0)
 
-ORCHARD_CORRIDOR_ENTER_1_POINT = NavigationPoint(2, -3.7, 90)
-ORCHARD_CORRIDOR_EXIT_1_POINT = NavigationPoint(2, -0.4, -90)
+ORCHARD_CORRIDOR_ENTER_1_POINT = NavigationPoint(2.05, -3.65, 90)
+ORCHARD_CORRIDOR_EXIT_1_POINT = NavigationPoint(2.05, -0.4, -90)
 
-ORCHARD_CORRIDOR_ENTER_2_POINT = NavigationPoint(2.8, -3.7, 90)
+ORCHARD_CORRIDOR_ENTER_2_POINT = NavigationPoint(2.8, -3.65, 90)
 ORCHARD_CORRIDOR_EXIT_2_POINT = NavigationPoint(2.8, -0.4, -90)
 
-ORCHARD_CORRIDOR_ENTER_3_POINT = NavigationPoint(3.6, -3.7, 90)
+ORCHARD_CORRIDOR_ENTER_3_POINT = NavigationPoint(3.6, -3.65, 90)
 ORCHARD_CORRIDOR_EXIT_3_POINT = NavigationPoint(3.6, -0.4, -90)
 
 # 果园1号点
-ORCHARD_1_POINT = Pose(2, -2.92, 90)
+ORCHARD_1_POINT = NavigationPoint(2.05, -2.95, 90)
 
 
 class NavPath(enum.Enum):
@@ -61,8 +61,7 @@ class NavPath(enum.Enum):
     # PICKING_CORRIDOR_1 = (PICKING_CORRIDOR_1_START, PICKING_CORRIDOR_1_END)
     B_MODULE_1 = (B_MODULE_1_POINT, )
 
-    B_MODULE_4 = (WAREHOUSE_1_POINT,
-                  WAREHOUSE_CORRECTIVE_POINT,
+    B_MODULE_4 = (WAREHOUSE_CORRECTIVE_POINT,
                   WAREHOUSE_ENTER_3_POINT,
                   WAREHOUSE_ENTER_2_POINT,
                   WAREHOUSE_ENTER_1_POINT,
@@ -85,7 +84,7 @@ class NavPath(enum.Enum):
                                 START_ENTER_POINT,
                                 ORCHARD_ENTER_POINT,
                                 ORCHARD_CORRIDOR_ENTER_1_POINT,
-                                ORCHARD_CORRIDOR_ENTER_1_POINT, CorrectivePoint(SensorType.PING, 7))
+                                ORCHARD_CORRIDOR_ENTER_1_POINT)
 
     B_MODULE_7 = (START_CORRECTIVE_POINT,
                   START_ENTER_POINT,
@@ -100,8 +99,8 @@ class NavPath(enum.Enum):
                    WAREHOUSE_ENTER_3_POINT,
                    WAREHOUSE_1_POINT)
 
-    B_MODULE_12 = (ORCHARD_ENTER_POINT,
-                   ORCHARD_ENTER_POINT, CorrectivePoint(SensorType.PING, 30),
+    B_MODULE_12 = (ORCHARD_CORRIDOR_ENTER_1_POINT,
+                   ORCHARD_ENTER_CORRECTIVE_POINT,
                    WAREHOUSE_ENTER_1_POINT,
                    WAREHOUSE_ENTER_2_POINT,
                    WAREHOUSE_ENTER_3_POINT,
@@ -112,7 +111,7 @@ class NavPath(enum.Enum):
     ORCHARD_CORRIDOR_ENTER_2 = (ORCHARD_CORRIDOR_EXIT_2_POINT,
                                 ORCHARD_CORRIDOR_ENTER_2_POINT)
 
-    EXIT_1_POINT_TO_WAREHOUSE_1_POINT = (ORCHARD_CORRIDOR_EXIT_1_POINT, CorrectivePoint(SensorType.PING, 30),
+    EXIT_1_POINT_TO_WAREHOUSE_1_POINT = (ORCHARD_CORRIDOR_EXIT_1_CORRECTIVE_POINT,
                                          ORCHARD_CORRIDOR_ENTER_1_POINT,
                                          ORCHARD_ENTER_POINT,
                                          WAREHOUSE_ENTER_1_POINT,
@@ -131,7 +130,7 @@ class NavPath(enum.Enum):
 
     WAREHOUSE_1_TO_WAREHOUSE_3 = (WAREHOUSE_3_POINT, )
 
-    ENTER_2_POINT_TO_WAREHOUSE_1_POINT = (ORCHARD_CORRIDOR_ENTER_2_POINT, CorrectivePoint(SensorType.PING, 7),
+    ENTER_2_POINT_TO_WAREHOUSE_1_POINT = (ORCHARD_CORRIDOR_ENTER_2_POINT,
                                           ORCHARD_ENTER_POINT,
                                           WAREHOUSE_ENTER_1_POINT,
                                           WAREHOUSE_ENTER_2_POINT,

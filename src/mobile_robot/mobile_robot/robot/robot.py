@@ -96,7 +96,7 @@ class MobileRobot:
     def init_pose(self, pose: NavigationPoint):
         self.__navigation.init_pose(pose)
 
-    def navigation(self, nav_path: NavPath, speed=0.4, is_block=True):
+    def navigation(self, nav_path: NavPath, speed=0.5, is_block=True):
         """
         通过路径进行导航
         @param nav_path 路径列表
@@ -111,10 +111,11 @@ class MobileRobot:
                 path.append(point)
             elif isinstance(point, CorrectivePoint):
                 correctivePoint1 = NavigationPoint(point.x, point.y, point.yaw1)
-                path.append(correctivePoint1)
-                self.__navigation.navigation(path, speed)
-                path = []
-                self.__navigation.wait_navigation_finish()
+                if path:
+                    path.append(correctivePoint1)
+                    self.__navigation.navigation(path, speed)
+                    path = []
+                    self.__navigation.wait_navigation_finish()
                 self.ping_revise(point.distance1)
                 self.init_pose(correctivePoint1)
 
@@ -124,7 +125,7 @@ class MobileRobot:
                 self.ping_revise(point.distance2)
                 self.init_pose(correctivePoint2)
 
-        self.__navigation.navigation(path, is_block)
+        self.__navigation.navigation(path, speed, is_block=is_block)
 
 
     def cancel_navigation(self):

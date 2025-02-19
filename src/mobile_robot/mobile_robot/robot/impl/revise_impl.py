@@ -12,7 +12,7 @@ class ReviseImpl:
         self.__node = node
         self.__logger = node.get_logger()
 
-        self.user_sensor_client = self.__node.create_client(SensorService,'/user/sensor_service_cmd')
+        self.user_sensor_client = self.__node.create_client(SensorService, '/user/sensor_service_cmd')
 
         self.__logger.info("[修正控制接口] 初始化完成.")
 
@@ -45,12 +45,13 @@ class ReviseImpl:
 
     def revise(self, distance, sensor_type: SensorType):
         request = SensorService.Request()
-        request.set_revise_x = float(distance)      # x 修正设定值(cm)
-        request.set_x0_comp = float(0)        # yaw 传感器0补偿参数(cm)
-        request.deviation_x = 0.3           # 允许误差x(cm)
-        request.deviation_w = 0.25          # 允许误差w(cm)
+        request.set_revise_x = float(distance)  # x 修正设定值(cm)
+        request.set_x0_comp = float(0)  # yaw 传感器0补偿参数(cm)
+        request.deviation_x = 0.3  # 允许误差x(cm)
+        request.deviation_w = 0.25  # 允许误差w(cm)
 
-        request.sensor_type = int(0 if sensor_type == SensorType.PING0 or SensorType.PING1 or SensorType.PING else 1)          # 传感器类型 0: ping   1: ir
+        request.sensor_type = int(
+            0 if sensor_type == SensorType.PING0 or SensorType.PING1 or SensorType.PING else 1)  # 传感器类型 0: ping   1: ir
         if sensor_type == SensorType.PING0:
             request.correction_mode = int(0)  # 修正模式   0：传感器0  1：传感器1  2：传感器0 && 1
         elif sensor_type == SensorType.PING1 or sensor_type == SensorType.IR:
@@ -60,7 +61,8 @@ class ReviseImpl:
 
         if sensor_type == SensorType.PING0 or SensorType.PING1 or SensorType.PING:
             request.speed_reversal = False
-        else: request.speed_reversal = True     # 修正速度取反
+        else:
+            request.speed_reversal = True  # 修正速度取反
 
         request.start = True
 
