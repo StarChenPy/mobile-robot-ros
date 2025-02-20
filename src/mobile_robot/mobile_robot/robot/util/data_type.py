@@ -118,8 +118,8 @@ class CorrectivePoint:
     sensor: SensorType
     yaw1: float
     distance1: float
-    yaw2: float
-    distance2: float
+    yaw2: float = 0
+    distance2: float = 0
 
 
 @dataclass

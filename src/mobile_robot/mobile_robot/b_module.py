@@ -19,9 +19,9 @@ class BModule(Node):
 
         match select:
             case -1:
-                self.robot.ping_revise(20)
-                self.robot.rotate(-90)
-                self.robot.ping_revise(15)
+                while True:
+                    input()
+                    print(self.robot.vision())
             case 0:
                 exit(0)
             case 1:

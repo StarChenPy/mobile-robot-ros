@@ -23,27 +23,30 @@ from ..util.data_type import NavigationPoint, CorrectivePoint, SensorType
 B_MODULE_1_POINT = NavigationPoint(1.05, 0, 0)
 
 # 矫正点
-START_CORRECTIVE_POINT = CorrectivePoint(1.1, -2.9, SensorType.PING, -180, 20, 90, 16)
+START_CORRECTIVE_POINT = CorrectivePoint(1.1, -2.9, SensorType.PING, -180, 20)
 ORCHARD_ENTER_CORRECTIVE_POINT = CorrectivePoint(0.4, -3.65, SensorType.PING, 0, 20, 90, 14)
-WAREHOUSE_CORRECTIVE_POINT = CorrectivePoint(1.15, -0.4, SensorType.PING, 180, 14, -90, 20)
-ORCHARD_CORRIDOR_EXIT_1_CORRECTIVE_POINT = CorrectivePoint(2, -0.4, SensorType.PING, -90, 10, -180, 10)
+WAREHOUSE_CORRECTIVE_POINT = CorrectivePoint(1.15, -0.4, SensorType.PING, 180, 13, -90, 18)
+ORCHARD_CORRIDOR_EXIT_1_CORRECTIVE_POINT = CorrectivePoint(2, -0.4, SensorType.PING, -90, 18, 0, 28)
 
 START_POINT = NavigationPoint(1.1, -2.9, -180)
-START_ENTER_POINT = NavigationPoint(0.5, -2.9, -180)
+START_ENTER_POINT = NavigationPoint(0.4, -2.9, -180)
 
 # 果仓坐标
-WAREHOUSE_ENTER_1_POINT = NavigationPoint(0.5, -2, 0)
+WAREHOUSE_POINT = NavigationPoint(1.15, -0.4, 90)
+WAREHOUSE_ENTER_1_POINT = NavigationPoint(0.4, -2, 0)
 WAREHOUSE_ENTER_2_POINT = NavigationPoint(1.15, -2, 0)
 WAREHOUSE_ENTER_3_POINT = NavigationPoint(1.15, -1.04, 0)
-WAREHOUSE_1_POINT = NavigationPoint(0.62, -1.04, 90)
-WAREHOUSE_2_POINT = NavigationPoint(0.62, -0.8, 90)
-WAREHOUSE_3_POINT = NavigationPoint(0.62, -0.4, 90)
+WAREHOUSE_1_POINT = NavigationPoint(0.62, -1, 90)
+WAREHOUSE_2_POINT = NavigationPoint(0.62, -0.6, 90)
+WAREHOUSE_3_POINT = NavigationPoint(0.62, -0.3, 90)
 
 # 果园坐标
-ORCHARD_ENTER_POINT = NavigationPoint(0.4, -3.45, 0)
+ORCHARD_ENTER_POINT = NavigationPoint(0.5, -3.65, 0)
 
-ORCHARD_CORRIDOR_ENTER_1_POINT = NavigationPoint(2.05, -3.65, 90)
-ORCHARD_CORRIDOR_EXIT_1_POINT = NavigationPoint(2.05, -0.4, -90)
+ORCHARD_ENTER_POINT_1 = NavigationPoint(1, -3.65, 0)
+
+ORCHARD_CORRIDOR_ENTER_1_POINT = NavigationPoint(2, -3.65, 90)
+ORCHARD_CORRIDOR_EXIT_1_POINT = NavigationPoint(2, -0.4, -90)
 
 ORCHARD_CORRIDOR_ENTER_2_POINT = NavigationPoint(2.8, -3.65, 90)
 ORCHARD_CORRIDOR_EXIT_2_POINT = NavigationPoint(2.8, -0.4, -90)
@@ -52,7 +55,7 @@ ORCHARD_CORRIDOR_ENTER_3_POINT = NavigationPoint(3.6, -3.65, 90)
 ORCHARD_CORRIDOR_EXIT_3_POINT = NavigationPoint(3.6, -0.4, -90)
 
 # 果园1号点
-ORCHARD_1_POINT = NavigationPoint(2.05, -2.95, 90)
+ORCHARD_1_POINT = NavigationPoint(2, -2.95, 90)
 
 
 class NavPath(enum.Enum):
@@ -61,7 +64,8 @@ class NavPath(enum.Enum):
     # PICKING_CORRIDOR_1 = (PICKING_CORRIDOR_1_START, PICKING_CORRIDOR_1_END)
     B_MODULE_1 = (B_MODULE_1_POINT, )
 
-    B_MODULE_4 = (WAREHOUSE_CORRECTIVE_POINT,
+    B_MODULE_4 = (WAREHOUSE_POINT,
+                  WAREHOUSE_CORRECTIVE_POINT,
                   WAREHOUSE_ENTER_3_POINT,
                   WAREHOUSE_ENTER_2_POINT,
                   WAREHOUSE_ENTER_1_POINT,
@@ -83,7 +87,7 @@ class NavPath(enum.Enum):
     START_TO_ORCHARD_ENTER_1 = (START_CORRECTIVE_POINT,
                                 START_ENTER_POINT,
                                 ORCHARD_ENTER_POINT,
-                                ORCHARD_CORRIDOR_ENTER_1_POINT,
+                                ORCHARD_ENTER_POINT_1,
                                 ORCHARD_CORRIDOR_ENTER_1_POINT)
 
     B_MODULE_7 = (START_CORRECTIVE_POINT,
@@ -111,19 +115,20 @@ class NavPath(enum.Enum):
     ORCHARD_CORRIDOR_ENTER_2 = (ORCHARD_CORRIDOR_EXIT_2_POINT,
                                 ORCHARD_CORRIDOR_ENTER_2_POINT)
 
-    EXIT_1_POINT_TO_WAREHOUSE_1_POINT = (ORCHARD_CORRIDOR_EXIT_1_CORRECTIVE_POINT,
-                                         ORCHARD_CORRIDOR_ENTER_1_POINT,
-                                         ORCHARD_ENTER_POINT,
-                                         WAREHOUSE_ENTER_1_POINT,
-                                         WAREHOUSE_ENTER_2_POINT,
-                                         WAREHOUSE_ENTER_3_POINT,
-                                         WAREHOUSE_1_POINT)
+    TO_WAREHOUSE_1_POINT = (ORCHARD_CORRIDOR_ENTER_1_POINT,
+                            ORCHARD_ENTER_CORRECTIVE_POINT,
+                            WAREHOUSE_ENTER_1_POINT,
+                            WAREHOUSE_ENTER_2_POINT,
+                            WAREHOUSE_ENTER_3_POINT,
+                            WAREHOUSE_1_POINT)
 
-    WAREHOUSE_TO_ORCHARD_ENTER_1 = (WAREHOUSE_CORRECTIVE_POINT,
-                                    WAREHOUSE_3_POINT,
-                                    WAREHOUSE_2_POINT,
-                                    WAREHOUSE_1_POINT,
-                                    ORCHARD_ENTER_POINT,
+    WAREHOUSE_TO_ORCHARD_ENTER_1 = (WAREHOUSE_POINT,
+                                    WAREHOUSE_CORRECTIVE_POINT,
+                                    WAREHOUSE_ENTER_3_POINT,
+                                    WAREHOUSE_ENTER_2_POINT,
+                                    WAREHOUSE_ENTER_1_POINT,
+                                    ORCHARD_ENTER_CORRECTIVE_POINT,
+                                    ORCHARD_ENTER_POINT_1,
                                     ORCHARD_CORRIDOR_ENTER_1_POINT)
 
     WAREHOUSE_1_TO_WAREHOUSE_2 = (WAREHOUSE_2_POINT, )
@@ -131,7 +136,8 @@ class NavPath(enum.Enum):
     WAREHOUSE_1_TO_WAREHOUSE_3 = (WAREHOUSE_3_POINT, )
 
     ENTER_2_POINT_TO_WAREHOUSE_1_POINT = (ORCHARD_CORRIDOR_ENTER_2_POINT,
-                                          ORCHARD_ENTER_POINT,
+                                          ORCHARD_ENTER_POINT_1,
+                                          ORCHARD_ENTER_CORRECTIVE_POINT,
                                           WAREHOUSE_ENTER_1_POINT,
                                           WAREHOUSE_ENTER_2_POINT,
                                           WAREHOUSE_ENTER_3_POINT,
