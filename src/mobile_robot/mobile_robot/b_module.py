@@ -1,6 +1,9 @@
+import time
+
 import rclpy
 from rclpy.node import Node
 
+from .robot.impl import io_impl
 from .robot.util.data_type import NavigationPoint
 from .robot.robot import MobileRobot, FruitHeight
 from .robot.param.navigation_path import NavPath, ORCHARD_1_POINT
@@ -14,14 +17,18 @@ class BModule(Node):
         super().__init__('b_module')
 
         self.robot = MobileRobot(self)
+        io = io_impl.IoImpl(self)
 
         select = int(input("等待按键按下, 1 - 15, 0 退出\n"))
 
         match select:
             case -1:
+                # self.robot.arm_control(ArmMovementParam.RESET)
+                self.robot.arm_control(ArmMovementParam.READY_GRAB_APPLE_TALL)
                 while True:
-                    input()
-                    print(self.robot.vision())
+                    rclpy.spin_once(self)
+                    print(io.get_ir_claws())
+                    time.sleep(1)
             case 0:
                 exit(0)
             case 1:

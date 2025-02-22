@@ -160,7 +160,6 @@ class MobileRobot:
         self._prepare_for_recognition(direction)
         self.navigation(nav_path, 0.05, False)
 
-        flag = False
         while rclpy.ok() and self.get_navigation_state():
             results = self._get_valid_detections()
 
@@ -213,13 +212,16 @@ class MobileRobot:
         match get_fruit_height(center_y):
             case FruitHeight.TALL:
                 self.arm_control(ArmMovementParam.READY_GRAB_APPLE_TALL)
-                self.arm_control(ArmMovementParam.GRAB_APPLE_TALL)
+                movement = ArmMovementParam.GRAB_APPLE_TALL
+                self.arm_control(movement)
             case FruitHeight.MIDDLE:
                 self.arm_control(ArmMovementParam.READY_GRAB_APPLE_MIDDLE)
-                self.arm_control(ArmMovementParam.GRAB_APPLE_MIDDLE)
+                movement = ArmMovementParam.GRAB_APPLE_MIDDLE
+                self.arm_control(movement)
             case FruitHeight.LOW:
                 self.arm_control(ArmMovementParam.READY_GRAB_APPLE_LOW)
-                self.arm_control(ArmMovementParam.GRAB_APPLE_LOW)
+                movement = ArmMovementParam.GRAB_APPLE_LOW
+                self.arm_control(movement)
 
     def _execute_placement_sequence(self, basket_id: int) -> bool:
         """执行放置动作序列，返回是否需要终止检测循环"""

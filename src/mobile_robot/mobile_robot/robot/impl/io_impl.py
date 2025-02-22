@@ -112,3 +112,9 @@ class IoImpl(object):
     # 设置 LED 灯
     def set_led(self, state: bool):
         self.write_do(0, state)
+
+    def get_ir_claws(self) -> float:
+        return self.__robot_data.ir[0]
+
+    def get_ir_front(self) -> float:
+        return self.__robot_data.ir[1]
