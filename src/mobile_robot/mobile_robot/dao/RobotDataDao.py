@@ -7,13 +7,17 @@ from ..util.Singleton import singleton
 @singleton
 class RobotDataDao(object):
     def __init__(self, node: rclpy.node.Node):
-        self.robotData = web_message_transform_ros2.msg.RobotData()
+        self.__robot_data = web_message_transform_ros2.msg.RobotData()
 
-        self.robotDataSub = node.create_subscription(web_message_transform_ros2.msg.RobotData, '/web_transform_node/robot_data', self.robotDataCallback, 10)
+        node.create_subscription(
+            web_message_transform_ros2.msg.RobotData,
+            '/web_transform_node/robot_data',
+            self.__robot_data_callback,
+            10)
 
     # 读取回调
-    def robotDataCallback(self, msg):
-        self.robotData = msg
+    def __robot_data_callback(self, msg):
+        self.__robot_data = msg
 
-    def getRobotData(self):
-        return self.robotData
+    def get_robot_data(self):
+        return self.__robot_data

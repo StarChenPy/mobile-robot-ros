@@ -1,15 +1,16 @@
+import copy
 import enum
 import time
 import rclpy
 
 from rclpy.node import Node
 
+from .util import math
 from .util.data_type import SensorType, MotorCmd, NavigationPoint, CorrectivePoint
 from .impl import arm_impl, io_impl, navigation_impl, revise_impl, vision_impl
 from .param.arm_movement import ArmMovementParam
 from .param.arm_param import Motor
 from .param.navigation_path import NavPath
-from .util.math import calculate_rectangle_center
 
 
 class FruitHeight(enum.Enum):
@@ -186,7 +187,7 @@ class MobileRobot:
         return [
             result for result in self.vision()
             # x的范围是0～460
-            if 120 < calculate_rectangle_center(result.box)[0] < 400
+            if 120 < math.calculate_rectangle_center(result.box)[0] < 400
         ]
 
     def _process_single_fruit(self, result, task: dict) -> bool:
@@ -208,20 +209,24 @@ class MobileRobot:
 
     def _execute_grab_sequence(self, box):
         """执行抓取动作序列"""
-        _, center_y = calculate_rectangle_center(box)
+        _, center_y = math.calculate_rectangle_center(box)
+        self.arm_control(ArmMovementParam.READY_GRAB_APPLE)
         match get_fruit_height(center_y):
-            case FruitHeight.TALL:
-                self.arm_control(ArmMovementParam.READY_GRAB_APPLE_TALL)
-                movement = ArmMovementParam.GRAB_APPLE_TALL
-                self.arm_control(movement)
-            case FruitHeight.MIDDLE:
-                self.arm_control(ArmMovementParam.READY_GRAB_APPLE_MIDDLE)
-                movement = ArmMovementParam.GRAB_APPLE_MIDDLE
-                self.arm_control(movement)
-            case FruitHeight.LOW:
-                self.arm_control(ArmMovementParam.READY_GRAB_APPLE_LOW)
-                movement = ArmMovementParam.GRAB_APPLE_LOW
-                self.arm_control(movement)
+                case FruitHeight.TALL:
+                    distance = self._get_fruit_distance(ArmMovementParam.READY_GRAB_APPLE)
+                    movement = ArmMovementParam.GRAB_APPLE_TALL
+                    movement.value.servo.telescopic = distance - 11
+                    self.arm_control(movement)
+                case FruitHeight.MIDDLE:
+                    distance = self._get_fruit_distance(ArmMovementParam.READY_GRAB_APPLE)
+                    movement = ArmMovementParam.GRAB_APPLE_MIDDLE
+                    movement.value.servo.telescopic = distance - 6
+                    self.arm_control(movement)
+                case FruitHeight.LOW:
+                    distance = self._get_fruit_distance(ArmMovementParam.READY_GRAB_APPLE)
+                    movement = ArmMovementParam.GRAB_APPLE_LOW
+                    movement.value.servo.telescopic = distance - 6
+                    self.arm_control(movement)
 
     def _execute_placement_sequence(self, basket_id: int) -> bool:
         """执行放置动作序列，返回是否需要终止检测循环"""
@@ -238,3 +243,44 @@ class MobileRobot:
                 return True  # 特殊终止信号
 
         return False
+
+    def _get_fruit_distance(self, movement: ArmMovementParam):
+        angle = 15
+
+        left_movement = copy.deepcopy(movement)
+        center_movement = copy.deepcopy(movement)
+        right_movement = copy.deepcopy(movement)
+
+        print(id(left_movement), id(right_movement), id(center_movement))
+
+        # 扫描左侧
+        left_movement.value.motor.rotate += angle
+        self.arm_control(left_movement, True)
+        print("扫描左侧", left_movement.value.motor.rotate)
+        ir_claws_left = self.__io.get_ir_claws()
+        ir_claws_left = math.calculate_adjacent_side(ir_claws_left, angle)
+
+        # 扫描中间
+        self.arm_control(center_movement, True)
+        print("扫描中间", center_movement.value.motor.rotate)
+        ir_claws_center = self.__io.get_ir_claws()
+
+        # 扫描右侧
+        right_movement.value.motor.rotate -= angle
+        self.arm_control(right_movement, True)
+        print("扫描右侧", right_movement.value.motor.rotate)
+        ir_claws_right = self.__io.get_ir_claws()
+        ir_claws_right = math.calculate_adjacent_side(ir_claws_right, angle)
+
+        min_val = min(ir_claws_left, ir_claws_center, ir_claws_right)
+
+        # 判断最小值来源并执行对应操作
+        if ir_claws_left == min_val:
+            # 左侧最小，执行左侧功能
+            return (ir_claws_center + ir_claws_right) / 2
+        elif ir_claws_center == min_val:
+            # 中间最小，执行中间功能
+            return (ir_claws_left + ir_claws_right) / 2
+        else:
+            # 右侧最小，执行右侧功能
+            return (ir_claws_left + ir_claws_center) / 2

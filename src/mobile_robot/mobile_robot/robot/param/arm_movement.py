@@ -30,13 +30,11 @@ class ArmMovementParam(enum.Enum):
     RECOGNITION_WAREHOUSE = ArmMovement(MotorMovement(175, 15), ServoMotor(0, -90, 14, 20))
 
     # 抓苹果（上）
-    READY_GRAB_APPLE_TALL = ArmMovement(MotorMovement(-90, 20), ServoMotor(0, 0, 0, 23))
+    READY_GRAB_APPLE = ArmMovement(MotorMovement(-90, 26), ServoMotor(0, 0, 0, 23))
     GRAB_APPLE_TALL = ArmMovement(MotorMovement(-90, 26), ServoMotor(0, 0, 8, 7))
     # 抓苹果（中）
-    READY_GRAB_APPLE_MIDDLE = ArmMovement(MotorMovement(-90, 15), ServoMotor(0, -50, 13, 23))
     GRAB_APPLE_MIDDLE = ArmMovement(MotorMovement(-90, 24), ServoMotor(0, -50, 13, 7))
     # 抓苹果（下）
-    READY_GRAB_APPLE_LOW = ArmMovement(MotorMovement(-90, 15), ServoMotor(0, -60, 13, 23))
     GRAB_APPLE_LOW = ArmMovement(MotorMovement(-90, 28), ServoMotor(0, -60, 14, 7))
     GRAB_APPLE_END = ArmMovement(MotorMovement(0, 10), ServoMotor(0, 0, 7, 7))
 
