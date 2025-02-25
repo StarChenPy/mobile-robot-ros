@@ -1,3 +1,5 @@
+import time
+
 import rclpy
 
 from ..param.arm_movement import ArmMovementParam
@@ -12,6 +14,10 @@ class ArmController:
 
         self.__arm = ArmService(node)
 
-    def control(self, movement: ArmMovementParam, is_block=False):
-        self.__arm.control(movement, is_block)
+    def control(self, movement: ArmMovementParam, speed: float = 20, is_block=False):
+        self.__arm.control(movement, speed, is_block)
+        time.sleep(1)
+
+    def reset(self):
+        self.__arm.back_origin()
 

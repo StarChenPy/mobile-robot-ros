@@ -18,20 +18,21 @@ class ArmService:
         self.__rotate_motor = RotateMotorDao(node)
         self.__robot_ctrl = RobotCtrlDao(node)
 
-    def control(self, movement: ArmMovementParam, is_block=False):
+    def control(self, movement: ArmMovementParam, speed: float, is_block = False):
         self.__logger.info(f"[机械臂] 机械臂控制 {movement.name}")
 
         if movement.value.motor is not None:
-            self.lift(movement.value.motor.lift, is_block)
-            self.rotate(movement.value.motor.rotate, is_block)
-            self.__lift_motor.wait_finish()
-            self.__rotate_motor.wait_finish()
+            self.lift(movement.value.motor.lift, speed, is_block)
+            self.rotate(movement.value.motor.rotate, speed, is_block)
 
         if movement.value.servo is not None:
             self.nod_servo(movement.value.servo.nod)
             self.telescopic_servo(movement.value.servo.telescopic)
             self.gripper_servo(movement.value.servo.gripper)
             self.rotary_servo(movement.value.servo.rotary)
+
+        self.__lift_motor.wait_finish()
+        self.__rotate_motor.wait_finish()
 
     def back_origin(self, speed=20):
         self.__logger.info(f"[机械臂] 回原点")
@@ -43,12 +44,14 @@ class ArmService:
         self.__lift_motor.wait_finish()
         self.__rotate_motor.wait_finish()
 
-    def lift(self, target: float, speed: float = 20, is_block=True):
+        self.__logger.info(f"[机械臂] 回原点结束")
+
+    def lift(self, target: float, speed: float, is_block):
         self.__lift_motor.ctrl_motor(target, speed)
         if is_block:
             self.__lift_motor.wait_finish()
 
-    def rotate(self, target: float, speed: float = 20, is_block=True):
+    def rotate(self, target: float, speed: float, is_block):
         self.__rotate_motor.ctrl_motor(target, speed)
         if is_block:
             self.__lift_motor.wait_finish()
@@ -134,7 +137,7 @@ class ArmService:
         # 转换为PWM duty
         match servo:
             case Servo.NOD:
-                config = servo_config["gripper"]
+                config = servo_config["nod"]
                 coeff = (config["deg90_duty"] - config["zero_duty"]) / 90.0
                 duty = config["zero_duty"] + value * coeff
             case Servo.TELESCOPIC:
@@ -146,7 +149,7 @@ class ArmService:
                 coeff = (config["max_duty"] - config["min_duty"]) / config["itinerary"]
                 duty = config["min_duty"] + value / 2.0 * coeff
             case Servo.ROTARY:
-                config = servo_config["gripper"]
+                config = servo_config["rotary"]
                 coeff = (config["deg90_duty"] - config["zero_duty"]) / 90.0
                 duty = config["zero_duty"] + value * coeff
 

@@ -102,7 +102,8 @@ class MotionDao:
             if not rclpy.ok():
                 break
 
-            if future.result().feedback.reached:
+            feedback = future.result().feedback
+            if feedback.motion_mode == 0 and feedback.motion_status == 2:
                 self.__logger.debug("[基础运动] 运动服务已结束")
                 return
 

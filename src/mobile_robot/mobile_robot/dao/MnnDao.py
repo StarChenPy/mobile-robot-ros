@@ -2,6 +2,8 @@ import rclpy
 
 import mnn_msgs.srv
 
+from ..popo.MnnResult import MnnResult
+from ..popo.Rectangle import Rectangle
 from ..util.Singleton import singleton
 
 
@@ -21,12 +23,13 @@ class MnnDao:
         request.data = ""
 
         future = self.__service.call_async(request)
-        self.__logger.debug("[MNN] 已请求服务")
+        self.__logger.debug("[视觉] MNN 请求已发送")
 
-        rclpy.spin_until_future_complete(self.__node, future, timeout_sec=5.0)
+        while rclpy.ok():
+            rclpy.spin_once(self.__node)
 
-        if not future.done():
-            self.__logger.error("[MNN] 请求超时未响应")
-            return []
+            if future is None:
+                continue
 
-        return future.result()
+            if future.done():
+                return future.result()

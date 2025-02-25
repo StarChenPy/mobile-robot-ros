@@ -1,6 +1,7 @@
 import enum
 
-from ..util.data_type import NavigationPoint, CorrectivePoint, SensorType
+from ..popo.NavigationPoint import NavigationPoint
+from ..popo.CorrectivePoint import CorrectivePoint
 
 # # 省赛地图
 # # 第一个转弯点
@@ -23,10 +24,10 @@ from ..util.data_type import NavigationPoint, CorrectivePoint, SensorType
 B_MODULE_1_POINT = NavigationPoint(1.05, 0, 0)
 
 # 矫正点
-START_CORRECTIVE_POINT = CorrectivePoint(1.1, -2.9, SensorType.PING, -180, 20)
-ORCHARD_ENTER_CORRECTIVE_POINT = CorrectivePoint(0.4, -3.65, SensorType.PING, 0, 20, 90, 14)
-WAREHOUSE_CORRECTIVE_POINT = CorrectivePoint(1.15, -0.4, SensorType.PING, 180, 13, -90, 18)
-ORCHARD_CORRIDOR_EXIT_1_CORRECTIVE_POINT = CorrectivePoint(2, -0.4, SensorType.PING, -90, 18, 0, 28)
+START_CORRECTIVE_POINT = CorrectivePoint(1.1, -2.9, -180, -20)
+ORCHARD_ENTER_CORRECTIVE_POINT = CorrectivePoint(0.4, -3.65, 0, -20, 90, -14)
+WAREHOUSE_CORRECTIVE_POINT = CorrectivePoint(1.15, -0.4, -90, -18, -180, -13)
+ORCHARD_CORRIDOR_EXIT_1_CORRECTIVE_POINT = CorrectivePoint(2, -0.4, -90, -18, 0, -28)
 
 START_POINT = NavigationPoint(1.1, -2.9, -180)
 START_ENTER_POINT = NavigationPoint(0.4, -2.9, -180)
@@ -45,8 +46,8 @@ ORCHARD_ENTER_POINT = NavigationPoint(0.5, -3.65, 0)
 
 ORCHARD_ENTER_POINT_1 = NavigationPoint(1, -3.65, 0)
 
-ORCHARD_CORRIDOR_ENTER_1_POINT = NavigationPoint(2, -3.65, 90)
-ORCHARD_CORRIDOR_EXIT_1_POINT = NavigationPoint(2, -0.4, -90)
+ORCHARD_CORRIDOR_ENTER_1_POINT = NavigationPoint(1.99, -3.65, 90)
+ORCHARD_CORRIDOR_EXIT_1_POINT = NavigationPoint(1.99, -0.4, -90)
 
 ORCHARD_CORRIDOR_ENTER_2_POINT = NavigationPoint(2.8, -3.65, 90)
 ORCHARD_CORRIDOR_EXIT_2_POINT = NavigationPoint(2.8, -0.4, -90)
@@ -55,7 +56,7 @@ ORCHARD_CORRIDOR_ENTER_3_POINT = NavigationPoint(3.6, -3.65, 90)
 ORCHARD_CORRIDOR_EXIT_3_POINT = NavigationPoint(3.6, -0.4, -90)
 
 # 果园1号点
-ORCHARD_1_POINT = NavigationPoint(2, -2.95, 90)
+ORCHARD_1_POINT = NavigationPoint(1.99, -2.95, 90)
 
 
 class NavPath(enum.Enum):
@@ -92,7 +93,8 @@ class NavPath(enum.Enum):
 
     B_MODULE_7 = (START_CORRECTIVE_POINT,
                   START_ENTER_POINT,
-                  ORCHARD_ENTER_POINT,
+                  ORCHARD_ENTER_CORRECTIVE_POINT,
+                  ORCHARD_ENTER_POINT_1,
                   ORCHARD_CORRIDOR_ENTER_1_POINT,
                   ORCHARD_1_POINT)
 

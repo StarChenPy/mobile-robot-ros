@@ -14,6 +14,8 @@ nod:
 
 telescopic:
   pin: 2
+  min_value: 0
+  max_value: 15
   min_duty: 12
   max_duty: 49
   itinerary: 15

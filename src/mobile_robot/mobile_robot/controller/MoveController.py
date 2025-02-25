@@ -1,3 +1,5 @@
+import time
+
 import rclpy
 
 from ..param.navigation_path import NavPath
@@ -7,7 +9,7 @@ from ..util.Singleton import singleton
 
 
 @singleton
-class NavigationController:
+class MoveController:
     def __init__(self, node: rclpy.node.Node):
         self.__logger = node.get_logger()
 
@@ -15,6 +17,7 @@ class NavigationController:
 
     def navigation(self, nav_path: NavPath, speed=0.4, is_block=True):
         self.__navigation.navigation(nav_path, speed, is_block)
+        time.sleep(1)
 
     def init_pose(self, point: NavigationPoint):
         self.__navigation.init_odom_all(point)

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from Rectangle import Rectangle
+from .Rectangle import Rectangle
 
 
 @dataclass

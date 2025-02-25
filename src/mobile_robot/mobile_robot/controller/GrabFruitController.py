@@ -39,10 +39,10 @@ class GrabFruitController:
 
             for result in results:
                 if self.__process_single_fruit(result, task):
-                    self.__arm.control(ArmMovementParam.MOVING, True)
+                    self.__arm.control(ArmMovementParam.MOVING, 20, True)
                     return True
 
-        self.__arm.control(ArmMovementParam.MOVING, True)
+        self.__arm.control(ArmMovementParam.MOVING, 20, True)
         return False
 
     def get_fruit_height(self, box: Rectangle) -> FruitHeight:
@@ -59,9 +59,9 @@ class GrabFruitController:
     def __prepare_for_recognition(self, direction="left" or "right"):
         """准备视觉识别状态"""
         if direction == "left":
-            self.__arm.control(ArmMovementParam.RECOGNITION_ORCHARD_LEFT)
+            self.__arm.control(ArmMovementParam.RECOGNITION_ORCHARD_LEFT, 20)
         elif direction == "right":
-            self.__arm.control(ArmMovementParam.RECOGNITION_ORCHARD_RIGHT)
+            self.__arm.control(ArmMovementParam.RECOGNITION_ORCHARD_RIGHT, 20)
 
     def __get_valid_detections(self) -> list:
         """获取有效检测结果并进行初步过滤"""
@@ -90,35 +90,35 @@ class GrabFruitController:
 
     def __execute_grab_sequence(self, box):
         """执行抓取动作序列"""
-        self.__arm.control(ArmMovementParam.READY_GRAB_APPLE)
+        self.__arm.control(ArmMovementParam.READY_GRAB_APPLE, 20)
         match self.get_fruit_height(box):
             case FruitHeight.TALL:
                 distance = self.__get_fruit_distance(ArmMovementParam.READY_GRAB_APPLE)
                 movement = ArmMovementParam.GRAB_APPLE_TALL
                 movement.value.servo.telescopic = distance - 11
-                self.__arm.control(movement)
+                self.__arm.control(movement, 20)
             case FruitHeight.MIDDLE:
                 distance = self.__get_fruit_distance(ArmMovementParam.READY_GRAB_APPLE)
                 movement = ArmMovementParam.GRAB_APPLE_MIDDLE
                 movement.value.servo.telescopic = distance - 6
-                self.__arm.control(movement)
+                self.__arm.control(movement, 20)
             case FruitHeight.LOW:
                 distance = self.__get_fruit_distance(ArmMovementParam.READY_GRAB_APPLE)
                 movement = ArmMovementParam.GRAB_APPLE_LOW
                 movement.value.servo.telescopic = distance - 6
-                self.__arm.control(movement)
+                self.__arm.control(movement, 20)
 
     def __execute_placement_sequence(self, basket_id: int) -> bool:
         """执行放置动作序列，返回是否需要终止检测循环"""
-        self.__arm.control(ArmMovementParam.READY_PUT_FRUIT_INTO_BASKET, True)
+        self.__arm.control(ArmMovementParam.READY_PUT_FRUIT_INTO_BASKET, 20, True)
 
         match basket_id:
             case 1:
-                self.__arm.control(ArmMovementParam.PUT_FRUIT_INTO_BASKET_1)
+                self.__arm.control(ArmMovementParam.PUT_FRUIT_INTO_BASKET_1, 20)
             case 2:
-                self.__arm.control(ArmMovementParam.PUT_FRUIT_INTO_BASKET_2)
+                self.__arm.control(ArmMovementParam.PUT_FRUIT_INTO_BASKET_2, 20)
             case 3:
-                self.__arm.control(ArmMovementParam.PUT_FRUIT_INTO_BASKET_3)
+                self.__arm.control(ArmMovementParam.PUT_FRUIT_INTO_BASKET_3, 20)
             case 4:
                 return True  # 特殊终止信号
 

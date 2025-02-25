@@ -15,20 +15,12 @@ class VisionService:
 
     def get_identify_result(self) -> list[MnnResult]:
         result = self.__mnn.call_service()
+        if not result:
+            return []
 
-        # 校验数据一致性
-        attributes = [
-            result.label,
-            result.confidence,
-            result.xmin,
-            result.ymin,
-            result.xmax,
-            result.ymax
-        ]
-
-        # 使用列表推导式优化构建过程
-        result_list = [
-            MnnResult(label, conf, Rectangle(x1, y1, x2, y2)) for label, conf, x1, y1, x2, y2 in attributes
-        ]
+        result_list = []
+        for label, confidence, x_min, y_min, x_max, y_max in zip(
+                result.label, result.confidence, result.xmin, result.ymin, result.xmax, result.ymax):
+            result_list.append(MnnResult(label, confidence, Rectangle(x_min, y_min, x_max, y_max)))
 
         return result_list

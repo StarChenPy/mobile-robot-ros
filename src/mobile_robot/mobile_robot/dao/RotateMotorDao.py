@@ -41,7 +41,7 @@ class RotateMotorDao:
                 kp=rotate_motor_config["ctrl_param"]["kp"],
                 ti=rotate_motor_config["ctrl_param"]["ti"],
                 td=rotate_motor_config["ctrl_param"]["td"],
-                max_vel=speed,
+                max_vel=float(speed),
                 max_acc=rotate_motor_config["ctrl_param"]["max_acc"],
                 low_pass=rotate_motor_config["ctrl_param"]["low_pass"],
                 ek=rotate_motor_config["ctrl_param"]["ek"],

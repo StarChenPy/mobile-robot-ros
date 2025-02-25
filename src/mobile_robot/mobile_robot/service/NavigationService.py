@@ -20,7 +20,7 @@ class NavigationService:
         self.__sensor = SensorDao(node)
         self.__odom = OdomDao(node)
 
-    def navigation(self, nav_path: NavPath, speed=0.4, is_block=True):
+    def navigation(self, nav_path: NavPath, speed: float, is_block: bool):
         """
         通过路径进行导航
         @param nav_path 路径列表
@@ -37,22 +37,32 @@ class NavigationService:
                 corrective_point1 = NavigationPoint(point.x, point.y, point.yaw1)
                 if path:
                     path.append(corrective_point1)
-                    self.__navigation.navigation(path, speed, speed)
+                    self.__navigation.navigation(path, speed, speed * 4)
                     path = []
                     self.__navigation.wait_finish()
-                self.__sensor.ping_revise(point.distance1)
+
+                if point.distance1 > 0:
+                    self.__sensor.ir_revise(point.distance1)
+                else:
+                    self.__sensor.ping_revise(-point.distance1)
+                self.__sensor.wait_finish()
+
                 self.__odom.init_all(corrective_point1)
 
                 if point.distance2 != 0:
                     corrective_point2 = NavigationPoint(point.x, point.y, point.yaw2)
-                    self.__navigation.navigation([corrective_point2], speed, speed)
+                    self.__navigation.navigation([corrective_point2], speed, speed * 4)
                     self.__navigation.wait_finish()
-                    self.__sensor.ping_revise(point.distance2)
+                    if point.distance2 > 0:
+                        self.__sensor.ir_revise(point.distance2)
+                    else:
+                        self.__sensor.ping_revise(-point.distance2)
+                    self.__sensor.wait_finish()
                     self.__odom.init_all(corrective_point2)
             else:
                 self.__logger.error("[导航] 未知导航点!")
 
-        self.__navigation.navigation(path, speed, speed)
+        self.__navigation.navigation(path, speed, speed * 4)
 
         if is_block:
             self.__navigation.wait_finish()
@@ -66,8 +76,8 @@ class NavigationService:
         if is_block:
             self.__motion.wait_finish()
 
-    def rotate(self, angle: float, speed: float = 0.4, is_block=True):
-        self.__motion.line(angle, speed)
+    def rotate(self, angle: float, speed: float = 40, is_block=True):
+        self.__motion.rotate(angle, speed)
 
         if is_block:
             self.__motion.wait_finish()

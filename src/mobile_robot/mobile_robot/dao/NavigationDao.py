@@ -30,7 +30,7 @@ class NavigationDao:
         goal_msg = base_nav2.action.NavCMD.Goal()
 
         for p in points:
-            pose2d = geometry_msgs.msg.Pose2D(x=float(p.x), y=float(p.y), yaw=0)
+            pose2d = geometry_msgs.msg.Pose2D(x=float(p.x), y=float(p.y), theta=float(0))
             goal_msg.points.append(pose2d)
 
         # 这里要获取导航最后一个点的角度并赋给heading

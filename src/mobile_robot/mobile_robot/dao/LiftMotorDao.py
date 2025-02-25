@@ -41,7 +41,7 @@ class LiftMotorDao:
                 kp=lift_motor_config["ctrl_param"]["kp"],
                 ti=lift_motor_config["ctrl_param"]["ti"],
                 td=lift_motor_config["ctrl_param"]["td"],
-                max_vel=speed,
+                max_vel=float(speed),
                 max_acc=lift_motor_config["ctrl_param"]["max_acc"],
                 low_pass=lift_motor_config["ctrl_param"]["low_pass"],
                 ek=lift_motor_config["ctrl_param"]["ek"],
@@ -72,12 +72,11 @@ class LiftMotorDao:
 
         # 调用电机服务
         self.__call_service(MotorCmd.SET_POSITION, target_pulses, speed)
-        self.__logger.debug(f"[升降电机] 已请求移动服务")
+        self.__logger.debug(f"[升降电机] 已请求移动服务, speed: {speed}")
 
     def back_origin(self, speed: float):
         self.__call_service(MotorCmd.BACK_ORIGIN, 0, speed)
         self.__logger.debug(f"[升降电机] 已请求回原点服务")
-
 
     def wait_finish(self):
         while rclpy.ok():
