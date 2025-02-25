@@ -1,184 +1,173 @@
-import time
-
 import rclpy
 from rclpy.node import Node
 
-from .robot.impl import io_impl
-from .robot.util.data_type import NavigationPoint
-from .robot.robot import MobileRobot, FruitHeight
-from .robot.param.navigation_path import NavPath, ORCHARD_1_POINT
-from .robot.param.arm_movement import ArmMovementParam
-from .robot.util.math import calculate_rectangle_center
-from .robot.robot import get_fruit_height
+from mobile_robot.mobile_robot.controller.GrabFruitController import GrabFruitController
+from mobile_robot.mobile_robot.popo.FruitHeight import FruitHeight
+from .controller.ArmController import ArmController
+from .param.arm_movement import ArmMovementParam
+from .param.navigation_path import NavPath, ORCHARD_1_POINT
+from .popo.NavigationPoint import NavigationPoint
+from .controller.MoveController import NavigationController
 
 
 class BModule(Node):
     def __init__(self):
         super().__init__('b_module')
 
-        self.robot = MobileRobot(self)
-        io = io_impl.IoImpl(self)
+        self.__move = NavigationController(self)
+        self.__arm = ArmController(self)
+        self.__grab_fruit = GrabFruitController(self)
 
         select = int(input("等待按键按下, 1 - 15, 0 退出\n"))
 
         match select:
-            case -1:
-                # self.robot.arm_control(ArmMovementParam.RESET)
-                self.robot.arm_control(ArmMovementParam.READY_GRAB_APPLE_TALL)
-                while True:
-                    rclpy.spin_once(self)
-                    print(io.get_ir_claws())
-                    time.sleep(1)
             case 0:
                 exit(0)
             case 1:
                 # 直线1米
-                self.robot.init_pose(NavigationPoint(0, 0, 0))
-                self.robot.navigation(NavPath.B_MODULE_1)
+                self.__move.init_pose(NavigationPoint(0, 0, 0))
+                self.__move.navigation(NavPath.B_MODULE_1)
             case 2:
                 # 旋转180度
-                self.robot.rotate(180)
+                self.__move.rotate(180)
             case 3:
                 # 抓水果
-                self.robot.arm_control(ArmMovementParam.RESET)
-                self.robot.arm_control(ArmMovementParam.READY_GRAB_APPLE_TALL)
-                self.robot.arm_control(ArmMovementParam.GRAB_APPLE_TALL, is_block=True)
-                self.robot.arm_control(ArmMovementParam.GRAB_APPLE_END, is_block=True)
+                self.__arm.control(ArmMovementParam.RESET)
+                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE)
+                self.__arm.control(ArmMovementParam.GRAB_APPLE_TALL, is_block=True)
+                self.__arm.control(ArmMovementParam.GRAB_APPLE_END, is_block=True)
             case 4:
                 # 果仓1到起始区
-                self.robot.arm_control(ArmMovementParam.RESET)
-                self.robot.arm_control(ArmMovementParam.MOVING)
+                self.__arm.control(ArmMovementParam.RESET)
+                self.__arm.control(ArmMovementParam.MOVING)
 
-                self.robot.init_pose(NavigationPoint(0.62, -1.04, 90))
-                self.robot.navigation(NavPath.B_MODULE_4)
+                self.__move.init_pose(NavigationPoint(0.62, -1.04, 90))
+                self.__move.navigation(NavPath.B_MODULE_4)
             case 5:
                 # 起始区到果仓1
-                self.robot.arm_control(ArmMovementParam.RESET)
-                self.robot.arm_control(ArmMovementParam.MOVING)
+                self.__arm.control(ArmMovementParam.RESET)
+                self.__arm.control(ArmMovementParam.MOVING)
 
-                self.robot.navigation(NavPath.B_MODULE_5)
+                self.__move.navigation(NavPath.B_MODULE_5)
             case 6:
                 # 采摘1到起始区
-                self.robot.arm_control(ArmMovementParam.RESET)
-                self.robot.arm_control(ArmMovementParam.MOVING)
+                self.__arm.control(ArmMovementParam.RESET)
+                self.__arm.control(ArmMovementParam.MOVING)
 
-                self.robot.init_pose(ORCHARD_1_POINT)
-                self.robot.navigation(NavPath.B_MODULE_6)
+                self.__move.init_pose(ORCHARD_1_POINT)
+                self.__move.navigation(NavPath.B_MODULE_6)
             case 7:
                 # 起始区到采摘1
-                self.robot.arm_control(ArmMovementParam.RESET)
-                self.robot.arm_control(ArmMovementParam.MOVING)
+                self.__arm.control(ArmMovementParam.RESET)
+                self.__arm.control(ArmMovementParam.MOVING)
 
-                self.robot.navigation(NavPath.B_MODULE_7)
+                self.__move.navigation(NavPath.B_MODULE_7)
             case 8:
                 # 起始区到采摘1抓高水果
-                self.robot.arm_control(ArmMovementParam.RESET)
-                self.robot.arm_control(ArmMovementParam.MOVING)
+                self.__arm.control(ArmMovementParam.RESET)
+                self.__arm.control(ArmMovementParam.MOVING)
 
-                self.robot.navigation(NavPath.B_MODULE_7)
+                self.__move.navigation(NavPath.B_MODULE_7)
 
-                self.robot.arm_control(ArmMovementParam.READY_GRAB_APPLE_TALL)
-                self.robot.arm_control(ArmMovementParam.GRAB_APPLE_TALL)
-                self.robot.arm_control(ArmMovementParam.GRAB_APPLE_END)
+                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE)
+                self.__arm.control(ArmMovementParam.GRAB_APPLE_TALL)
+                self.__arm.control(ArmMovementParam.GRAB_APPLE_END)
             case 9:
                 # 起始区到采摘1抓中水果
-                self.robot.arm_control(ArmMovementParam.RESET)
-                self.robot.arm_control(ArmMovementParam.MOVING)
+                self.__arm.control(ArmMovementParam.RESET)
+                self.__arm.control(ArmMovementParam.MOVING)
 
-                self.robot.navigation(NavPath.B_MODULE_7)
+                self.__move.navigation(NavPath.B_MODULE_7)
 
-                self.robot.arm_control(ArmMovementParam.READY_GRAB_APPLE_MIDDLE)
-                self.robot.arm_control(ArmMovementParam.GRAB_APPLE_MIDDLE)
-                self.robot.arm_control(ArmMovementParam.GRAB_APPLE_END)
+                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE)
+                self.__arm.control(ArmMovementParam.GRAB_APPLE_MIDDLE)
+                self.__arm.control(ArmMovementParam.GRAB_APPLE_END)
             case 10:
                 # 起始区到采摘1抓低水果
-                self.robot.arm_control(ArmMovementParam.RESET)
-                self.robot.arm_control(ArmMovementParam.MOVING)
+                self.__arm.control(ArmMovementParam.RESET)
+                self.__arm.control(ArmMovementParam.MOVING)
 
-                self.robot.navigation(NavPath.B_MODULE_7)
+                self.__move.navigation(NavPath.B_MODULE_7)
 
-                self.robot.arm_control(ArmMovementParam.READY_GRAB_APPLE_LOW)
-                self.robot.arm_control(ArmMovementParam.GRAB_APPLE_LOW)
-                self.robot.arm_control(ArmMovementParam.GRAB_APPLE_END, True)
+                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE)
+                self.__arm.control(ArmMovementParam.GRAB_APPLE_LOW)
+                self.__arm.control(ArmMovementParam.GRAB_APPLE_END, True)
             case 11:
                 # 起始区到果仓一号放水果
-                self.robot.arm_control(ArmMovementParam.RESET)
-                self.robot.arm_control(ArmMovementParam.MOVING)
+                self.__arm.control(ArmMovementParam.RESET)
+                self.__arm.control(ArmMovementParam.MOVING)
 
-                self.robot.navigation(NavPath.B_MODULE_11)
+                self.__move.navigation(NavPath.B_MODULE_11)
 
-                self.robot.rotate(90)
+                self.__move.rotate(90)
 
-                self.robot.arm_control(ArmMovementParam.READY_PULL_GUO_CANG)
-                self.robot.arm_control(ArmMovementParam.PULL_GUO_CANG)
-                self.robot.arm_control(ArmMovementParam.MOVING)
+                self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
+                self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
+                self.__arm.control(ArmMovementParam.MOVING)
             case 12:
                 # 起始区到果园摘水果然后去果仓1号放水果
-                self.robot.arm_control(ArmMovementParam.RESET)
-                self.robot.arm_control(ArmMovementParam.MOVING)
+                self.__arm.control(ArmMovementParam.RESET)
+                self.__arm.control(ArmMovementParam.MOVING)
 
-                self.robot.navigation(NavPath.B_MODULE_7)
+                self.__move.navigation(NavPath.B_MODULE_7)
 
-                self.robot.arm_control(ArmMovementParam.READY_GRAB_APPLE_TALL)
-                self.robot.arm_control(ArmMovementParam.GRAB_APPLE_TALL)
-                self.robot.arm_control(ArmMovementParam.GRAB_APPLE_END)
+                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE)
+                self.__arm.control(ArmMovementParam.GRAB_APPLE_TALL)
+                self.__arm.control(ArmMovementParam.GRAB_APPLE_END)
 
-                self.robot.navigation(NavPath.B_MODULE_12)
-                self.robot.rotate(90)
+                self.__move.navigation(NavPath.B_MODULE_12)
+                self.__move.rotate(90)
 
-                self.robot.arm_control(ArmMovementParam.READY_PULL_GUO_CANG)
-                self.robot.arm_control(ArmMovementParam.PULL_GUO_CANG)
-                self.robot.arm_control(ArmMovementParam.MOVING)
+                self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
+                self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
+                self.__arm.control(ArmMovementParam.MOVING)
             case 13:
                 # 起始区到果仓识别一个水果
-                self.robot.arm_control(ArmMovementParam.RESET)
-                self.robot.arm_control(ArmMovementParam.MOVING)
+                self.__arm.control(ArmMovementParam.RESET)
+                self.__arm.control(ArmMovementParam.MOVING)
 
-                self.robot.navigation(NavPath.B_MODULE_5)
-                self.robot.rotate(90)
+                self.__move.navigation(NavPath.B_MODULE_5)
+                self.__move.rotate(90)
 
-                self.robot.arm_control(ArmMovementParam.RECOGNITION_WAREHOUSE)
+                self.__arm.control(ArmMovementParam.RECOGNITION_WAREHOUSE)
                 while True:
                     s = input("等待...")
                     if s == "1":
-                        self.robot.arm_control(ArmMovementParam.MOVING)
+                        self.__arm.control(ArmMovementParam.MOVING)
                         exit(0)
-                    print(self.robot.vision())
+                    print(self.__grab_fruit.vision())
             case 14:
                 # 起始区到果园识别一个水果
-                self.robot.arm_control(ArmMovementParam.RESET)
-                self.robot.arm_control(ArmMovementParam.MOVING)
+                self.__arm.control(ArmMovementParam.RESET)
+                self.__arm.control(ArmMovementParam.MOVING)
 
-                self.robot.navigation(NavPath.B_MODULE_7)
+                self.__move.navigation(NavPath.B_MODULE_7)
 
-                self.robot.arm_control(ArmMovementParam.RECOGNITION_ORCHARD_RIGHT)
+                self.__arm.control(ArmMovementParam.RECOGNITION_ORCHARD_RIGHT)
 
                 while True:
                     s = input("等待...")
                     if s == "1":
-                        self.robot.arm_control(ArmMovementParam.MOVING)
+                        self.__arm.control(ArmMovementParam.MOVING)
                         exit(0)
-                    print(self.robot.vision())
+                    print(self.__grab_fruit.vision())
             case 15:
                 # 起始区到果园识别一个水果的高低
-                self.robot.arm_control(ArmMovementParam.RESET)
-                self.robot.arm_control(ArmMovementParam.MOVING)
+                self.__arm.control(ArmMovementParam.RESET)
+                self.__arm.control(ArmMovementParam.MOVING)
 
-                self.robot.navigation(NavPath.B_MODULE_7)
+                self.__move.navigation(NavPath.B_MODULE_7)
 
-                self.robot.arm_control(ArmMovementParam.RECOGNITION_ORCHARD_RIGHT)
+                self.__arm.control(ArmMovementParam.RECOGNITION_ORCHARD_RIGHT)
 
                 while True:
                     s = input("等待...")
                     if s == "1":
-                        self.robot.arm_control(ArmMovementParam.MOVING)
+                        self.__arm.control(ArmMovementParam.MOVING)
                         exit(0)
-                    result = self.robot.vision()
-                    print(result)
+                    result = self.__grab_fruit.vision()
                     for e in result:
-                        _, center_y = calculate_rectangle_center(e.box)
-                        print(center_y)
-                        match get_fruit_height(center_y):
+                        match self.__grab_fruit.get_fruit_height(e.box):
                             case FruitHeight.TALL:
                                 print("高水果")
                             case FruitHeight.MIDDLE:

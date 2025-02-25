@@ -6,20 +6,19 @@ from ..dao.OdomDao import OdomDao
 from ..dao.SensorDao import SensorDao
 from ..popo.CorrectivePoint import CorrectivePoint
 from ..popo.NavigationPoint import NavigationPoint
-from ..robot.param.navigation_path import NavPath
+from ..param.navigation_path import NavPath
 from ..util.Singleton import singleton
 
 
 @singleton
 class NavigationService:
     def __init__(self, node: rclpy.node.Node):
-        self.__node = node
         self.__logger = node.get_logger()
 
-        self.__navigation = NavigationDao()
-        self.__motion = MotionDao()
-        self.__sensor = SensorDao()
-        self.__odom = OdomDao()
+        self.__navigation = NavigationDao(node)
+        self.__motion = MotionDao(node)
+        self.__sensor = SensorDao(node)
+        self.__odom = OdomDao(node)
 
     def navigation(self, nav_path: NavPath, speed=0.4, is_block=True):
         """
@@ -58,6 +57,9 @@ class NavigationService:
         if is_block:
             self.__navigation.wait_finish()
 
+    def init_odom_all(self, point: NavigationPoint):
+        self.__odom.init_all(point)
+
     def line(self, distance: float, speed: float = 0.4, is_block=True):
         self.__motion.line(distance, speed)
 
@@ -69,6 +71,9 @@ class NavigationService:
 
         if is_block:
             self.__motion.wait_finish()
+
+    def get_status(self):
+        self.__navigation.get_status()
 
     def stop(self):
         self.__motion.stop()

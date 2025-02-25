@@ -9,10 +9,9 @@ from ..util.Singleton import singleton
 @singleton
 class VisionService:
     def __init__(self, node: rclpy.node.Node):
-        self.__node = node
         self.__logger = node.get_logger()
 
-        self.__mnn = MnnDao()
+        self.__mnn = MnnDao(node)
 
     def get_identify_result(self) -> list[MnnResult]:
         result = self.__mnn.call_service()

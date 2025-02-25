@@ -19,5 +19,5 @@ class RobotDataDao(object):
     def __robot_data_callback(self, msg):
         self.__robot_data = msg
 
-    def get_robot_data(self):
+    def get_robot_data(self) -> web_message_transform_ros2.msg.RobotData:
         return self.__robot_data

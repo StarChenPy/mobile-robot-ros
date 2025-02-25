@@ -84,7 +84,7 @@ class NavigationDao:
         self.__logger.debug("[导航] 取消导航")
         self.__goal_handle.cancel_goal_async()
 
-    def get_state(self) -> bool:
+    def get_status(self) -> bool:
         """
         获取导航状态
         @return True 正在导航
@@ -93,6 +93,6 @@ class NavigationDao:
         rclpy.spin_once(self.__node)
         rclpy.spin_once(self.__node)
         rclpy.spin_once(self.__node)
-        state = self.__is_navigating
+        status = self.__is_navigating
         self.__mtx.release()
-        return state
+        return status

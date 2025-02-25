@@ -4,7 +4,7 @@ from ..dao.LiftMotorDao import LiftMotorDao
 from ..dao.RobotCtrlDao import RobotCtrlDao
 from ..dao.RotateMotorDao import RotateMotorDao
 from ..popo.Servo import Servo
-from ..robot.param.arm_movement import ArmMovementParam
+from ..param.arm_movement import ArmMovementParam
 from ..util.Config import Config
 from ..util.Singleton import singleton
 
@@ -12,14 +12,13 @@ from ..util.Singleton import singleton
 @singleton
 class ArmService:
     def __init__(self, node: rclpy.node.Node):
-        self.__node = node
         self.__logger = node.get_logger()
 
         self.__lift_motor = LiftMotorDao(node)
         self.__rotate_motor = RotateMotorDao(node)
         self.__robot_ctrl = RobotCtrlDao(node)
 
-    def arm_control(self, movement: ArmMovementParam, is_block=False):
+    def control(self, movement: ArmMovementParam, is_block=False):
         self.__logger.info(f"[机械臂] 机械臂控制 {movement.name}")
 
         if movement.value.motor is not None:

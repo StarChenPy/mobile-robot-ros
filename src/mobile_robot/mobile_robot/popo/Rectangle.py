@@ -26,7 +26,7 @@ class Rectangle:
         width = abs(self.y2 - self.y1)
         return 2 * (length + width)
 
-    def calculate_rectangle_center(self) -> Point:
+    def get_rectangle_center(self) -> Point:
         """
         获取矩形中心点
         """
