@@ -2,7 +2,7 @@ import time
 
 import rclpy
 
-from ..param.arm_movement import ArmMovementParam
+from ..param.ArmMovement import ArmMovementParam
 from ..service.ArmService import ArmService
 from ..util.Singleton import singleton
 

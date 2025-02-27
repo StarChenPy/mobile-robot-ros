@@ -4,7 +4,7 @@ from .Rectangle import Rectangle
 
 
 @dataclass
-class MnnResult:
+class IdentifyResult:
     classId: str
     confidence: float
     box: Rectangle

@@ -2,16 +2,29 @@ import copy
 
 import rclpy
 
-from ..param.arm_movement import ArmMovementParam
-from ..param.navigation_path import NavPath
+from ..param.ArmMovement import ArmMovementParam
 from ..popo.FruitHeight import FruitHeight
+from ..popo.FruitType import FruitType
+from ..popo.IdentifyResult import IdentifyResult
+from ..popo.NavigationPoint import NavigationPoint
 from ..popo.Rectangle import Rectangle
-from ..robot.util import math
 from ..service.ArmService import ArmService
 from ..service.NavigationService import NavigationService
 from ..service.SensorService import SensorService
 from ..service.VisionService import VisionService
+from ..util import Math
 from ..util.Singleton import singleton
+
+
+def get_fruit_height(box: Rectangle) -> FruitHeight:
+    height = box.get_rectangle_center().y
+
+    if height < 150:
+        return FruitHeight.TALL
+    elif height < 280:
+        return FruitHeight.MIDDLE
+    else:
+        return FruitHeight.LOW
 
 
 @singleton
@@ -25,104 +38,60 @@ class GrabFruitController:
         self.__vision = VisionService(node)
 
     def vision(self):
-        return self.__vision.get_identify_result()
+        return self.__vision.get_onnx_identify_result()
 
-    def grab_fruits(self, nav_path: NavPath, task: dict[int, list[str]], direction="left" or "right") -> bool:
-        """
-        扫描并抓取水果，主控制流程，带篮子
-        """
-        self.__prepare_for_recognition(direction)
-        self.__navigation.navigation(nav_path, 0.05, False)
+    def patrol_the_line(self, target_point: NavigationPoint, target_fruit: FruitType, is_other_side=False):
+        self.__ready_to_identify(is_other_side)
+        self.__navigation.navigation([target_point], 0.05, False)
 
         while rclpy.ok() and self.__navigation.get_status():
             results = self.__get_valid_detections()
 
-            for result in results:
-                if self.__process_single_fruit(result, task):
-                    self.__arm.control(ArmMovementParam.MOVING, 20, True)
-                    return True
+            if not results:
+                continue
 
-        self.__arm.control(ArmMovementParam.MOVING, 20, True)
-        return False
+            result = results[0]
+            if result.classId == target_fruit.value:
+                self.__navigation.stop()
+                self.__execute_grab_sequence(result.box, is_other_side)
 
-    def get_fruit_height(self, box: Rectangle) -> FruitHeight:
-        height = box.get_rectangle_center().y
-
-        if height < 150:
-            return FruitHeight.TALL
-        elif height < 280:
-            return FruitHeight.MIDDLE
-        else:
-            return FruitHeight.LOW
-
-    # region 辅助方法
-    def __prepare_for_recognition(self, direction="left" or "right"):
-        """准备视觉识别状态"""
-        if direction == "left":
+    def __ready_to_identify(self, is_other_side: bool):
+        """准备机械臂到视觉识别姿态"""
+        if is_other_side:
             self.__arm.control(ArmMovementParam.RECOGNITION_ORCHARD_LEFT, 20)
-        elif direction == "right":
+        else:
             self.__arm.control(ArmMovementParam.RECOGNITION_ORCHARD_RIGHT, 20)
 
-    def __get_valid_detections(self) -> list:
+    def __get_valid_detections(self) -> list[IdentifyResult]:
         """获取有效检测结果并进行初步过滤"""
         return [
-            result for result in self.__vision.get_identify_result()
-            # x的范围是0～460
+            result for result in self.__vision.get_onnx_identify_result()
+            # x的范围是0～480
             if 120 < result.box.get_rectangle_center().x < 400
         ]
 
-    def __process_single_fruit(self, result, task: dict) -> bool:
-        """处理单个水果的抓取流程，返回是否需要终止检测循环"""
-        # 篮子选择逻辑
-        basket_id = 0
-        for bid, target_classes in task.items():
-            if result.classId in target_classes:
-                task[bid].remove(result.classId)
-                basket_id = bid
-                break
-
-        if basket_id != 0:
-            self.__navigation.stop()
-            self.__execute_grab_sequence(result.box)
-            return True
-
-        return False
-
-    def __execute_grab_sequence(self, box):
+    def __execute_grab_sequence(self, box, is_other_side: bool):
         """执行抓取动作序列"""
-        self.__arm.control(ArmMovementParam.READY_GRAB_APPLE, 20)
-        match self.get_fruit_height(box):
+        self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_RIGHT, 20)
+
+        distance = self.__get_fruit_distance(ArmMovementParam.READY_GRAB_APPLE_RIGHT)
+        print(distance)
+
+        match get_fruit_height(box):
             case FruitHeight.TALL:
-                distance = self.__get_fruit_distance(ArmMovementParam.READY_GRAB_APPLE)
-                movement = ArmMovementParam.GRAB_APPLE_TALL
+                movement = ArmMovementParam.GRAB_APPLE_TALL_LEFT if is_other_side else ArmMovementParam.GRAB_APPLE_TALL_RIGHT
                 movement.value.servo.telescopic = distance - 11
-                self.__arm.control(movement, 20)
             case FruitHeight.MIDDLE:
-                distance = self.__get_fruit_distance(ArmMovementParam.READY_GRAB_APPLE)
-                movement = ArmMovementParam.GRAB_APPLE_MIDDLE
+                movement = ArmMovementParam.GRAB_APPLE_MIDDLE_LEFT if is_other_side else ArmMovementParam.GRAB_APPLE_MIDDLE_RIGHT
                 movement.value.servo.telescopic = distance - 6
-                self.__arm.control(movement, 20)
             case FruitHeight.LOW:
-                distance = self.__get_fruit_distance(ArmMovementParam.READY_GRAB_APPLE)
-                movement = ArmMovementParam.GRAB_APPLE_LOW
+                movement = ArmMovementParam.GRAB_APPLE_LOW_RIGHT if is_other_side else ArmMovementParam.GRAB_APPLE_LOW_LEFT
                 movement.value.servo.telescopic = distance - 6
-                self.__arm.control(movement, 20)
+            case _:
+                movement = ArmMovementParam.MOVING
 
-    def __execute_placement_sequence(self, basket_id: int) -> bool:
-        """执行放置动作序列，返回是否需要终止检测循环"""
-        self.__arm.control(ArmMovementParam.READY_PUT_FRUIT_INTO_BASKET, 20, True)
-
-        match basket_id:
-            case 1:
-                self.__arm.control(ArmMovementParam.PUT_FRUIT_INTO_BASKET_1, 20)
-            case 2:
-                self.__arm.control(ArmMovementParam.PUT_FRUIT_INTO_BASKET_2, 20)
-            case 3:
-                self.__arm.control(ArmMovementParam.PUT_FRUIT_INTO_BASKET_3, 20)
-            case 4:
-                return True  # 特殊终止信号
-
-        return False
+        self.__arm.control(movement, 20)
+        self.__arm.control(ArmMovementParam.MOVING, 20)
 
     def __get_fruit_distance(self, movement: ArmMovementParam):
         angle = 15
@@ -138,7 +107,7 @@ class GrabFruitController:
         self.__arm.control(left_movement, True)
         print("扫描左侧", left_movement.value.motor.rotate)
         ir_claws_left = self.__sensor.get_ir_claws()
-        ir_claws_left = math.calculate_adjacent_side(ir_claws_left, angle)
+        ir_claws_left = Math.calculate_adjacent_side(ir_claws_left, angle)
 
         # 扫描中间
         self.__arm.control(center_movement, True)
@@ -150,7 +119,7 @@ class GrabFruitController:
         self.__arm.control(right_movement, True)
         print("扫描右侧", right_movement.value.motor.rotate)
         ir_claws_right = self.__sensor.get_ir_claws()
-        ir_claws_right = math.calculate_adjacent_side(ir_claws_right, angle)
+        ir_claws_right = Math.calculate_adjacent_side(ir_claws_right, angle)
 
         min_val = min(ir_claws_left, ir_claws_center, ir_claws_right)
 

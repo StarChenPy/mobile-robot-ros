@@ -2,8 +2,6 @@ import rclpy
 
 import mnn_msgs.srv
 
-from ..popo.MnnResult import MnnResult
-from ..popo.Rectangle import Rectangle
 from ..util.Singleton import singleton
 
 

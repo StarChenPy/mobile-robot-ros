@@ -2,7 +2,7 @@ import time
 
 import rclpy
 
-from ..param.navigation_path import NavPath
+from ..popo.CorrectivePoint import CorrectivePoint
 from ..popo.NavigationPoint import NavigationPoint
 from ..service.NavigationService import NavigationService
 from ..util.Singleton import singleton
@@ -15,7 +15,7 @@ class MoveController:
 
         self.__navigation = NavigationService(node)
 
-    def navigation(self, nav_path: NavPath, speed=0.4, is_block=True):
+    def navigation(self, nav_path: list[NavigationPoint or CorrectivePoint], speed=0.4, is_block=True):
         self.__navigation.navigation(nav_path, speed, is_block)
         time.sleep(1)
 

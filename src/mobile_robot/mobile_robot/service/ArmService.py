@@ -4,7 +4,7 @@ from ..dao.LiftMotorDao import LiftMotorDao
 from ..dao.RobotCtrlDao import RobotCtrlDao
 from ..dao.RotateMotorDao import RotateMotorDao
 from ..popo.Servo import Servo
-from ..param.arm_movement import ArmMovementParam
+from ..param.ArmMovement import ArmMovementParam
 from ..util.Config import Config
 from ..util.Singleton import singleton
 

@@ -31,13 +31,17 @@ class ArmMovementParam(enum.Enum):
     RECOGNITION_ORCHARD_LEFT = ArmMovement(MotorMovement(90, 25), ServoMotor(0, -30, 3, 20))
     RECOGNITION_WAREHOUSE = ArmMovement(MotorMovement(175, 15), ServoMotor(0, -90, 14, 20))
 
-    READY_GRAB_APPLE = ArmMovement(MotorMovement(-90, 26), ServoMotor(0, -20, 0, 23))
+    READY_GRAB_APPLE_LIFT = ArmMovement(MotorMovement(90, 26), ServoMotor(0, -20, 0, 23))
+    READY_GRAB_APPLE_RIGHT = ArmMovement(MotorMovement(-90, 26), ServoMotor(0, -20, 0, 23))
     # 抓苹果（上）
-    GRAB_APPLE_TALL = ArmMovement(MotorMovement(-90, 26), ServoMotor(0, 0, 10, 7))
+    GRAB_APPLE_TALL_LEFT = ArmMovement(MotorMovement(90, 26), ServoMotor(0, 0, 10, 7))
+    GRAB_APPLE_TALL_RIGHT = ArmMovement(MotorMovement(-90, 26), ServoMotor(0, 0, 10, 7))
     # 抓苹果（中）
-    GRAB_APPLE_MIDDLE = ArmMovement(MotorMovement(-90, 24), ServoMotor(0, -50, 15, 7))
+    GRAB_APPLE_MIDDLE_LEFT = ArmMovement(MotorMovement(90, 24), ServoMotor(0, -50, 15, 7))
+    GRAB_APPLE_MIDDLE_RIGHT = ArmMovement(MotorMovement(-90, 24), ServoMotor(0, -50, 15, 7))
     # 抓苹果（下）
-    GRAB_APPLE_LOW = ArmMovement(MotorMovement(-90, 28), ServoMotor(0, -60, 15, 7))
+    GRAB_APPLE_LOW_LEFT = ArmMovement(MotorMovement(90, 28), ServoMotor(0, -60, 15, 7))
+    GRAB_APPLE_LOW_RIGHT = ArmMovement(MotorMovement(-90, 28), ServoMotor(0, -60, 15, 7))
     GRAB_APPLE_END = ArmMovement(MotorMovement(0, 10), ServoMotor(0, 0, 7, 7))
 
     # 放水果到果仓

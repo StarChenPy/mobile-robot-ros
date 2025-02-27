@@ -6,7 +6,6 @@ from ..dao.OdomDao import OdomDao
 from ..dao.SensorDao import SensorDao
 from ..popo.CorrectivePoint import CorrectivePoint
 from ..popo.NavigationPoint import NavigationPoint
-from ..param.navigation_path import NavPath
 from ..util.Singleton import singleton
 
 
@@ -20,7 +19,7 @@ class NavigationService:
         self.__sensor = SensorDao(node)
         self.__odom = OdomDao(node)
 
-    def navigation(self, nav_path: NavPath, speed: float, is_block: bool):
+    def navigation(self, nav_path: list[NavigationPoint or CorrectivePoint], speed: float, is_block: bool):
         """
         通过路径进行导航
         @param nav_path 路径列表
@@ -30,7 +29,7 @@ class NavigationService:
 
         path = []
 
-        for point in nav_path.value:
+        for point in nav_path:
             if isinstance(point, NavigationPoint):
                 path.append(point)
             elif isinstance(point, CorrectivePoint):
