@@ -3,6 +3,7 @@ from rclpy.node import Node
 
 from .param import NavigationPath
 from .param.ArmMovement import ArmMovementParam
+from .popo.FruitType import FruitType
 from .popo.NavigationPoint import NavigationPoint
 from .controller.MoveController import MoveController
 from .controller.SensorController import SensorController
@@ -24,65 +25,52 @@ class CModule(Node):
         self.run()
 
     def run(self):
+        """
+        执行整个任务流程，如前往一号走廊抓取水果并放置到果仓。
+        """
         self.__arm.reset()
         self.__arm.control(ArmMovementParam.MOVING)
 
-        # self.robot.navigation(NavPath.START_TO_ORCHARD_ENTER_1)
-        self.__sensor.ping_revise(14)
-        self.__move.init_pose(NavigationPoint(1.99, -3.65, 90))
+        # 前往一号走廊并初始化姿势
+        self.__move.navigation(NavigationPath.START_TO_ORCHARD_ENTER_1)
+        self.__sensor.ping_revise(13.5)
+        self.__move.init_pose(NavigationPoint(1.99, -3.65, -90))
 
-        task = {1: ["Red Apple", "Red Apple"], 2: ["Red Apple"], 3: []}
-        task_count = {1: 2, 2: 1, 3: 0}
+        task = [[FruitType.RED_APPLE, FruitType.GREEN_APPLE], [FruitType.YELLOW_APPLE]]
 
-        flag = self.__grub_fruit.grab_fruits(NavigationPath.ORCHARD_CORRIDOR_ENTER_1, task, "right")
+        for index, warehouse in enumerate(task):
+            for fruit in warehouse:
+                self.get_logger().info(f"前往1号走廊抓取 {fruit.name}.")
+                if self.__grub_fruit.patrol_the_line(NavigationPath.ORCHARD_CORRIDOR_EXIT_1_CORRECTIVE_POINT, fruit):
+                    self.handle_fruit_grab(index)
+                else:
+                    self.get_logger().info(f"未寻找到 {fruit.name}, 前往二号走廊寻找.")
+                    self.__move.navigation(NavigationPath.EXIT_1_TO_EXIT_2)
+                    if self.__grub_fruit.patrol_the_line(NavigationPath.EXIT_2_TO_ENTER_2, fruit):
+                        self.handle_fruit_grab(index)
+                    else:
+                        self.get_logger().error(f"仍未寻找到 {fruit.name}, 停止.")
 
-        for i in range(4):
-            flag = self.__grub_fruit.grab_fruits(NavigationPath.ORCHARD_CORRIDOR_ENTER_1, task, "right")
-
-            if flag:
-                print("它找到了水果，准备回去放")
-                self.__move.navigation(NavigationPath.TO_WAREHOUSE_1_POINT)
-                self.push(task_count)
-            else:
-                print("它没找到水果，准备去走廊2找")
-                self.__move.navigation(NavigationPath.EXIT_1_TO_EXIT_2)
-                if self.__grub_fruit.grab_fruits(NavigationPath.EXIT_2_TO_ENTER_2, task, "left"):
-                    return
-                self.__move.navigation(NavigationPath.ENTER_2_POINT_TO_WAREHOUSE_1_POINT)
-                self.push(task_count)
-
-    def push(self, task_count):
-        if task_count[1] != 0:
-            task_count[1] -= 1
-            self.__move.rotate(90)
-
+    def handle_fruit_grab(self, index):
+        """
+        根据抓取的水果，控制机械臂将其放置到相应的果仓。
+        :param index: 当前任务中的果仓编号
+        """
+        self.get_logger().info(f"抓取成功，前往 {index} 号果仓放置.")
+        self.__move.navigation(NavigationPath.TO_WAREHOUSE_1_POINT)
+        if index == 0:
             self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
             self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
-            self.__arm.control(ArmMovementParam.MOVING)
-
-            self.__move.navigation(NavigationPath.WAREHOUSE_TO_ORCHARD_ENTER_1)
-        elif task_count[2] != 0:
-            task_count[2] -= 1
+        elif index == 1:
             self.__move.navigation(NavigationPath.WAREHOUSE_1_TO_WAREHOUSE_2)
-
-            self.__move.rotate(90)
-
             self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
             self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
-            self.__arm.control(ArmMovementParam.MOVING)
-
-            self.__move.navigation(NavigationPath.WAREHOUSE_TO_ORCHARD_ENTER_1)
-        elif task_count[3] != 0:
-            task_count[3] -= 1
+        elif index == 2:
             self.__move.navigation(NavigationPath.WAREHOUSE_1_TO_WAREHOUSE_3)
-
-            self.__move.rotate(90)
-
             self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
             self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
-            self.__arm.control(ArmMovementParam.MOVING)
-
-            self.__move.navigation(NavigationPath.WAREHOUSE_TO_ORCHARD_ENTER_1)
+        self.get_logger().info(f"放置完成, 前往一号走廊.")
+        self.__move.navigation(NavigationPath.WAREHOUSE_TO_ORCHARD_ENTER_1)
 
 
 def main():

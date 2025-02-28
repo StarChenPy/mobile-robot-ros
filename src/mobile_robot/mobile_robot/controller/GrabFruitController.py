@@ -40,7 +40,7 @@ class GrabFruitController:
     def vision(self):
         return self.__vision.get_onnx_identify_result()
 
-    def patrol_the_line(self, target_point: NavigationPoint, target_fruit: FruitType, is_other_side=False):
+    def patrol_the_line(self, target_point: NavigationPoint, target_fruit: FruitType, is_other_side=False) -> bool:
         self.__ready_to_identify(is_other_side)
         self.__navigation.navigation([target_point], 0.05, False)
 
@@ -54,6 +54,9 @@ class GrabFruitController:
             if result.classId == target_fruit.value:
                 self.__navigation.stop()
                 self.__execute_grab_sequence(result.box, is_other_side)
+                return True
+
+        return False
 
     def __ready_to_identify(self, is_other_side: bool):
         """准备机械臂到视觉识别姿态"""

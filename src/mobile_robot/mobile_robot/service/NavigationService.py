@@ -26,38 +26,14 @@ class NavigationService:
         @param speed 移送速度
         @param is_block 是否阻塞
         """
-
         path = []
 
         for point in nav_path:
             if isinstance(point, NavigationPoint):
                 path.append(point)
             elif isinstance(point, CorrectivePoint):
-                corrective_point1 = NavigationPoint(point.x, point.y, point.yaw1)
-                if path:
-                    path.append(corrective_point1)
-                    self.__navigation.navigation(path, speed, speed * 4)
-                    path = []
-                    self.__navigation.wait_finish()
-
-                if point.distance1 > 0:
-                    self.__sensor.ir_revise(point.distance1)
-                else:
-                    self.__sensor.ping_revise(-point.distance1)
-                self.__sensor.wait_finish()
-
-                self.__odom.init_all(corrective_point1)
-
-                if point.distance2 != 0:
-                    corrective_point2 = NavigationPoint(point.x, point.y, point.yaw2)
-                    self.__navigation.navigation([corrective_point2], speed, speed * 4)
-                    self.__navigation.wait_finish()
-                    if point.distance2 > 0:
-                        self.__sensor.ir_revise(point.distance2)
-                    else:
-                        self.__sensor.ping_revise(-point.distance2)
-                    self.__sensor.wait_finish()
-                    self.__odom.init_all(corrective_point2)
+                self.__navigation_corrective(path, point, speed)
+                path = []
             else:
                 self.__logger.error("[导航] 未知导航点!")
 
@@ -65,6 +41,37 @@ class NavigationService:
 
         if is_block:
             self.__navigation.wait_finish()
+
+    def __navigation_corrective(self, path, point, speed):
+        corrective_point = NavigationPoint(point.x, point.y, point.yaw1)
+
+        if path:
+            path.append(corrective_point)
+            self.__navigation.navigation(path, speed, speed * 4)
+            self.__navigation.wait_finish()
+        elif self.__odom.get_init():
+            self.__navigation.navigation([corrective_point], speed, speed * 4)
+
+        if point.distance1 > 0:
+            self.__sensor.ir_revise(point.distance1)
+        else:
+            self.__sensor.ping_revise(-point.distance1)
+
+        self.__sensor.wait_finish()
+        self.__odom.init_all(corrective_point)
+
+        if point.distance2 != 0:
+            corrective_point.yaw = point.yaw2
+            self.__navigation.navigation([corrective_point], speed, speed * 4)
+            self.__navigation.wait_finish()
+
+            if point.distance2 > 0:
+                self.__sensor.ir_revise(point.distance2)
+            else:
+                self.__sensor.ping_revise(-point.distance2)
+
+            self.__sensor.wait_finish()
+            self.__odom.init_all(corrective_point)
 
     def init_odom_all(self, point: NavigationPoint):
         self.__odom.init_all(point)

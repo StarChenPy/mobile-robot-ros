@@ -12,6 +12,7 @@ from ..util.Singleton import singleton
 @singleton
 class OdomDao:
     def __init__(self, node: rclpy.node.Node):
+        self.__init = False
         self.__node = node
         self.__logger = node.get_logger()
         self.__service = node.create_client(chassis_msgs.srv.ResetOdom, '/chassis/reset_odom')
@@ -43,6 +44,7 @@ class OdomDao:
             self.__logger.error("[Odom] 重置失败")
 
     def init_all(self, pose: NavigationPoint):
+        self.set_init(True)
         self.__call_service(pose, ResetOdomMode.RESET_ALL)
 
     def init_location(self, x, y):
@@ -50,3 +52,9 @@ class OdomDao:
 
     def init_yaw(self, yaw:float):
         self.__call_service(NavigationPoint(0, 0, yaw), ResetOdomMode.RESET_YAW)
+
+    def get_init(self):
+        return self.__init
+
+    def set_init(self, init: bool):
+        self.__init = init
