@@ -14,6 +14,5 @@ class SensorController:
     def ping_revise(self, dis: float, is_block=True):
         self.__sensor.ping_revise(dis, is_block)
 
-
     def ir_revise(self, dis: float, is_block=True):
         self.__sensor.ir_revise(dis, is_block)

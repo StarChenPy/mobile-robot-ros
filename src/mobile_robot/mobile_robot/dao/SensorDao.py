@@ -43,20 +43,19 @@ class SensorDao(object):
 
             return result.success
 
-
     def ping_revise(self, distance: float):
         request = user_sensor_msgs.srv.SensorService.Request()
 
         request.set_revise_x = float(distance)  # x 修正设定值(cm)
-        request.set_x0_comp = float(0)          # yaw 传感器0补偿参数(cm)
-        request.deviation_x = 0.2               # 允许误差x(cm)
-        request.deviation_w = 0.2               # 允许误差w(cm)
-        request.sensor_type = 0                 # 传感器类型 0: ping   1: ir
-        request.correction_mode = 2             # 修正模式   0：传感器0  1：传感器1  2：传感器0 && 1
+        request.set_x0_comp = float(0)  # yaw 传感器0补偿参数(cm)
+        request.deviation_x = 0.1  # 允许误差x(cm)
+        request.deviation_w = 0.1  # 允许误差w(cm)
+        request.sensor_type = 0  # 传感器类型 0: ping   1: ir
+        request.correction_mode = 2  # 修正模式   0：传感器0  1：传感器1  2：传感器0 && 1
         request.speed_reversal = False
         request.start = True
 
-        self.__logger.debug(f"[传感器] 请求超声矫正.")
+        self.__logger.info(f"[传感器] 请求超声矫正.")
         self.__call_service(request)
 
     def ir_revise(self, distance: float):
@@ -64,14 +63,14 @@ class SensorDao(object):
 
         request.set_revise_x = float(distance)
         request.set_x0_comp = float(0)
-        request.deviation_x = 0.2
-        request.deviation_w = 0.2
+        request.deviation_x = 0.1
+        request.deviation_w = 0.1
         request.sensor_type = 1
         request.correction_mode = 1
         request.speed_reversal = True
         request.start = True
 
-        self.__logger.debug(f"[传感器] 请求红外矫正.")
+        self.__logger.info(f"[传感器] 请求红外矫正.")
         self.__call_service(request)
 
     # 等待修正结束
@@ -81,6 +80,6 @@ class SensorDao(object):
 
         while rclpy.ok():
             if self.__call_service(request):
-                self.__logger.debug(f"[传感器] 修正结束！")
+                self.__logger.info(f"[传感器] 修正结束！")
                 break
             time.sleep(0.2)

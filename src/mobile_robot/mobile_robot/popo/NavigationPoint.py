@@ -5,4 +5,4 @@ from dataclasses import dataclass
 class NavigationPoint:
     x: float
     y: float
-    yaw: float
+    yaw: float = 0

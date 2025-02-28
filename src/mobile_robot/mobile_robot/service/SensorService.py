@@ -13,12 +13,12 @@ class SensorService:
         self.__sensor = SensorDao(node)
         self.__robot_data = RobotDataDao(node)
 
-    def ping_revise(self, dis: float, is_block=True):
+    def ping_revise(self, dis: float, is_block):
         self.__sensor.ping_revise(dis)
         if is_block:
             self.__sensor.wait_finish()
 
-    def ir_revise(self, dis: float, is_block=True):
+    def ir_revise(self, dis: float, is_block):
         self.__sensor.ir_revise(dis)
         if is_block:
             self.__sensor.wait_finish()

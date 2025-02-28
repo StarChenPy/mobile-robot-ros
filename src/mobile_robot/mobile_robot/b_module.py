@@ -22,9 +22,7 @@ class BModule(Node):
 
         match select:
             case 0:
-                while True:
-                    print(self.__grab_fruit.vision())
-                    input("等待...")
+                exit(0)
             case 1:
                 # 直线1米
                 self.__move.init_pose(NavigationPoint(0, 0, 0))
@@ -42,7 +40,7 @@ class BModule(Node):
                 # 果仓1到起始区
                 self.__arm.reset()
                 self.__arm.control(ArmMovementParam.MOVING)
-                self.__move.init_pose(NavigationPoint(0.62, -1.04, 90))
+                self.__move.init_pose(NavigationPoint(0.56, 1.12, -90))
                 self.__move.navigation(NavigationPath.B_MODULE_4)
             case 5:
                 # 起始区到果仓1
@@ -71,6 +69,7 @@ class BModule(Node):
                 self.__move.navigation(NavigationPath.B_MODULE_7)
 
                 self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_RIGHT)
+                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_TALL_RIGHT)
                 self.__arm.control(ArmMovementParam.GRAB_APPLE_TALL_RIGHT)
                 self.__arm.control(ArmMovementParam.GRAB_APPLE_END)
             case 9:
@@ -81,6 +80,7 @@ class BModule(Node):
                 self.__move.navigation(NavigationPath.B_MODULE_7)
 
                 self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_RIGHT)
+                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_MIDDLE_RIGHT)
                 self.__arm.control(ArmMovementParam.GRAB_APPLE_MIDDLE_RIGHT)
                 self.__arm.control(ArmMovementParam.GRAB_APPLE_END)
             case 10:
@@ -91,6 +91,7 @@ class BModule(Node):
                 self.__move.navigation(NavigationPath.B_MODULE_7)
 
                 self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_RIGHT)
+                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_LOW_RIGHT)
                 self.__arm.control(ArmMovementParam.GRAB_APPLE_LOW_RIGHT)
                 self.__arm.control(ArmMovementParam.GRAB_APPLE_END)
             case 11:
@@ -113,11 +114,11 @@ class BModule(Node):
                 self.__move.navigation(NavigationPath.B_MODULE_7)
 
                 self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_RIGHT)
+                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_TALL_RIGHT)
                 self.__arm.control(ArmMovementParam.GRAB_APPLE_TALL_RIGHT)
                 self.__arm.control(ArmMovementParam.GRAB_APPLE_END)
 
                 self.__move.navigation(NavigationPath.B_MODULE_12)
-                self.__move.rotate(90)
 
                 self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
                 self.__arm.control(ArmMovementParam.PULL_GUO_CANG)

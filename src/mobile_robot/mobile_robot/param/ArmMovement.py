@@ -34,19 +34,25 @@ class ArmMovementParam(enum.Enum):
     READY_GRAB_APPLE_LIFT = ArmMovement(MotorMovement(90, 26), ServoMotor(0, -20, 0, 23))
     READY_GRAB_APPLE_RIGHT = ArmMovement(MotorMovement(-90, 26), ServoMotor(0, -20, 0, 23))
     # 抓苹果（上）
-    GRAB_APPLE_TALL_LEFT = ArmMovement(MotorMovement(90, 26), ServoMotor(0, 0, 10, 7))
-    GRAB_APPLE_TALL_RIGHT = ArmMovement(MotorMovement(-90, 26), ServoMotor(0, 0, 10, 7))
+    READY_GRAB_APPLE_TALL_LEFT = ArmMovement(MotorMovement(90, 25), ServoMotor(0, 0, 10, 23))
+    GRAB_APPLE_TALL_LEFT = ArmMovement(MotorMovement(90, 25), ServoMotor(0, 0, 10, 7))
+    READY_GRAB_APPLE_TALL_RIGHT = ArmMovement(MotorMovement(-90, 25), ServoMotor(0, 0, 10, 23))
+    GRAB_APPLE_TALL_RIGHT = ArmMovement(MotorMovement(-90, 25), ServoMotor(0, 0, 10, 7))
     # 抓苹果（中）
-    GRAB_APPLE_MIDDLE_LEFT = ArmMovement(MotorMovement(90, 24), ServoMotor(0, -50, 15, 7))
-    GRAB_APPLE_MIDDLE_RIGHT = ArmMovement(MotorMovement(-90, 24), ServoMotor(0, -50, 15, 7))
+    READY_GRAB_APPLE_MIDDLE_LEFT = ArmMovement(MotorMovement(90, 24), ServoMotor(0, -50, 14, 23))
+    GRAB_APPLE_MIDDLE_LEFT = ArmMovement(MotorMovement(90, 24), ServoMotor(0, -50, 14, 7))
+    READY_GRAB_APPLE_MIDDLE_RIGHT = ArmMovement(MotorMovement(-90, 24), ServoMotor(0, -40, 14, 23))
+    GRAB_APPLE_MIDDLE_RIGHT = ArmMovement(MotorMovement(-90, 24), ServoMotor(0, -40, 14, 7))
     # 抓苹果（下）
+    READY_GRAB_APPLE_LOW_LEFT = ArmMovement(MotorMovement(90, 28), ServoMotor(0, -60, 15, 23))
     GRAB_APPLE_LOW_LEFT = ArmMovement(MotorMovement(90, 28), ServoMotor(0, -60, 15, 7))
+    READY_GRAB_APPLE_LOW_RIGHT = ArmMovement(MotorMovement(-90, 28), ServoMotor(0, -60, 15, 23))
     GRAB_APPLE_LOW_RIGHT = ArmMovement(MotorMovement(-90, 28), ServoMotor(0, -60, 15, 7))
     GRAB_APPLE_END = ArmMovement(MotorMovement(0, 10), ServoMotor(0, 0, 7, 7))
 
     # 放水果到果仓
-    READY_PULL_GUO_CANG = ArmMovement(MotorMovement(175, 10), ServoMotor(0, 0, 14, 7))
-    PULL_GUO_CANG = ArmMovement(MotorMovement(175, 10), ServoMotor(0, 0, 14, 20))
+    READY_PULL_GUO_CANG = ArmMovement(MotorMovement(175, 10), ServoMotor(0, 0, 8, 7))
+    PULL_GUO_CANG = ArmMovement(MotorMovement(175, 10), ServoMotor(0, 0, 8, 20))
 
     # 放水果到框子动作
     READY_PUT_FRUIT_INTO_BASKET = ArmMovement(MotorMovement(0, 0.5), ServoMotor(0, -90, 10, 0))
