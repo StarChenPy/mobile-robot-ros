@@ -26,9 +26,6 @@ class SensorDao(object):
 
             result = future.result()
 
-            if result.err_data == 0:
-                return result.success
-
             match result.err_data:
                 case 0:
                     pass

@@ -34,6 +34,6 @@ class VisionService:
         return result_list
 
     def get_onnx_identify_result(self) -> list[IdentifyResult]:
-        photo = self.__camera.photograph_color(False)
+        photo = self.__camera.photograph_color(True)
         return infer_onnx_model(self.__weight_path, photo)
 

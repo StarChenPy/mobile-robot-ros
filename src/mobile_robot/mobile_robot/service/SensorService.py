@@ -1,3 +1,5 @@
+import time
+
 import rclpy
 
 from ..dao.RobotDataDao import RobotDataDao
@@ -16,11 +18,13 @@ class SensorService:
     def ping_revise(self, dis: float, is_block):
         self.__sensor.ping_revise(dis)
         if is_block:
+            time.sleep(1)
             self.__sensor.wait_finish()
 
     def ir_revise(self, dis: float, is_block):
         self.__sensor.ir_revise(dis)
         if is_block:
+            time.sleep(1)
             self.__sensor.wait_finish()
 
     def get_ir_claws(self) -> float:

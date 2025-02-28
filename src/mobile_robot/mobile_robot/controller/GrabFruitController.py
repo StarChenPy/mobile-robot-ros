@@ -1,4 +1,5 @@
 import copy
+import time
 
 import rclpy
 
@@ -52,8 +53,9 @@ class GrabFruitController:
 
             result = results[0]
             if result.classId == target_fruit.value:
-                self.__navigation.stop()
-                self.__execute_grab_sequence(result.box, is_other_side)
+                self.__navigation.stop_navigation()
+                self.execute_grab_sequence(result.box, is_other_side)
+                print(3)
                 return True
 
         return False
@@ -70,69 +72,29 @@ class GrabFruitController:
         return [
             result for result in self.__vision.get_onnx_identify_result()
             # x的范围是0～480
-            if 120 < result.box.get_rectangle_center().x < 400
+            if 20 < result.box.get_rectangle_center().x < 400
         ]
 
-    def __execute_grab_sequence(self, box, is_other_side: bool):
+    def execute_grab_sequence(self, box: Rectangle, is_other_side: bool):
         """执行抓取动作序列"""
         self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_RIGHT, 20)
 
-        distance = self.__get_fruit_distance(ArmMovementParam.READY_GRAB_APPLE_RIGHT)
-        print(distance)
-
         match get_fruit_height(box):
             case FruitHeight.TALL:
+                ready_movement = ArmMovementParam.READY_GRAB_APPLE_TALL_LEFT if is_other_side else ArmMovementParam.READY_GRAB_APPLE_TALL_RIGHT
                 movement = ArmMovementParam.GRAB_APPLE_TALL_LEFT if is_other_side else ArmMovementParam.GRAB_APPLE_TALL_RIGHT
-                movement.value.servo.telescopic = distance - 11
             case FruitHeight.MIDDLE:
+                ready_movement = ArmMovementParam.READY_GRAB_APPLE_MIDDLE_LEFT if is_other_side else ArmMovementParam.READY_GRAB_APPLE_MIDDLE_RIGHT
                 movement = ArmMovementParam.GRAB_APPLE_MIDDLE_LEFT if is_other_side else ArmMovementParam.GRAB_APPLE_MIDDLE_RIGHT
-                movement.value.servo.telescopic = distance - 6
             case FruitHeight.LOW:
-                movement = ArmMovementParam.GRAB_APPLE_LOW_RIGHT if is_other_side else ArmMovementParam.GRAB_APPLE_LOW_LEFT
-                movement.value.servo.telescopic = distance - 6
+                ready_movement = ArmMovementParam.READY_GRAB_APPLE_LOW_LEFT if is_other_side else ArmMovementParam.READY_GRAB_APPLE_LOW_RIGHT
+                movement = ArmMovementParam.GRAB_APPLE_LOW_LEFT if is_other_side else ArmMovementParam.GRAB_APPLE_LOW_RIGHT
             case _:
+                ready_movement = ArmMovementParam.MOVING
                 movement = ArmMovementParam.MOVING
 
-        self.__arm.control(movement, 20)
+        self.__arm.control(ready_movement, 20, True)
+        time.sleep(1)
+        self.__arm.control(movement, 20, True)
+        time.sleep(1)
         self.__arm.control(ArmMovementParam.MOVING, 20)
-
-    def __get_fruit_distance(self, movement: ArmMovementParam):
-        angle = 15
-
-        left_movement = copy.deepcopy(movement)
-        center_movement = copy.deepcopy(movement)
-        right_movement = copy.deepcopy(movement)
-
-        print(id(left_movement), id(right_movement), id(center_movement))
-
-        # 扫描左侧
-        left_movement.value.motor.rotate += angle
-        self.__arm.control(left_movement, True)
-        print("扫描左侧", left_movement.value.motor.rotate)
-        ir_claws_left = self.__sensor.get_ir_claws()
-        ir_claws_left = Math.calculate_adjacent_side(ir_claws_left, angle)
-
-        # 扫描中间
-        self.__arm.control(center_movement, True)
-        print("扫描中间", center_movement.value.motor.rotate)
-        ir_claws_center = self.__sensor.get_ir_claws()
-
-        # 扫描右侧
-        right_movement.value.motor.rotate -= angle
-        self.__arm.control(right_movement, True)
-        print("扫描右侧", right_movement.value.motor.rotate)
-        ir_claws_right = self.__sensor.get_ir_claws()
-        ir_claws_right = Math.calculate_adjacent_side(ir_claws_right, angle)
-
-        min_val = min(ir_claws_left, ir_claws_center, ir_claws_right)
-
-        # 判断最小值来源并执行对应操作
-        if ir_claws_left == min_val:
-            # 左侧最小，执行左侧功能
-            return (ir_claws_center + ir_claws_right) / 2
-        elif ir_claws_center == min_val:
-            # 中间最小，执行中间功能
-            return (ir_claws_left + ir_claws_right) / 2
-        else:
-            # 右侧最小，执行右侧功能
-            return (ir_claws_left + ir_claws_center) / 2

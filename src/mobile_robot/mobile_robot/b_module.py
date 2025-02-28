@@ -1,13 +1,14 @@
 import rclpy
 from rclpy.node import Node
 
+from .controller.SensorController import SensorController
+from .controller.ArmController import ArmController
 from .controller.GrabFruitController import GrabFruitController, get_fruit_height
+from .controller.MoveController import MoveController
 from .popo.NavigationPoint import NavigationPoint
 from .popo.FruitHeight import FruitHeight
-from .controller.ArmController import ArmController
 from .param.ArmMovement import ArmMovementParam
 from .param import NavigationPath
-from .controller.MoveController import MoveController
 
 
 class BModule(Node):
@@ -17,11 +18,15 @@ class BModule(Node):
         self.__move = MoveController(self)
         self.__arm = ArmController(self)
         self.__grab_fruit = GrabFruitController(self)
+        self.__sensor = SensorController(self)
 
         select = int(input("等待按键按下, 1 - 15, 0 退出\n"))
 
         match select:
             case 0:
+                self.__sensor.ping_revise(20)
+                self.__sensor.ping_revise(40)
+                self.__sensor.ping_revise(10)
                 exit(0)
             case 1:
                 # 直线1米

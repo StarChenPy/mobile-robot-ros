@@ -44,17 +44,14 @@ class OdomDao:
             self.__logger.error("[Odom] 重置失败")
 
     def init_all(self, pose: NavigationPoint):
-        self.set_init(True)
+        self.__init = True
         self.__call_service(pose, ResetOdomMode.RESET_ALL)
 
     def init_location(self, x, y):
         self.__call_service(NavigationPoint(x, y, 0), ResetOdomMode.RESET_POSE)
 
-    def init_yaw(self, yaw:float):
+    def init_yaw(self, yaw: float):
         self.__call_service(NavigationPoint(0, 0, yaw), ResetOdomMode.RESET_YAW)
 
     def get_init(self):
         return self.__init
-
-    def set_init(self, init: bool):
-        self.__init = init

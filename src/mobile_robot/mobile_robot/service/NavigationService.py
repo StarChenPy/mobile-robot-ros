@@ -50,7 +50,9 @@ class NavigationService:
             self.__navigation.navigation(path, speed, speed * 4)
             self.__navigation.wait_finish()
         elif self.__odom.get_init():
+            print("init过了直接跑点", self.__odom.get_init())
             self.__navigation.navigation([corrective_point], speed, speed * 4)
+            self.__navigation.wait_finish()
 
         if point.distance1 > 0:
             self.__sensor.ir_revise(point.distance1)
@@ -89,8 +91,10 @@ class NavigationService:
             self.__motion.wait_finish()
 
     def get_status(self):
-        self.__navigation.get_status()
+        return self.__navigation.get_status()
 
-    def stop(self):
+    def stop_motion(self):
         self.__motion.stop()
+
+    def stop_navigation(self):
         self.__navigation.cancel()
