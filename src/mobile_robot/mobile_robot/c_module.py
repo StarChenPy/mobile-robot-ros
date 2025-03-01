@@ -36,9 +36,9 @@ class CModule(Node):
         # 前往一号走廊并初始化姿势
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_ENTER_1)
         self.__sensor.ping_revise(13.5)
-        self.__move.init_pose(NavigationPath.ORCHARD_CORRIDOR_ENTER_1_POINT)
+        self.__move.reset_yaw(-90)
 
-        task = [[FruitType.RED_APPLE, FruitType.GREEN_APPLE], [FruitType.YELLOW_APPLE]]
+        task = [[FruitType.RED_APPLE, FruitType.RED_APPLE], [FruitType.GREEN_APPLE, FruitType.GREEN_APPLE], FruitType.YELLOW_APPLE]
 
         for index, warehouse in enumerate(task):
             for fruit in warehouse:
@@ -76,7 +76,7 @@ class CModule(Node):
         self.get_logger().info(f"放置完成, 前往果园一号走廊.")
         self.__move.navigation(NavigationPath.WAREHOUSE_TO_ORCHARD_ENTER_1)
         self.__sensor.ping_revise(13.5)
-        self.__move.init_pose(NavigationPath.ORCHARD_CORRIDOR_ENTER_1_POINT)
+        self.__move.reset_yaw(-90)
 
 
 def main():

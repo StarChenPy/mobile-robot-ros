@@ -31,14 +31,14 @@ class BModule(Node):
             case 1:
                 # 直线1米
                 self.__move.init_pose(NavigationPoint(0, 0, 0))
-                self.__move.navigation(NavigationPath.B_MODULE_1)
+                self.__move.navigation([NavigationPoint(1, 0, 0)])
             case 2:
                 # 旋转180度
                 self.__move.rotate(180)
             case 3:
                 # 抓水果
                 self.__arm.reset()
-                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_RIGHT)
+                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_TALL_RIGHT)
                 self.__arm.control(ArmMovementParam.GRAB_APPLE_TALL_RIGHT)
                 self.__arm.control(ArmMovementParam.GRAB_APPLE_END)
             case 4:
@@ -87,6 +87,7 @@ class BModule(Node):
                 self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_RIGHT)
                 self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_MIDDLE_RIGHT)
                 self.__arm.control(ArmMovementParam.GRAB_APPLE_MIDDLE_RIGHT)
+                self.__arm.control(ArmMovementParam.GRAB_APPLE_MIDDLE_END_RIGHT)
                 self.__arm.control(ArmMovementParam.GRAB_APPLE_END)
             case 10:
                 # 起始区到采摘1抓低水果
@@ -98,6 +99,7 @@ class BModule(Node):
                 self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_RIGHT)
                 self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_LOW_RIGHT)
                 self.__arm.control(ArmMovementParam.GRAB_APPLE_LOW_RIGHT)
+                self.__arm.control(ArmMovementParam.GRAB_APPLE_LOW_END_RIGHT)
                 self.__arm.control(ArmMovementParam.GRAB_APPLE_END)
             case 11:
                 # 起始区到果仓一号放水果
@@ -105,8 +107,6 @@ class BModule(Node):
                 self.__arm.control(ArmMovementParam.MOVING)
 
                 self.__move.navigation(NavigationPath.B_MODULE_11)
-
-                self.__move.rotate(90)
 
                 self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
                 self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
@@ -134,14 +134,9 @@ class BModule(Node):
                 self.__arm.control(ArmMovementParam.MOVING)
 
                 self.__move.navigation(NavigationPath.B_MODULE_5)
-                self.__move.rotate(90)
 
                 self.__arm.control(ArmMovementParam.RECOGNITION_WAREHOUSE)
                 while True:
-                    s = input("等待...")
-                    if s == "1":
-                        self.__arm.control(ArmMovementParam.MOVING)
-                        exit(0)
                     print(self.__grab_fruit.vision())
             case 14:
                 # 起始区到果园识别一个水果
@@ -153,10 +148,6 @@ class BModule(Node):
                 self.__arm.control(ArmMovementParam.RECOGNITION_ORCHARD_RIGHT)
 
                 while True:
-                    s = input("等待...")
-                    if s == "1":
-                        self.__arm.control(ArmMovementParam.MOVING)
-                        exit(0)
                     print(self.__grab_fruit.vision())
             case 15:
                 # 起始区到果园识别一个水果的高低
@@ -168,10 +159,6 @@ class BModule(Node):
                 self.__arm.control(ArmMovementParam.RECOGNITION_ORCHARD_RIGHT)
 
                 while True:
-                    s = input("等待...")
-                    if s == "1":
-                        self.__arm.control(ArmMovementParam.MOVING)
-                        exit(0)
                     result = self.__grab_fruit.vision()
                     for e in result:
                         match get_fruit_height(e.box):

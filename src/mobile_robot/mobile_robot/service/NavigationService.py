@@ -1,3 +1,5 @@
+import time
+
 import rclpy
 
 from ..dao.MotionDao import MotionDao
@@ -50,7 +52,6 @@ class NavigationService:
             self.__navigation.navigation(path, speed, speed * 4)
             self.__navigation.wait_finish()
         elif self.__odom.get_init():
-            print("init过了直接跑点", self.__odom.get_init())
             self.__navigation.navigation([corrective_point], speed, speed * 4)
             self.__navigation.wait_finish()
 
@@ -59,6 +60,7 @@ class NavigationService:
         else:
             self.__sensor.ping_revise(-point.distance1)
 
+        time.sleep(1)
         self.__sensor.wait_finish()
         self.__odom.init_all(corrective_point)
 
@@ -72,11 +74,15 @@ class NavigationService:
             else:
                 self.__sensor.ping_revise(-point.distance2)
 
+            time.sleep(1)
             self.__sensor.wait_finish()
             self.__odom.init_all(corrective_point)
 
     def init_odom_all(self, point: NavigationPoint):
         self.__odom.init_all(point)
+
+    def init_odom_yaw(self, yaw):
+        self.__odom.init_yaw(yaw)
 
     def line(self, distance: float, speed: float = 0.4, is_block=True):
         self.__motion.line(distance, speed)

@@ -22,5 +22,8 @@ class MoveController:
     def init_pose(self, point: NavigationPoint):
         self.__navigation.init_odom_all(point)
 
+    def reset_yaw(self, yaw: float):
+        self.__navigation.init_odom_yaw(yaw)
+
     def rotate(self, angle):
         self.__navigation.rotate(angle)

@@ -19,11 +19,10 @@ from ..popo.CorrectivePoint import CorrectivePoint
 # PICKING_CORRIDOR_3_END = Pose(0.0, -0.35, 90)
 
 # 市赛地图
-B_MODULE_1_POINT = NavigationPoint(2, 0, 0)
-
 # 矫正点
 START_CORRECTIVE_POINT = CorrectivePoint(1.07, 2.89, 180, -20)
 ORCHARD_ENTER_CORRECTIVE_POINT = CorrectivePoint(0.42, 3.65, 0, -20, -90, -13.5)
+ORCHARD_CORRIDOR_ENTER_1_CORRECTIVE_POINT = CorrectivePoint(1.93, 3.65, -90, -13.5)
 WAREHOUSE_CORRECTIVE_POINT = CorrectivePoint(1.07, 0.42, 90, -20, 180, -20)
 ORCHARD_CORRIDOR_EXIT_1_CORRECTIVE_POINT = CorrectivePoint(1.93, 0.42, 90, -20, 0, -21)
 
