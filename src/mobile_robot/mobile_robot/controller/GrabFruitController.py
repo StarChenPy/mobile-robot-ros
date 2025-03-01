@@ -1,4 +1,3 @@
-import copy
 import time
 
 import rclpy
@@ -8,18 +7,14 @@ from ..popo.FruitHeight import FruitHeight
 from ..popo.FruitType import FruitType
 from ..popo.IdentifyResult import IdentifyResult
 from ..popo.NavigationPoint import NavigationPoint
-from ..popo.Rectangle import Rectangle
 from ..service.ArmService import ArmService
 from ..service.NavigationService import NavigationService
 from ..service.SensorService import SensorService
 from ..service.VisionService import VisionService
-from ..util import Math
 from ..util.Singleton import singleton
 
 
-def get_fruit_height(box: Rectangle) -> FruitHeight:
-    height = box.get_rectangle_center().y
-
+def get_fruit_height(height: float) -> FruitHeight:
     if height < 150:
         return FruitHeight.TALL
     elif height < 280:
@@ -38,27 +33,33 @@ class GrabFruitController:
         self.__sensor = SensorService(node)
         self.__vision = VisionService(node)
 
-    def vision(self):
+    def vision(self) -> list[IdentifyResult]:
         return self.__vision.get_onnx_identify_result()
 
-    def patrol_the_line(self, target_point: NavigationPoint, target_fruit: FruitType, is_other_side=False) -> bool:
+    def patrol_the_line(self, target_point: NavigationPoint, target_fruit: list[FruitType], is_other_side=False) -> FruitType | None:
+        """
+        给予路径点与水果类型, 在前往路径点的过程中寻找指定水果
+        @param target_point: 目标路径点
+        @param target_fruit: 指定水果列表
+        @param is_other_side: 水果是否在另一边
+        @return 抓的水果
+        """
         self.__ready_to_identify(is_other_side)
         self.__navigation.navigation([target_point], 0.05, False)
 
         while rclpy.ok() and self.__navigation.get_status():
-            results = self.__get_valid_detections()
+            results = [result for result in self.__vision.get_onnx_identify_result() if 20 < result.box.get_rectangle_center().x < 400]
 
             if not results:
                 continue
 
             result = results[0]
-            if result.classId == target_fruit.value:
+            if result.fruit_type in target_fruit:
                 self.__navigation.stop_navigation()
-                self.execute_grab_sequence(result.box, is_other_side)
-                print(3)
-                return True
+                self.execute_grab_sequence(is_other_side)
+                return result.fruit_type
 
-        return False
+        return None
 
     def __ready_to_identify(self, is_other_side: bool):
         """准备机械臂到视觉识别姿态"""
@@ -67,32 +68,35 @@ class GrabFruitController:
         else:
             self.__arm.control(ArmMovementParam.RECOGNITION_ORCHARD_RIGHT, 20)
 
-    def __get_valid_detections(self) -> list[IdentifyResult]:
-        """获取有效检测结果并进行初步过滤"""
-        return [
-            result for result in self.__vision.get_onnx_identify_result()
-            # x的范围是0～480
-            if 20 < result.box.get_rectangle_center().x < 400
-        ]
-
-    def execute_grab_sequence(self, box: Rectangle, is_other_side: bool):
+    def execute_grab_sequence(self, is_other_side: bool):
         """执行抓取动作序列"""
+        result = self.__vision.get_onnx_identify_result()[0]
+        fruit_center = result.box.get_rectangle_center()
+        depth = self.__vision.get_depth_data(fruit_center)
+        angular_offset = (fruit_center.x - 320) / 10
+
+        print("深度数据为:", depth)
+
         self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_RIGHT, 20)
 
-        match get_fruit_height(box):
+        match get_fruit_height(fruit_center.y):
             case FruitHeight.TALL:
                 ready_movement = ArmMovementParam.READY_GRAB_APPLE_TALL_LEFT if is_other_side else ArmMovementParam.READY_GRAB_APPLE_TALL_RIGHT
                 movement = ArmMovementParam.GRAB_APPLE_TALL_LEFT if is_other_side else ArmMovementParam.GRAB_APPLE_TALL_RIGHT
+                ready_movement.value.servo.telescopic = depth - 13
             case FruitHeight.MIDDLE:
                 ready_movement = ArmMovementParam.READY_GRAB_APPLE_MIDDLE_LEFT if is_other_side else ArmMovementParam.READY_GRAB_APPLE_MIDDLE_RIGHT
                 movement = ArmMovementParam.GRAB_APPLE_MIDDLE_LEFT if is_other_side else ArmMovementParam.GRAB_APPLE_MIDDLE_RIGHT
+                ready_movement.value.servo.telescopic = depth - 8
             case FruitHeight.LOW:
                 ready_movement = ArmMovementParam.READY_GRAB_APPLE_LOW_LEFT if is_other_side else ArmMovementParam.READY_GRAB_APPLE_LOW_RIGHT
                 movement = ArmMovementParam.GRAB_APPLE_LOW_LEFT if is_other_side else ArmMovementParam.GRAB_APPLE_LOW_RIGHT
+                ready_movement.value.servo.telescopic = depth - 8
             case _:
                 ready_movement = ArmMovementParam.MOVING
                 movement = ArmMovementParam.MOVING
 
+        ready_movement.value.motor.rotate += angular_offset
         self.__arm.control(ready_movement, 20, True)
         time.sleep(1)
         self.__arm.control(movement, 20, True)

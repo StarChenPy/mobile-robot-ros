@@ -4,7 +4,6 @@ from rclpy.node import Node
 from .param import NavigationPath
 from .param.ArmMovement import ArmMovementParam
 from .popo.FruitType import FruitType
-from .popo.NavigationPoint import NavigationPoint
 from .controller.MoveController import MoveController
 from .controller.SensorController import SensorController
 from .controller.GrabFruitController import GrabFruitController
@@ -22,7 +21,12 @@ class CModule(Node):
 
         input("按任意键开始游戏...")
 
-        self.run()
+        self.__arm.reset()
+        self.__arm.control(ArmMovementParam.RECOGNITION_ORCHARD_RIGHT, 20)
+
+        self.__grub_fruit.execute_grab_sequence(False)
+
+        # self.run()
 
         exit(0)
 
@@ -41,18 +45,23 @@ class CModule(Node):
         task = [[FruitType.RED_APPLE, FruitType.RED_APPLE], [FruitType.GREEN_APPLE, FruitType.GREEN_APPLE], FruitType.YELLOW_APPLE]
 
         for index, warehouse in enumerate(task):
-            for fruit in warehouse:
-                self.get_logger().info(f"前往1号走廊抓取 {fruit.name}.")
-                if self.__grub_fruit.patrol_the_line(NavigationPath.ORCHARD_CORRIDOR_EXIT_1_POINT, fruit):
+            self.get_logger().info(f"前往1号走廊抓取 {warehouse}.")
+            fruit_type = self.__grub_fruit.patrol_the_line(NavigationPath.ORCHARD_CORRIDOR_EXIT_1_POINT, warehouse)
+            if fruit_type:
+                warehouse.remove(fruit_type)
+                self.__move.navigation(NavigationPath.TO_WAREHOUSE_1_POINT)
+                self.handle_fruit_grab(index)
+            else:
+                self.get_logger().info(f"未寻找到 {warehouse}, 前往二号走廊寻找.")
+                self.__move.navigation(NavigationPath.EXIT_1_TO_EXIT_2)
+                fruit_type = self.__grub_fruit.patrol_the_line(NavigationPath.ORCHARD_CORRIDOR_ENTER_2_POINT, warehouse, True)
+                if fruit_type:
+                    warehouse.remove(fruit_type)
+                    self.__move.navigation(NavigationPath.ENTER_2_POINT_TO_WAREHOUSE_1_POINT)
                     self.handle_fruit_grab(index)
                 else:
-                    self.get_logger().info(f"未寻找到 {fruit.name}, 前往二号走廊寻找.")
-                    self.__move.navigation(NavigationPath.EXIT_1_TO_EXIT_2)
-                    if self.__grub_fruit.patrol_the_line(NavigationPath.ORCHARD_CORRIDOR_ENTER_2_POINT, fruit):
-                        self.handle_fruit_grab(index)
-                    else:
-                        self.get_logger().error(f"仍未寻找到 {fruit.name}, 停止.")
-                        self.__arm.control(ArmMovementParam.MOVING)
+                    self.get_logger().error(f"仍未寻找到 {warehouse}, 停止.")
+                    self.__arm.control(ArmMovementParam.MOVING)
 
     def handle_fruit_grab(self, index):
         """
@@ -60,7 +69,7 @@ class CModule(Node):
         :param index: 当前任务中的果仓编号
         """
         self.get_logger().info(f"抓取成功，前往 {index} 号果仓放置.")
-        self.__move.navigation(NavigationPath.TO_WAREHOUSE_1_POINT)
+
         if index == 0:
             self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
             self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
@@ -72,6 +81,7 @@ class CModule(Node):
             self.__move.navigation(NavigationPath.WAREHOUSE_1_TO_WAREHOUSE_3)
             self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
             self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
+
         self.__arm.control(ArmMovementParam.MOVING)
         self.get_logger().info(f"放置完成, 前往果园一号走廊.")
         self.__move.navigation(NavigationPath.WAREHOUSE_TO_ORCHARD_ENTER_1)

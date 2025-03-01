@@ -3,6 +3,7 @@ import rclpy
 
 from ..dao.CameraDao import CameraDao
 from ..dao.MnnDao import MnnDao
+from ..popo import Point
 from ..popo.IdentifyResult import IdentifyResult
 from ..popo.Rectangle import Rectangle
 from ..util.Singleton import singleton
@@ -36,4 +37,9 @@ class VisionService:
     def get_onnx_identify_result(self) -> list[IdentifyResult]:
         photo = self.__camera.photograph_color(True)
         return infer_onnx_model(self.__weight_path, photo)
+
+    def get_depth_data(self, point: Point) -> float:
+        photograph_depth = self.__camera.photograph_depth(True)
+        dis = photograph_depth[point.y, point.x] / 1000
+        return dis.item()
 

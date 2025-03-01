@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 
+from .FruitType import FruitType
 from .Rectangle import Rectangle
 
 
 @dataclass
 class IdentifyResult:
-    classId: str
+    fruit_type: FruitType
     confidence: float
     box: Rectangle
