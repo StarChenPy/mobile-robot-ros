@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 import onnxruntime as ort
 
-from ..popo.FruitType import FruitType
 from ..popo.IdentifyResult import IdentifyResult
 from ..popo.Rectangle import Rectangle
 
@@ -121,7 +120,7 @@ def infer_onnx_model(onnx_path: str, image: np.ndarray, confidence_threshold: fl
     results = []
     for cls_id, score, (x1, y1, x2, y2) in zip(class_ids, scores, boxes):
         results.append(
-            IdentifyResult(FruitType.by_value(names[int(cls_id)]),
+            IdentifyResult(names[int(cls_id)],
                            float(score),
                            Rectangle(float(x1), float(y1), float(x2), float(y2))))
 

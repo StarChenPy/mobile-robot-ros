@@ -161,7 +161,7 @@ class BModule(Node):
                 while True:
                     result = self.__grab_fruit.vision()
                     for e in result:
-                        match get_fruit_height(e.box.get_rectangle_center().y):
+                        match get_fruit_height(e.box):
                             case FruitHeight.TALL:
                                 print("高水果")
                             case FruitHeight.MIDDLE:
