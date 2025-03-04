@@ -19,7 +19,7 @@ class OdomDao:
 
     def __call_service(self, pose: NavigationPoint, mode: ResetOdomMode):
         """初始化机器人位置，支持重置odom不同模式"""
-        self.__logger.info(f"[Odom] 初始化机器人位置 [{pose.x}, {pose.y}, {pose.yaw}] 模式为 {mode.name}")
+        self.__logger.debug(f"[Odom] 初始化机器人位置 [{pose.x}, {pose.y}, {pose.yaw}] 模式为 {mode.name}")
 
         req = chassis_msgs.srv.ResetOdom.Request()
         req.clear_mode = mode.value
@@ -31,7 +31,7 @@ class OdomDao:
         future = self.__service.call_async(req)
         self.__logger.debug("[Odom] 已请求服务")
 
-        rclpy.spin_until_future_complete(self.__node, future, timeout_sec=5.0)
+        rclpy.spin_until_future_complete(self.__node, future, timeout_sec=15.0)
 
         if not future.done():
             self.__logger.error("[Odom] 请求超时未响应")

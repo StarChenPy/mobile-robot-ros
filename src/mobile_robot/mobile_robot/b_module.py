@@ -1,3 +1,5 @@
+import time
+
 import rclpy
 from rclpy.node import Node
 
@@ -24,9 +26,7 @@ class BModule(Node):
 
         match select:
             case 0:
-                self.__sensor.ping_revise(20)
-                self.__sensor.ping_revise(40)
-                self.__sensor.ping_revise(10)
+                self.__move.along_left_wall(1, 0.4)
                 exit(0)
             case 1:
                 # 直线1米

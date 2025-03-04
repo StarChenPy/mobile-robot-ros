@@ -10,8 +10,9 @@ from ..util.Singleton import singleton
 @singleton
 class LaserRadarDao:
     def __init__(self, node: rclpy.node.Node):
+        self.__node = node
         self.__logger = node.get_logger()
-        __radar_data = LaserScan()
+        self.__radar_data = LaserScan()
 
         qos_profile = rclpy.qos.QoSProfile(reliability = rclpy.qos.QoSReliabilityPolicy.BEST_EFFORT,depth = 10)
         node.create_subscription(LaserScan, '/scan', self.__callback, qos_profile)
@@ -25,6 +26,7 @@ class LaserRadarDao:
         @param target_angle: 目标角度
         @return 距离
         """
+        rclpy.spin_once(self.__node)
         # 检查雷达数据是否存在
         if self.__radar_data is None:
             return 0

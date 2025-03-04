@@ -24,14 +24,17 @@ class MoveController:
     def init_pose(self, point: NavigationPoint):
         self.__sensor.init_odom_all(point)
 
+    def init_location(self, x, y):
+        self.__sensor.init_location(x, y)
+
     def reset_yaw(self, yaw: float):
         self.__sensor.init_odom_yaw(yaw)
 
     def rotate(self, angle):
         self.__navigation.rotate(angle)
 
-    def along_left_wall(self, travel_distance: float, distance_from_wall: float, speed=0.4, is_block=True):
-        self.__navigation.along_left_wall(travel_distance, distance_from_wall, speed, is_block)
+    def along_left_wall(self, travel_distance: float, distance_from_wall: float, speed=0.1):
+        self.__navigation.along_left_wall(travel_distance, distance_from_wall, speed)
 
-    def along_right_wall(self, travel_distance: float, distance_from_wall: float, speed=0.4, is_block=True):
-        self.__navigation.along_right_wall(travel_distance, distance_from_wall, speed, is_block)
+    def along_right_wall(self, travel_distance: float, distance_from_wall: float, speed=0.1):
+        self.__navigation.along_right_wall(travel_distance, distance_from_wall, speed)

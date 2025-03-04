@@ -104,38 +104,44 @@ class MoveService:
     def stop_navigation(self):
         self.__navigation.cancel()
 
-    def along_left_wall(self, travel_distance: float, distance_from_wall: float, speed=0.4, is_block=True):
+    def along_left_wall(self, travel_distance: float, distance_from_wall: float, speed):
         """
         沿左墙行驶
         """
         odom_backup = self.__robot_data.get_robot_data().odom
 
-        radar_data = self.__radar.get_radar_data(90)
+        radar_data = self.__radar.get_radar_data(180)
         self.__odom.init_all(NavigationPoint(0, radar_data, 0))
-        self.__navigation.navigation([NavigationPoint(travel_distance, distance_from_wall, 0)], speed, is_block)
+        self.__navigation.navigation([NavigationPoint(travel_distance, distance_from_wall, 0)], speed, speed * 4)
+        time.sleep(1)
 
         while rclpy.ok() and self.__navigation.get_status():
+            radar_data = self.__radar.get_radar_data(180)
             odom_data = self.__robot_data.get_robot_data().odom
-            radar_data = self.__radar.get_radar_data(90)
             self.__odom.init_location(odom_data.x, radar_data)
 
-        new_point = Math.get_target_coordinate(odom_backup, travel_distance)
+        self.__navigation.wait_finish()
+        new_point = Math.get_target_coordinate(NavigationPoint(odom_backup.x, odom_backup.y, odom_backup.w),
+                                               travel_distance)
         self.__odom.init_all(new_point)
 
-    def along_right_wall(self, travel_distance: float, distance_from_wall: float, speed=0.4, is_block=True):
+    def along_right_wall(self, travel_distance: float, distance_from_wall: float, speed):
         """
         沿右墙行驶
         """
         odom_backup = self.__robot_data.get_robot_data().odom
 
-        radar_data = self.__radar.get_radar_data(-90)
+        radar_data = -self.__radar.get_radar_data(0)
         self.__odom.init_all(NavigationPoint(0, radar_data, 0))
-        self.__navigation.navigation([NavigationPoint(travel_distance, distance_from_wall, 0)], speed, is_block)
+        self.__navigation.navigation([NavigationPoint(travel_distance, -distance_from_wall, 0)], speed, speed * 4)
+        time.sleep(1)
 
         while rclpy.ok() and self.__navigation.get_status():
+            radar_data = -self.__radar.get_radar_data(0)
             odom_data = self.__robot_data.get_robot_data().odom
-            radar_data = self.__radar.get_radar_data(-90)
             self.__odom.init_location(odom_data.x, radar_data)
 
-        new_point = Math.get_target_coordinate(odom_backup, travel_distance)
+        self.__navigation.wait_finish()
+        new_point = Math.get_target_coordinate(NavigationPoint(odom_backup.x, odom_backup.y, odom_backup.w),
+                                               travel_distance)
         self.__odom.init_all(new_point)

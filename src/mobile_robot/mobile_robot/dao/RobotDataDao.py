@@ -7,6 +7,7 @@ from ..util.Singleton import singleton
 @singleton
 class RobotDataDao(object):
     def __init__(self, node: rclpy.node.Node):
+        self.__node = node
         self.__robot_data = web_message_transform_ros2.msg.RobotData()
 
         node.create_subscription(
@@ -20,4 +21,5 @@ class RobotDataDao(object):
         self.__robot_data = msg
 
     def get_robot_data(self) -> web_message_transform_ros2.msg.RobotData:
+        rclpy.spin_once(self.__node)
         return self.__robot_data
