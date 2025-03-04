@@ -2,8 +2,11 @@ import time
 
 import rclpy
 
+from ..dao.LaserRadarDao import LaserRadarDao
+from ..dao.OdomDao import OdomDao
 from ..dao.RobotDataDao import RobotDataDao
 from ..dao.SensorDao import SensorDao
+from ..popo.NavigationPoint import NavigationPoint
 from ..util.Singleton import singleton
 
 
@@ -13,7 +16,9 @@ class SensorService:
         self.__logger = node.get_logger()
 
         self.__sensor = SensorDao(node)
+        self.__radar = LaserRadarDao(node)
         self.__robot_data = RobotDataDao(node)
+        self.__odom = OdomDao(node)
 
     def ping_revise(self, dis: float, is_block):
         self.__sensor.ping_revise(dis)
@@ -32,3 +37,15 @@ class SensorService:
 
     def get_ir_front(self) -> float:
         return self.__robot_data.get_robot_data().ir[1]
+
+    def get_radar_data(self, target_angle: float) -> float:
+        return self.__radar.get_radar_data(target_angle)
+
+    def init_odom_all(self, point: NavigationPoint):
+        self.__odom.init_all(point)
+
+    def init_location(self, x, y):
+        self.__odom.init_location(x, y)
+
+    def init_odom_yaw(self, yaw):
+        self.__odom.init_yaw(yaw)

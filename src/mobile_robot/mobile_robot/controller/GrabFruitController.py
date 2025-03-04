@@ -1,4 +1,3 @@
-import copy
 import time
 
 import rclpy
@@ -10,10 +9,9 @@ from ..popo.IdentifyResult import IdentifyResult
 from ..popo.NavigationPoint import NavigationPoint
 from ..popo.Rectangle import Rectangle
 from ..service.ArmService import ArmService
-from ..service.NavigationService import NavigationService
+from ..service.MoveService import MoveService
 from ..service.SensorService import SensorService
 from ..service.VisionService import VisionService
-from ..util import Math
 from ..util.Singleton import singleton
 
 
@@ -34,7 +32,7 @@ class GrabFruitController:
         self.__logger = node.get_logger()
 
         self.__arm = ArmService(node)
-        self.__navigation = NavigationService(node)
+        self.__navigation = MoveService(node)
         self.__sensor = SensorService(node)
         self.__vision = VisionService(node)
 

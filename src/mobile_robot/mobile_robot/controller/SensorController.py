@@ -16,3 +16,6 @@ class SensorController:
 
     def ir_revise(self, dis: float, is_block=True):
         self.__sensor.ir_revise(dis, is_block)
+
+    def get_radar_data(self, angle):
+        self.__sensor.get_radar_data(angle)
