@@ -4,6 +4,7 @@ import rclpy
 
 from ..popo.CorrectivePoint import CorrectivePoint
 from ..popo.NavigationPoint import NavigationPoint
+from ..service.AlongWallService import AlongWallService
 from ..service.MoveService import MoveService
 from ..service.SensorService import SensorService
 from ..util.Singleton import singleton
@@ -16,6 +17,7 @@ class MoveController:
 
         self.__navigation = MoveService(node)
         self.__sensor = SensorService(node)
+        self.__along_wall = AlongWallService(node)
 
     def navigation(self, nav_path: list[NavigationPoint or CorrectivePoint], speed=0.4, is_block=True):
         self.__navigation.navigation(nav_path, speed, is_block)
@@ -34,7 +36,7 @@ class MoveController:
         self.__navigation.rotate(angle)
 
     def along_left_wall(self, travel_distance: float, distance_from_wall: float, speed=0.1):
-        self.__navigation.along_left_wall(travel_distance, distance_from_wall, speed)
+        self.__along_wall.along_left_wall(travel_distance, distance_from_wall, speed)
 
     def along_right_wall(self, travel_distance: float, distance_from_wall: float, speed=0.1):
-        self.__navigation.along_right_wall(travel_distance, distance_from_wall, speed)
+        self.__along_wall.along_right_wall(travel_distance, distance_from_wall, speed)

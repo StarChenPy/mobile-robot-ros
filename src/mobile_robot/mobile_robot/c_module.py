@@ -43,12 +43,13 @@ class CModule(Node):
         for index, warehouse in enumerate(task):
             for fruit in warehouse:
                 self.get_logger().info(f"前往1号走廊抓取 {fruit.name}.")
-                if self.__grub_fruit.patrol_the_line(NavigationPath.ORCHARD_CORRIDOR_EXIT_1_POINT, fruit):
+                if self.__grub_fruit.patrol_the_line(150, 30, fruit):
                     self.handle_fruit_grab(index)
                 else:
                     self.get_logger().info(f"未寻找到 {fruit.name}, 前往二号走廊寻找.")
                     self.__move.navigation(NavigationPath.EXIT_1_TO_EXIT_2)
-                    if self.__grub_fruit.patrol_the_line(NavigationPath.ORCHARD_CORRIDOR_ENTER_2_POINT, fruit):
+                    if self.__grub_fruit.patrol_the_line(150, 30, fruit):
+                        self.__move.navigation([NavigationPath.ORCHARD_CORRIDOR_EXIT_2_POINT])
                         self.handle_fruit_grab(index)
                     else:
                         self.get_logger().error(f"仍未寻找到 {fruit.name}, 停止.")

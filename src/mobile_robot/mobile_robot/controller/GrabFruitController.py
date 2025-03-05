@@ -8,6 +8,7 @@ from ..popo.FruitType import FruitType
 from ..popo.IdentifyResult import IdentifyResult
 from ..popo.NavigationPoint import NavigationPoint
 from ..popo.Rectangle import Rectangle
+from ..service.AlongWallService import AlongWallService
 from ..service.ArmService import ArmService
 from ..service.MoveService import MoveService
 from ..service.SensorService import SensorService
@@ -35,13 +36,18 @@ class GrabFruitController:
         self.__navigation = MoveService(node)
         self.__sensor = SensorService(node)
         self.__vision = VisionService(node)
+        self.__along_wall = AlongWallService(node)
 
     def vision(self):
         return self.__vision.get_onnx_identify_result()
 
-    def patrol_the_line(self, target_point: NavigationPoint, target_fruit: FruitType, is_other_side=False) -> bool:
+    def patrol_the_line(self, travel_distance: float, distance_from_wall: float, target_fruit: FruitType, is_other_side=False) -> bool:
         self.__ready_to_identify(is_other_side)
-        self.__navigation.navigation([target_point], 0.05, False)
+
+        if is_other_side:
+            self.__along_wall.along_right_wall(travel_distance, distance_from_wall, 0.05, False)
+        else:
+            self.__along_wall.along_left_wall(travel_distance, distance_from_wall, 0.05, False)
 
         while rclpy.ok() and self.__navigation.get_status():
             results = self.__get_valid_detections()
@@ -51,9 +57,8 @@ class GrabFruitController:
 
             result = results[0]
             if result.classId == target_fruit.value:
-                self.__navigation.stop_navigation()
+                self.__along_wall.stop()
                 self.execute_grab_sequence(result.box, is_other_side)
-                print(3)
                 return True
 
         return False
