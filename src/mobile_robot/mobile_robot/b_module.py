@@ -1,8 +1,7 @@
-import time
-
 import rclpy
 from rclpy.node import Node
 
+from .controller.RobotController import RobotController
 from .controller.SensorController import SensorController
 from .controller.ArmController import ArmController
 from .controller.GrabFruitController import GrabFruitController, get_fruit_height
@@ -21,12 +20,14 @@ class BModule(Node):
         self.__arm = ArmController(self)
         self.__grab_fruit = GrabFruitController(self)
         self.__sensor = SensorController(self)
+        self.__robot = RobotController(self)
+
+        self.__robot.with_robot_connect()
 
         select = int(input("等待按键按下, 1 - 15, 0 退出\n"))
 
         match select:
             case 0:
-                self.__move.along_left_wall(1, 0.4)
                 exit(0)
             case 1:
                 # 直线1米
@@ -65,13 +66,13 @@ class BModule(Node):
                 self.__arm.reset()
                 self.__arm.control(ArmMovementParam.MOVING)
 
-                self.__move.navigation(NavigationPath.B_MODULE_7)
+                self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
             case 8:
                 # 起始区到采摘1抓高水果
                 self.__arm.reset()
                 self.__arm.control(ArmMovementParam.MOVING)
 
-                self.__move.navigation(NavigationPath.B_MODULE_7)
+                self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
                 self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_RIGHT)
                 self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_TALL_RIGHT)
@@ -82,7 +83,7 @@ class BModule(Node):
                 self.__arm.reset()
                 self.__arm.control(ArmMovementParam.MOVING)
 
-                self.__move.navigation(NavigationPath.B_MODULE_7)
+                self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
                 self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_RIGHT)
                 self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_MIDDLE_RIGHT)
@@ -94,7 +95,7 @@ class BModule(Node):
                 self.__arm.reset()
                 self.__arm.control(ArmMovementParam.MOVING)
 
-                self.__move.navigation(NavigationPath.B_MODULE_7)
+                self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
                 self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_RIGHT)
                 self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_LOW_RIGHT)
@@ -116,7 +117,7 @@ class BModule(Node):
                 self.__arm.reset()
                 self.__arm.control(ArmMovementParam.MOVING)
 
-                self.__move.navigation(NavigationPath.B_MODULE_7)
+                self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
                 self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_RIGHT)
                 self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_TALL_RIGHT)
@@ -143,7 +144,7 @@ class BModule(Node):
                 self.__arm.reset()
                 self.__arm.control(ArmMovementParam.MOVING)
 
-                self.__move.navigation(NavigationPath.B_MODULE_7)
+                self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
                 self.__arm.control(ArmMovementParam.RECOGNITION_ORCHARD_RIGHT)
 
@@ -154,7 +155,7 @@ class BModule(Node):
                 self.__arm.reset()
                 self.__arm.control(ArmMovementParam.MOVING)
 
-                self.__move.navigation(NavigationPath.B_MODULE_7)
+                self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
                 self.__arm.control(ArmMovementParam.RECOGNITION_ORCHARD_RIGHT)
 

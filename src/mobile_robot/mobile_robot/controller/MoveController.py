@@ -32,9 +32,3 @@ class MoveController:
 
     def rotate(self, angle):
         self.__navigation.rotate(angle)
-
-    def along_left_wall(self, travel_distance: float, distance_from_wall: float, speed=0.1):
-        self.__navigation.along_left_wall(travel_distance, distance_from_wall, speed)
-
-    def along_right_wall(self, travel_distance: float, distance_from_wall: float, speed=0.1):
-        self.__navigation.along_right_wall(travel_distance, distance_from_wall, speed)

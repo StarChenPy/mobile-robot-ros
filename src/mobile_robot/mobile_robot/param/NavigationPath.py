@@ -1,6 +1,5 @@
 from .NavigationPoint import *
 
-
 # STARTING_POINT2PICKING_POINT = (STARTING_POINT, TURNING_POINT, PICKING_ENTRANCE)
 #
 # PICKING_CORRIDOR_1 = (PICKING_CORRIDOR_1_START, PICKING_CORRIDOR_1_END)
@@ -28,12 +27,48 @@ START_TO_ORCHARD_ENTER_1 = (START_CORRECTIVE_POINT,
                             ORCHARD_ENTER_POINT_1,
                             ORCHARD_CORRIDOR_ENTER_1_POINT)
 
-B_MODULE_7 = (START_CORRECTIVE_POINT,
-              START_ENTER_POINT,
-              ORCHARD_ENTER_POINT,
-              ORCHARD_ENTER_POINT_1,
-              ORCHARD_CORRIDOR_ENTER_1_POINT,
-              ORCHARD_1_POINT)
+START_TO_ORCHARD_1 = (START_CORRECTIVE_POINT,
+                      START_ENTER_POINT,
+                      ORCHARD_ENTER_POINT,
+                      ORCHARD_ENTER_POINT_1,
+                      ORCHARD_CORRIDOR_ENTER_1_POINT,
+                      ORCHARD_1_POINT)
+
+WAREHOUSE_TO_ORCHARD_2 = (WAREHOUSE_CORRECTIVE_POINT,
+                          WAREHOUSE_ENTER_3_POINT,
+                          WAREHOUSE_ENTER_2_POINT,
+                          WAREHOUSE_ENTER_1_POINT,
+                          ORCHARD_ENTER_CORRECTIVE_POINT,
+                          ORCHARD_ENTER_POINT_1,
+                          ORCHARD_CORRIDOR_ENTER_1_POINT,
+                          ORCHARD_2_POINT)
+
+WAREHOUSE_TO_ORCHARD_3 = (WAREHOUSE_CORRECTIVE_POINT,
+                          WAREHOUSE_ENTER_3_POINT,
+                          WAREHOUSE_ENTER_2_POINT,
+                          WAREHOUSE_ENTER_1_POINT,
+                          ORCHARD_ENTER_CORRECTIVE_POINT,
+                          ORCHARD_ENTER_POINT_1,
+                          ORCHARD_CORRIDOR_ENTER_1_POINT,
+                          ORCHARD_3_POINT)
+
+WAREHOUSE_TO_ORCHARD_4 = (WAREHOUSE_CORRECTIVE_POINT,
+                          WAREHOUSE_ENTER_3_POINT,
+                          WAREHOUSE_ENTER_2_POINT,
+                          WAREHOUSE_ENTER_1_POINT,
+                          ORCHARD_ENTER_CORRECTIVE_POINT,
+                          ORCHARD_ENTER_POINT_1,
+                          ORCHARD_CORRIDOR_ENTER_2_POINT,
+                          ORCHARD_4_POINT)
+
+WAREHOUSE_TO_ORCHARD_5 = (WAREHOUSE_CORRECTIVE_POINT,
+                          WAREHOUSE_ENTER_3_POINT,
+                          WAREHOUSE_ENTER_2_POINT,
+                          WAREHOUSE_ENTER_1_POINT,
+                          ORCHARD_ENTER_CORRECTIVE_POINT,
+                          ORCHARD_ENTER_POINT_1,
+                          ORCHARD_CORRIDOR_ENTER_2_POINT,
+                          ORCHARD_5_POINT)
 
 B_MODULE_11 = (START_CORRECTIVE_POINT,
                START_ENTER_POINT,
@@ -50,17 +85,24 @@ B_MODULE_12 = (ORCHARD_CORRIDOR_ENTER_1_POINT,
                WAREHOUSE_ENTER_3_POINT,
                WAREHOUSE_1_POINT)
 
-ORCHARD_CORRIDOR_ENTER_1 = (ORCHARD_CORRIDOR_EXIT_1_POINT, )
+ORCHARD_CORRIDOR_ENTER_1 = (ORCHARD_CORRIDOR_EXIT_1_POINT,)
 
 ORCHARD_CORRIDOR_ENTER_2 = (ORCHARD_CORRIDOR_EXIT_2_POINT,
                             ORCHARD_CORRIDOR_ENTER_2_POINT)
 
-TO_WAREHOUSE_1_POINT = (ORCHARD_CORRIDOR_ENTER_1_POINT,
-                        ORCHARD_ENTER_CORRECTIVE_POINT,
-                        WAREHOUSE_ENTER_1_POINT,
-                        WAREHOUSE_ENTER_2_POINT,
-                        WAREHOUSE_ENTER_3_POINT,
-                        WAREHOUSE_1_POINT)
+ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT = (ORCHARD_CORRIDOR_ENTER_1_POINT,
+                                           ORCHARD_ENTER_CORRECTIVE_POINT,
+                                           WAREHOUSE_ENTER_1_POINT,
+                                           WAREHOUSE_ENTER_2_POINT,
+                                           WAREHOUSE_ENTER_3_POINT,
+                                           WAREHOUSE_1_POINT)
+
+ORCHARD_CORRIDOR_2_TO_WAREHOUSE_1_POINT = (ORCHARD_CORRIDOR_ENTER_2_POINT,
+                                           ORCHARD_ENTER_CORRECTIVE_POINT,
+                                           WAREHOUSE_ENTER_1_POINT,
+                                           WAREHOUSE_ENTER_2_POINT,
+                                           WAREHOUSE_ENTER_3_POINT,
+                                           WAREHOUSE_1_POINT)
 
 WAREHOUSE_TO_ORCHARD_ENTER_1 = (WAREHOUSE_CORRECTIVE_POINT,
                                 WAREHOUSE_ENTER_3_POINT,
@@ -70,9 +112,9 @@ WAREHOUSE_TO_ORCHARD_ENTER_1 = (WAREHOUSE_CORRECTIVE_POINT,
                                 ORCHARD_ENTER_POINT_1,
                                 ORCHARD_CORRIDOR_ENTER_1_POINT)
 
-WAREHOUSE_1_TO_WAREHOUSE_2 = (WAREHOUSE_2_POINT, )
+WAREHOUSE_1_TO_WAREHOUSE_2 = (WAREHOUSE_2_POINT,)
 
-WAREHOUSE_1_TO_WAREHOUSE_3 = (WAREHOUSE_3_POINT, )
+WAREHOUSE_1_TO_WAREHOUSE_3 = (WAREHOUSE_3_POINT,)
 
 ENTER_2_POINT_TO_WAREHOUSE_1_POINT = (ORCHARD_CORRIDOR_ENTER_2_POINT,
                                       ORCHARD_ENTER_POINT_1,
@@ -85,4 +127,4 @@ ENTER_2_POINT_TO_WAREHOUSE_1_POINT = (ORCHARD_CORRIDOR_ENTER_2_POINT,
 EXIT_1_TO_EXIT_2 = (ORCHARD_CORRIDOR_EXIT_1_CORRECTIVE_POINT,
                     ORCHARD_CORRIDOR_EXIT_2_POINT)
 
-EXIT_2_TO_ENTER_2 = (ORCHARD_CORRIDOR_ENTER_2_POINT, )
+EXIT_2_TO_ENTER_2 = (ORCHARD_CORRIDOR_ENTER_2_POINT,)

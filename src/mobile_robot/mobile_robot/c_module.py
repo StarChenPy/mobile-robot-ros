@@ -1,10 +1,11 @@
 import rclpy
 from rclpy.node import Node
 
+from .popo.FruitHeight import FruitHeight
+from .controller.RobotController import RobotController
 from .param import NavigationPath
 from .param.ArmMovement import ArmMovementParam
 from .popo.FruitType import FruitType
-from .popo.NavigationPoint import NavigationPoint
 from .controller.MoveController import MoveController
 from .controller.SensorController import SensorController
 from .controller.GrabFruitController import GrabFruitController
@@ -19,14 +20,67 @@ class CModule(Node):
         self.__grub_fruit = GrabFruitController(self)
         self.__sensor = SensorController(self)
         self.__move = MoveController(self)
+        self.__robot = RobotController(self)
 
-        input("按任意键开始游戏...")
+        self.__robot.with_robot_connect()
 
-        self.run()
+        s = input("已知：y，未知：w，选择：")
+
+        if s == "y":
+            self._run_y()
+        elif s == "w":
+            self._run_w()
 
         exit(0)
 
-    def run(self):
+    def _run_y(self):
+        """
+        执行整个任务流程，如前往一号走廊抓取水果并放置到果仓
+        """
+        self.__arm.reset()
+        self.__arm.control(ArmMovementParam.MOVING)
+
+        # 抓1号水果
+        self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
+        self.__grub_fruit.execute_grab_sequence(FruitHeight.TALL, False)
+        self.__move.navigation(NavigationPath.ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT)
+        self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
+        self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
+        self.__arm.control(ArmMovementParam.MOVING)
+
+        # 抓2号水果
+        self.__move.navigation(NavigationPath.WAREHOUSE_TO_ORCHARD_2)
+        self.__grub_fruit.execute_grab_sequence(FruitHeight.TALL, False)
+        self.__move.navigation(NavigationPath.ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT)
+        self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
+        self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
+        self.__arm.control(ArmMovementParam.MOVING)
+
+        # 抓3号水果
+        self.__move.navigation(NavigationPath.WAREHOUSE_TO_ORCHARD_3)
+        self.__grub_fruit.execute_grab_sequence(FruitHeight.TALL, False)
+        self.__move.navigation(NavigationPath.ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT)
+        self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
+        self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
+        self.__arm.control(ArmMovementParam.MOVING)
+
+        # 抓4号水果
+        self.__move.navigation(NavigationPath.WAREHOUSE_TO_ORCHARD_4)
+        self.__grub_fruit.execute_grab_sequence(FruitHeight.TALL, False)
+        self.__move.navigation(NavigationPath.ORCHARD_CORRIDOR_2_TO_WAREHOUSE_1_POINT)
+        self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
+        self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
+        self.__arm.control(ArmMovementParam.MOVING)
+
+        # 抓5号水果
+        self.__move.navigation(NavigationPath.WAREHOUSE_TO_ORCHARD_5)
+        self.__grub_fruit.execute_grab_sequence(FruitHeight.TALL, False)
+        self.__move.navigation(NavigationPath.ORCHARD_CORRIDOR_2_TO_WAREHOUSE_1_POINT)
+        self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
+        self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
+        self.__arm.control(ArmMovementParam.MOVING)
+
+    def _run_w(self):
         """
         执行整个任务流程，如前往一号走廊抓取水果并放置到果仓
         """
@@ -35,10 +89,8 @@ class CModule(Node):
 
         # 前往一号走廊并初始化姿势
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_ENTER_1)
-        self.__sensor.ping_revise(13.5)
-        self.__move.reset_yaw(-90)
 
-        task = [[FruitType.RED_APPLE, FruitType.RED_APPLE], [FruitType.GREEN_APPLE, FruitType.GREEN_APPLE], FruitType.YELLOW_APPLE]
+        task = [[FruitType.RED_APPLE, FruitType.RED_APPLE, FruitType.RED_APPLE, FruitType.RED_APPLE, FruitType.RED_APPLE]]
 
         for index, warehouse in enumerate(task):
             for fruit in warehouse:
@@ -60,7 +112,7 @@ class CModule(Node):
         :param index: 当前任务中的果仓编号
         """
         self.get_logger().info(f"抓取成功，前往 {index} 号果仓放置.")
-        self.__move.navigation(NavigationPath.TO_WAREHOUSE_1_POINT)
+        self.__move.navigation(NavigationPath.ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT)
         if index == 0:
             self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
             self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
@@ -75,8 +127,6 @@ class CModule(Node):
         self.__arm.control(ArmMovementParam.MOVING)
         self.get_logger().info(f"放置完成, 前往果园一号走廊.")
         self.__move.navigation(NavigationPath.WAREHOUSE_TO_ORCHARD_ENTER_1)
-        self.__sensor.ping_revise(13.5)
-        self.__move.reset_yaw(-90)
 
 
 def main():

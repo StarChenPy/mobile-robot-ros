@@ -52,7 +52,7 @@ class GrabFruitController:
             result = results[0]
             if result.classId == target_fruit.value:
                 self.__navigation.stop_navigation()
-                self.execute_grab_sequence(result.box, is_other_side)
+                self.execute_grab_sequence(get_fruit_height(result.box), is_other_side)
                 print(3)
                 return True
 
@@ -73,11 +73,11 @@ class GrabFruitController:
             if 20 < result.box.get_rectangle_center().x < 400
         ]
 
-    def execute_grab_sequence(self, box: Rectangle, is_other_side: bool):
+    def execute_grab_sequence(self, height: FruitHeight, is_other_side: bool):
         """执行抓取动作序列"""
         self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_RIGHT, 20)
 
-        match get_fruit_height(box):
+        match height:
             case FruitHeight.TALL:
                 ready_movement = ArmMovementParam.READY_GRAB_APPLE_TALL_LEFT if is_other_side else ArmMovementParam.READY_GRAB_APPLE_TALL_RIGHT
                 movement = ArmMovementParam.GRAB_APPLE_TALL_LEFT if is_other_side else ArmMovementParam.GRAB_APPLE_TALL_RIGHT
