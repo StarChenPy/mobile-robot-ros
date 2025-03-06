@@ -2,15 +2,12 @@ import time
 
 import rclpy
 
-from ..dao.LaserRadarDao import LaserRadarDao
 from ..dao.MotionDao import MotionDao
 from ..dao.NavigationDao import NavigationDao
 from ..dao.OdomDao import OdomDao
-from ..dao.RobotDataDao import RobotDataDao
 from ..dao.SensorDao import SensorDao
 from ..popo.CorrectivePoint import CorrectivePoint
 from ..popo.NavigationPoint import NavigationPoint
-from ..util.Math import Math
 from ..util.Singleton import singleton
 
 
@@ -23,8 +20,6 @@ class MoveService:
         self.__motion = MotionDao(node)
         self.__sensor = SensorDao(node)
         self.__odom = OdomDao(node)
-        self.__radar = LaserRadarDao(node)
-        self.__robot_data = RobotDataDao(node)
 
     def navigation(self, nav_path: list[NavigationPoint or CorrectivePoint], speed: float, is_block: bool):
         """

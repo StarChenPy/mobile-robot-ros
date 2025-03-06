@@ -18,12 +18,16 @@
 
 4. 使用 `git clone https://github.com/StarChenPy/mobile-robot-ros.git` 获取项目
 
-5. 进入项目目录, 运行`colcon build`编译项目, 并在终端中 `source install/setup.bash`.
+5. 进入项目目录, 运行 `colcon build` 编译项目, 并在终端中 `source install/setup.bash`.
 
 ## 如何运行
 
-待补充
+在编译完项目后, 运行 `ros2 run mobile_robot {模块名}` 即可
+
+目前有着 `b_moudle` 和 `c_moudle`, 分别代表济南市比赛的 B 模块与 C 模块
 
 ## 注意事项
 
-待补充
+使用wsl时, 注意使用桥接模式网络, 否则无法与机器人通信
+
+如果出现未找到命令, 请将项目的环境变量添加到终端
