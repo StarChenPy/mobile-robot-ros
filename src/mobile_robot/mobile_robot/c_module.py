@@ -24,7 +24,7 @@ class CModule(Node):
 
         self.__robot.with_robot_connect()
 
-        s = input("已知：y，未知：w，选择：")
+        s = input("已知y，未知w，选择：")
 
         if s == "y":
             self._run_y()
@@ -33,52 +33,29 @@ class CModule(Node):
 
         exit(0)
 
+    def grab_and_store(self, orchard_path, warehouse_path):
+        """通用的抓取水果并存储的函数"""
+        self.__move.navigation(orchard_path)
+        self.__grub_fruit.execute_grab_sequence(FruitHeight.TALL, False)
+        self.__move.navigation(warehouse_path)
+        self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
+        self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
+        self.__arm.control(ArmMovementParam.MOVING)
+
     def _run_y(self):
-        """
-        执行整个任务流程，如前往一号走廊抓取水果并放置到果仓
-        """
         self.__arm.reset()
         self.__arm.control(ArmMovementParam.MOVING)
 
-        # 抓1号水果
-        self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
-        self.__grub_fruit.execute_grab_sequence(FruitHeight.TALL, False)
-        self.__move.navigation(NavigationPath.ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT)
-        self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
-        self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
-        self.__arm.control(ArmMovementParam.MOVING)
+        tasks = [
+            (NavigationPath.START_TO_ORCHARD_1, NavigationPath.ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT),
+            (NavigationPath.WAREHOUSE_TO_ORCHARD_2, NavigationPath.ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT),
+            (NavigationPath.WAREHOUSE_TO_ORCHARD_3, NavigationPath.ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT),
+            (NavigationPath.WAREHOUSE_TO_ORCHARD_4, NavigationPath.ORCHARD_CORRIDOR_2_TO_WAREHOUSE_1_POINT),
+            (NavigationPath.WAREHOUSE_TO_ORCHARD_5, NavigationPath.ORCHARD_CORRIDOR_2_TO_WAREHOUSE_1_POINT),
+        ]
 
-        # 抓2号水果
-        self.__move.navigation(NavigationPath.WAREHOUSE_TO_ORCHARD_2)
-        self.__grub_fruit.execute_grab_sequence(FruitHeight.TALL, False)
-        self.__move.navigation(NavigationPath.ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT)
-        self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
-        self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
-        self.__arm.control(ArmMovementParam.MOVING)
-
-        # 抓3号水果
-        self.__move.navigation(NavigationPath.WAREHOUSE_TO_ORCHARD_3)
-        self.__grub_fruit.execute_grab_sequence(FruitHeight.TALL, False)
-        self.__move.navigation(NavigationPath.ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT)
-        self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
-        self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
-        self.__arm.control(ArmMovementParam.MOVING)
-
-        # 抓4号水果
-        self.__move.navigation(NavigationPath.WAREHOUSE_TO_ORCHARD_4)
-        self.__grub_fruit.execute_grab_sequence(FruitHeight.TALL, False)
-        self.__move.navigation(NavigationPath.ORCHARD_CORRIDOR_2_TO_WAREHOUSE_1_POINT)
-        self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
-        self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
-        self.__arm.control(ArmMovementParam.MOVING)
-
-        # 抓5号水果
-        self.__move.navigation(NavigationPath.WAREHOUSE_TO_ORCHARD_5)
-        self.__grub_fruit.execute_grab_sequence(FruitHeight.TALL, False)
-        self.__move.navigation(NavigationPath.ORCHARD_CORRIDOR_2_TO_WAREHOUSE_1_POINT)
-        self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
-        self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
-        self.__arm.control(ArmMovementParam.MOVING)
+        for orchard, warehouse in tasks:
+            self.grab_and_store(orchard, warehouse)
 
     def _run_w(self):
         """
@@ -95,12 +72,12 @@ class CModule(Node):
         for index, warehouse in enumerate(task):
             for fruit in warehouse:
                 self.get_logger().info(f"前往1号走廊抓取 {fruit.name}.")
-                if self.__grub_fruit.patrol_the_line(150, 30, fruit):
+                if self.__grub_fruit.patrol_the_line(NavigationPath.ORCHARD_CORRIDOR_EXIT_1_POINT, fruit):
                     self.handle_fruit_grab(index)
                 else:
                     self.get_logger().info(f"未寻找到 {fruit.name}, 前往二号走廊寻找.")
                     self.__move.navigation(NavigationPath.EXIT_1_TO_EXIT_2)
-                    if self.__grub_fruit.patrol_the_line(150, 30, fruit):
+                    if self.__grub_fruit.patrol_the_line(NavigationPath.ORCHARD_CORRIDOR_ENTER_2_POINT, fruit):
                         self.__move.navigation([NavigationPath.ORCHARD_CORRIDOR_EXIT_2_POINT])
                         self.handle_fruit_grab(index)
                     else:
@@ -113,20 +90,20 @@ class CModule(Node):
         :param index: 当前任务中的果仓编号
         """
         self.get_logger().info(f"抓取成功，前往 {index} 号果仓放置.")
-        self.__move.navigation(NavigationPath.ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT)
-        if index == 0:
+
+        warehouse_paths = {
+            0: NavigationPath.ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT,
+            1: NavigationPath.WAREHOUSE_1_TO_WAREHOUSE_2,
+            2: NavigationPath.WAREHOUSE_1_TO_WAREHOUSE_3,
+        }
+
+        if index in warehouse_paths:
+            self.__move.navigation(warehouse_paths[index])
             self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
             self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
-        elif index == 1:
-            self.__move.navigation(NavigationPath.WAREHOUSE_1_TO_WAREHOUSE_2)
-            self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
-            self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
-        elif index == 2:
-            self.__move.navigation(NavigationPath.WAREHOUSE_1_TO_WAREHOUSE_3)
-            self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
-            self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
+
         self.__arm.control(ArmMovementParam.MOVING)
-        self.get_logger().info(f"放置完成, 前往果园一号走廊.")
+        self.get_logger().info("放置完成, 前往果园一号走廊.")
         self.__move.navigation(NavigationPath.WAREHOUSE_TO_ORCHARD_ENTER_1)
 
 
