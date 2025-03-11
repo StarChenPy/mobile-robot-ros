@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(camera_orbbec2)
+project(license_client)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -18,27 +18,15 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(cv_bridge REQUIRED)
-find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
-find_package(OpenCV REQUIRED)
-find_package(image_transport REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
-
 find_package(rosidl_default_generators REQUIRED)
 
-
 rosidl_generate_interfaces(${PROJECT_NAME}
-  "srv/ReqImage.srv"
-  "srv/ReqSnap.srv"
-  DEPENDENCIES sensor_msgs std_msgs
+  "msg/LicenseInformation.msg"
+  "srv/LicenseImpl.srv"
+  DEPENDENCIES std_msgs
 )
 
-
-# 导出消息依赖
-ament_export_dependencies(rosidl_default_runtime)
 
 
 

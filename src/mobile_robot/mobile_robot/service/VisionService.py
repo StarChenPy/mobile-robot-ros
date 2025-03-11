@@ -22,16 +22,12 @@ class VisionService:
         self.__names_path = share_directory + "/weights/fruit.names"
 
     def get_mnn_identify_result(self) -> list[IdentifyResult]:
-        result = self.__mnn.call_service()
-        if not result:
-            return []
-
-        result_list = []
-        for label, confidence, x_min, y_min, x_max, y_max in zip(
-                result.label, result.confidence, result.xmin, result.ymin, result.xmax, result.ymax):
-            result_list.append(IdentifyResult(label, confidence, Rectangle(x_min, y_min, x_max, y_max)))
-
-        return result_list
+        self.__mnn.start("/home/vmx/WSR_HB_Robot/models/coco_Y3_1900_sim.mnn",
+                         "/home/vmx/WSR_HB_Robot/models/coco_Y3_1900.names",
+                         0.7)
+        result = self.__mnn.detect()
+        self.__mnn.stop()
+        return result
 
     def get_onnx_identify_result(self) -> list[IdentifyResult]:
         photo = self.__camera.photograph_color(False)

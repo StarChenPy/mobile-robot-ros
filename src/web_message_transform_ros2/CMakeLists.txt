@@ -29,6 +29,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
         "msg/Pose.msg"
         "msg/RobotCtrl.msg"
         "msg/RobotData.msg"
+        "srv/RobotCtrlSrv.srv"
         DEPENDENCIES std_msgs vmxpi_msgs
 )
 

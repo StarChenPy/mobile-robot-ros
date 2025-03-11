@@ -28,6 +28,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
         # msg
         "msg/AxisParam.msg"
         "msg/MotionFeedback.msg"
+        "msg/PlanData.msg"
         # srv
         "srv/BaseMotion.srv"
         DEPENDENCIES std_msgs

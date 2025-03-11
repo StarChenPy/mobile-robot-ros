@@ -1,6 +1,8 @@
 geometry_msgs/Pose2D[] points       #路径坐标点[x,y]
 float32 linear_vel                  #最大线速度m/s
 float32 rotation_vel                #最大旋转速度m/s
+float32 rotate_acc                  #旋转加速度
+float32 rotate_decel                #旋转减加速度
 float32 heading                     #最终点航向
 bool back                           #倒车
 

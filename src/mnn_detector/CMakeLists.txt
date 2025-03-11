@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(mnn_msgs)
+project(mnn_detector)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -17,20 +17,18 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
-
-find_package(std_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
-# 设置自定义消息生成
+
 rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/MnnData.msg"
-  "srv/MnnService.srv"
-  DEPENDENCIES std_msgs  
+  "msg/CategoryInfo.msg"
+  "msg/ModelParam.msg"
+  "msg/DetectionResult.msg"
+  "srv/CmdImpl.srv"
+  DEPENDENCIES std_msgs sensor_msgs
 )
 
-#导出消息依赖
-ament_export_dependencies(rosidl_default_runtime)
 
 
 

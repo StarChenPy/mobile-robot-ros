@@ -20,12 +20,15 @@ class NavigationDao:
         self.__action = rclpy.action.ActionClient(node, base_nav2.action.NavCMD, '/nav2_action')
         self.__mtx = threading.Lock()
 
-    def navigation(self, points: list[NavigationPoint], linear_speed, rotation_speed):
+    def navigation(self, points: list[NavigationPoint], linear_speed: float, rotation_speed: float,
+                   rotation_acceleration: float, rotation_deceleration: float):
         """
         路径跟随: 输入路径点、最终角度等参数，发送导航请求
         @param points 路径坐标点 NavigationPoint(x, y, yaw)
         @param linear_speed 最大线速度m/s
         @param rotation_speed 最大旋转速度m/s
+        @param rotation_acceleration 最大旋转加速度
+        @param rotation_deceleration 最大旋转减速度
         """
         goal_msg = base_nav2.action.NavCMD.Goal()
 
@@ -34,10 +37,12 @@ class NavigationDao:
             goal_msg.points.append(pose2d)
 
         # 这里要获取导航最后一个点的角度并赋给heading
-        goal_msg.heading = float(-points[-1].yaw)
-        goal_msg.back = False
         goal_msg.linear_vel = float(linear_speed)
         goal_msg.rotation_vel = float(rotation_speed)
+        goal_msg.rotate_acc = float(rotation_acceleration)
+        goal_msg.rotate_decel = float(rotation_deceleration)
+        goal_msg.heading = float(-points[-1].yaw)
+        goal_msg.back = False
 
         self.__action.wait_for_server()
         self.__logger.debug("[导航] 正在发送新的导航请求")

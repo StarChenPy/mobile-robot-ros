@@ -1,0 +1,3 @@
+---
+LicenseInformation license_information      #授权信息
+bool success                                #操作成功?

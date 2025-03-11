@@ -32,7 +32,6 @@ class MotionDao:
 
         match mode:
             case MotionMode.LINE:
-                # 为什么有 rotate ?
                 req.rotate_param.kp = 1.8
                 req.rotate_param.ti = 0.0
                 req.rotate_param.td = 0.0001
@@ -50,6 +49,11 @@ class MotionDao:
                 req.rotate_param.low_pass = 0.7
                 req.rotate_param.ek = 1.0
                 req.rotate_param.steady_clk = 10
+
+                # 规划器参数 旋转模式
+                req.rotate_param.planner_vel = float(speed)   #速度
+                req.rotate_param.planner_acc = 600.0          #加速度
+                req.rotate_param.planner_decel = 300.0        #减加速度
 
         return self.__service.call_async(req)
 

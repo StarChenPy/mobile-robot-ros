@@ -1,0 +1,25 @@
+#######################检测器操作命令接口########################
+#操作命令字[cmd]
+uint8 CMD_QUERY = 0                 #查询命令
+uint8 CMD_LOAD_MODEL  = 1           #加载模型
+uint8 CMD_CLOSE_MODEL = 2           #关闭模型
+uint8 CMD_DETECT_ONCE = 3           #检测一次
+uint8 CMD_GET_RESULT_IMG = 4        #获取检测结果图片
+
+#错误代码[code]
+int8 CODE_SUCCESS  = 0             #正常
+int8 CODE_LOAD_MODE_ERR = -1       #加载模型错误
+int8 CODE_DETECT_ERR = -2          #检测错误
+int8 CODE_IMAGE_ERR = -3           #获取图像错误
+int8 CODE_INTRINSICS_ERR = -4      #获取内参错误
+
+###############################################################
+uint8 cmd                           #操作命令
+ModelParam mode_param               #模型参数(加载模型命令时有效)
+---
+int8 code                           #操作状态反馈 0:成功, 负数:错误代码
+string info                         #信息反馈
+uint8 status                        #当前检测器模型加载反馈
+
+DetectionResult result              #检测结果输出
+sensor_msgs/Image image             #检测结果图片

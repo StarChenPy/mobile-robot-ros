@@ -4,4 +4,5 @@ AxisParam line_param    #参数
 AxisParam rotate_param  #参数
 ---
 MotionFeedback feedback #反馈
+PlanData plan_data 	 #规划器数据
 bool success            #成功状态
