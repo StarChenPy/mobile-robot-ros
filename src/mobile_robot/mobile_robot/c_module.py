@@ -7,7 +7,6 @@ from .param import NavigationPath
 from .param.ArmMovement import ArmMovementParam
 from .popo.FruitType import FruitType
 from .controller.MoveController import MoveController
-from .controller.SensorController import SensorController
 from .controller.GrabFruitController import GrabFruitController
 from .controller.ArmController import ArmController
 
@@ -18,7 +17,6 @@ class CModule(Node):
 
         self.__arm = ArmController(self)
         self.__grub_fruit = GrabFruitController(self)
-        self.__sensor = SensorController(self)
         self.__move = MoveController(self)
         self.__robot = RobotController(self)
 
