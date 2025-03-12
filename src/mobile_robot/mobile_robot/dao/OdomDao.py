@@ -25,8 +25,8 @@ class OdomDao:
         req = chassis_msgs.srv.ResetOdom.Request()
         req.clear_mode = mode.value
         req.x = float(pose.x)
-        req.y = float(-pose.y)
-        radian = math.radians(-pose.yaw)
+        req.y = float(pose.y)
+        radian = math.radians(pose.yaw)
         req.theta = float(radian)
 
         future = self.__service.call_async(req)

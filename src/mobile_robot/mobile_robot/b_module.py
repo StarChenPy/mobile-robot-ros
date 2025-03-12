@@ -44,7 +44,7 @@ class BModule(Node):
                 # 果仓1到起始区
                 self.__arm.reset()
                 self.__arm.control(ArmMovementParam.MOVING)
-                self.__move.init_pose(NavigationPoint(0.56, 1.12, -90))
+                self.__move.init_pose(NavigationPoint(0.56, -1.12, 90))
                 self.__move.navigation(NavigationPath.B_MODULE_4)
             case 5:
                 # 起始区到果仓1

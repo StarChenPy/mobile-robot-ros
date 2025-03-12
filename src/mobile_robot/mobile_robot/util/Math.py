@@ -113,3 +113,26 @@ class Math:
 
         # 计算直线与x轴正方向的夹角，然后转换为角度并返回
         return np.degrees(np.arctan(a))
+
+    @classmethod
+    def is_behind(cls, A: NavigationPoint, B: NavigationPoint) -> bool:
+        """
+        判断 B 是否在 A 的后方
+
+        :param A: NavigationPoint，包含坐标 (x, y) 和朝向角 yaw（单位：度）
+        :param B: NavigationPoint，包含坐标 (x, y) 和朝向角 yaw（可以忽略）
+        :return: True 如果 B 在 A 的后面，否则 False
+        """
+        # 计算 A 指向 B 的向量
+        AB_x = B.x - A.x
+        AB_y = B.y - A.y
+
+        # 计算 A 的朝向单位向量
+        rad = math.radians(A.yaw)
+        direction_x = math.cos(rad)
+        direction_y = math.sin(rad)
+
+        # 计算点积
+        dot_product = AB_x * direction_x + AB_y * direction_y
+
+        return dot_product < 0  # 如果点积小于 0，说明 B 在 A 的后面

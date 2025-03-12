@@ -10,11 +10,21 @@ class RobotController:
     def __init__(self, node: rclpy.node.Node):
         self.__logger = node.get_logger()
 
-        self.__robot_data = RobotService(node)
+        self.__robot = RobotService(node)
         self.__sensor = SensorService()
 
     def get_radar_data(self, angle):
         return self.__sensor.get_radar_data(angle)
 
     def with_robot_connect(self):
-        self.__robot_data.with_robot_connect()
+        self.__logger.info("[机器人] 正在链接")
+        self.__robot.with_robot_connect()
+        self.__logger.info("[机器人] 链接成功")
+
+    def with_start_button(self):
+        self.__robot.start_button()
+        self.__logger.info("[机器人] 开始按钮被按下")
+        self.set_start_led(True)
+
+    def set_start_led(self, state: bool):
+        self.__robot.start_led(state)

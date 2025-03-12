@@ -5,9 +5,11 @@ import rclpy
 from ..dao.MotionDao import MotionDao
 from ..dao.NavigationDao import NavigationDao
 from ..dao.OdomDao import OdomDao
+from ..dao.RobotDataDao import RobotDataDao
 from ..dao.SensorDao import SensorDao
 from ..popo.CorrectivePoint import CorrectivePoint
 from ..popo.NavigationPoint import NavigationPoint
+from ..util.Math import Math
 from ..util.Singleton import singleton
 
 
@@ -20,6 +22,7 @@ class MoveService:
         self.__motion = MotionDao(node)
         self.__sensor = SensorDao(node)
         self.__odom = OdomDao(node)
+        self.__robot_data = RobotDataDao(node)
 
     def navigation(self, nav_path: list[NavigationPoint or CorrectivePoint], speed: float, is_block: bool):
         """
@@ -29,17 +32,31 @@ class MoveService:
         @param is_block 是否阻塞
         """
         path = []
+        buffer = None
 
         for point in nav_path:
             if isinstance(point, NavigationPoint):
-                path.append(point)
+                if buffer is None:
+                    odom = self.__robot_data.get_robot_data().odom
+                    buffer = NavigationPoint(odom.x, odom.y, odom.w)
+
+                if Math.is_behind(buffer, point):
+                    # 如果这个点位在上个点位的后面，就倒车回去
+                    self.__navigation.navigation(path, speed, speed * 4, 3, 3, False)
+                    self.__navigation.wait_finish()
+                    path = []
+                    self.__navigation.navigation([point], speed, speed * 4, 3, 3, True)
+                    self.__navigation.wait_finish()
+                    buffer = point
+                else:
+                    path.append(point)
             elif isinstance(point, CorrectivePoint):
                 self.__navigation_corrective(path, point, speed)
                 path = []
             else:
                 self.__logger.error("[导航] 未知导航点!")
 
-        self.__navigation.navigation(path, speed, speed * 4, 3, 3)
+        self.__navigation.navigation(path, speed, speed * 4, 3, 3, False)
 
         if is_block:
             self.__navigation.wait_finish()
@@ -49,10 +66,10 @@ class MoveService:
 
         if path:
             path.append(corrective_point)
-            self.__navigation.navigation(path, speed, speed * 4, 3, 3)
+            self.__navigation.navigation(path, speed, speed * 4, 3, 3, False)
             self.__navigation.wait_finish()
         elif self.__odom.get_init():
-            self.__navigation.navigation([corrective_point], speed, speed * 4, 3, 3)
+            self.__navigation.navigation([corrective_point], speed, speed * 4, 3, 3, False)
             self.__navigation.wait_finish()
 
         if point.distance1 > 0:
@@ -66,7 +83,7 @@ class MoveService:
 
         if point.distance2 != 0:
             corrective_point.yaw = point.yaw2
-            self.__navigation.navigation([corrective_point], speed, speed * 4, 3, 3)
+            self.__navigation.navigation([corrective_point], speed, speed * 4, 3, 3, False)
             self.__navigation.wait_finish()
 
             if point.distance2 > 0:

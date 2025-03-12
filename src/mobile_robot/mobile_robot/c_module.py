@@ -24,10 +24,13 @@ class CModule(Node):
 
         s = input("已知y，未知w，选择：")
 
+        self.__robot.with_start_button()
         if s == "y":
             self._run_y()
         elif s == "w":
             self._run_w()
+
+        self.__robot.set_start_led(False)
 
         exit(0)
 
@@ -54,6 +57,7 @@ class CModule(Node):
 
         for orchard, warehouse in tasks:
             self.grab_and_store(orchard, warehouse)
+        self.__move.navigation(NavigationPath.B_MODULE_4)
 
     def _run_w(self):
         """
