@@ -1,9 +1,15 @@
 import math
+from dataclasses import dataclass
 
 import numpy as np
 
-from ..popo.NavigationPoint import NavigationPoint
+# from ..popo.NavigationPoint import NavigationPoint
 
+@dataclass
+class NavigationPoint:
+    x: float
+    y: float
+    yaw: float = 0
 
 class Math:
     @classmethod
@@ -115,24 +121,33 @@ class Math:
         return np.degrees(np.arctan(a))
 
     @classmethod
-    def is_behind(cls, A: NavigationPoint, B: NavigationPoint) -> bool:
+    def is_behind(cls, point1: NavigationPoint, point2: NavigationPoint, angle_threshold: float) -> bool:
         """
         判断 B 是否在 A 的后方
 
-        :param A: NavigationPoint，包含坐标 (x, y) 和朝向角 yaw（单位：度）
-        :param B: NavigationPoint，包含坐标 (x, y) 和朝向角 yaw（可以忽略）
+        :param point1: NavigationPoint，包含坐标 (x, y) 和朝向角 yaw（单位：度）
+        :param point2: NavigationPoint，包含坐标 (x, y) 和朝向角 yaw（可以忽略）
+        :param angle_threshold: 判断阈值
         :return: True 如果 B 在 A 的后面，否则 False
         """
-        # 计算 A 指向 B 的向量
-        AB_x = B.x - A.x
-        AB_y = B.y - A.y
+        dx = point2.x - point1.x
+        dy = point2.y - point1.y
 
-        # 计算 A 的朝向单位向量
-        rad = math.radians(A.yaw)
-        direction_x = math.cos(rad)
-        direction_y = math.sin(rad)
+        # 处理两点重合的情况
+        if dx == 0 and dy == 0:
+            return False
 
-        # 计算点积
-        dot_product = AB_x * direction_x + AB_y * direction_y
+        # 计算x2相对于x1的方向角度
+        theta_rad = math.atan2(dy, dx)
+        theta_deg = math.degrees(theta_rad)
 
-        return dot_product < 0  # 如果点积小于 0，说明 B 在 A 的后面
+        # 计算yaw1的反方向并规范化到[-180, 180)
+        opposite_angle = (point1.yaw + 180) % 360
+        if opposite_angle > 180:
+            opposite_angle -= 360
+
+        # 计算角度差并规范化到[-180, 180)
+        delta = theta_deg - opposite_angle
+        delta = (delta + 180) % 360 - 180
+
+        return abs(delta) <= angle_threshold

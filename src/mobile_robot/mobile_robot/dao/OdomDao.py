@@ -22,6 +22,8 @@ class OdomDao:
         """初始化机器人位置，支持重置odom不同模式"""
         self.__logger.debug(f"[Odom] 初始化机器人位置 [{pose.x}, {pose.y}, {pose.yaw}] 模式为 {mode.name}")
 
+        self.__service.wait_for_service()
+
         req = chassis_msgs.srv.ResetOdom.Request()
         req.clear_mode = mode.value
         req.x = float(pose.x)
@@ -47,7 +49,6 @@ class OdomDao:
     def init_all(self, pose: NavigationPoint):
         self.__init = True
         self.__call_service(pose, ResetOdomMode.RESET_ALL)
-        time.sleep(0.6)
 
     def init_location(self, x, y):
         self.__call_service(NavigationPoint(x, y, 0), ResetOdomMode.RESET_POSE)

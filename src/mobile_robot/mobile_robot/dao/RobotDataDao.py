@@ -22,4 +22,6 @@ class RobotDataDao(object):
 
     def get_robot_data(self) -> web_message_transform_ros2.msg.RobotData:
         rclpy.spin_once(self.__node)
+        rclpy.spin_once(self.__node)
+        rclpy.spin_once(self.__node)
         return self.__robot_data

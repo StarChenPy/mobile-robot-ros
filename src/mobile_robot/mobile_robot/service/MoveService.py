@@ -40,23 +40,26 @@ class MoveService:
                     odom = self.__robot_data.get_robot_data().odom
                     buffer = NavigationPoint(odom.x, odom.y, odom.w)
 
-                if Math.is_behind(buffer, point):
+                if Math.is_behind(buffer, point, 45):
                     # 如果这个点位在上个点位的后面，就倒车回去
-                    self.__navigation.navigation(path, speed, speed * 4, 3, 3, False)
-                    self.__navigation.wait_finish()
-                    path = []
+                    if path:
+                        self.__navigation.navigation(path, speed, speed * 4, 3, 3, False)
+                        self.__navigation.wait_finish()
+                        path = []
                     self.__navigation.navigation([point], speed, speed * 4, 3, 3, True)
                     self.__navigation.wait_finish()
-                    buffer = point
                 else:
                     path.append(point)
+
+                buffer = point
             elif isinstance(point, CorrectivePoint):
                 self.__navigation_corrective(path, point, speed)
                 path = []
             else:
                 self.__logger.error("[导航] 未知导航点!")
 
-        self.__navigation.navigation(path, speed, speed * 4, 3, 3, False)
+        if path:
+            self.__navigation.navigation(path, speed, speed * 4, 3, 3, False)
 
         if is_block:
             self.__navigation.wait_finish()

@@ -46,7 +46,7 @@ class NavigationDao:
         goal_msg.back = reverse
 
         self.__action.wait_for_server()
-        self.__logger.debug("[导航] 正在发送新的导航请求")
+        self.__logger.info(f"[导航] 正在发送新的导航请求: {points}")
 
         goal_handle = self.__action.send_goal_async(goal_msg)
         goal_handle.add_done_callback(self.__goal_response_callback)
