@@ -39,7 +39,7 @@ class MoveService:
             else:
                 self.__logger.error("[导航] 未知导航点!")
 
-        self.__navigation.navigation(path, speed, speed * 4)
+        self.__navigation.navigation(path, speed, speed * 4, 3, 3)
 
         if is_block:
             self.__navigation.wait_finish()
@@ -49,10 +49,10 @@ class MoveService:
 
         if path:
             path.append(corrective_point)
-            self.__navigation.navigation(path, speed, speed * 4)
+            self.__navigation.navigation(path, speed, speed * 4, 3, 3)
             self.__navigation.wait_finish()
         elif self.__odom.get_init():
-            self.__navigation.navigation([corrective_point], speed, speed * 4)
+            self.__navigation.navigation([corrective_point], speed, speed * 4, 3, 3)
             self.__navigation.wait_finish()
 
         if point.distance1 > 0:
@@ -66,7 +66,7 @@ class MoveService:
 
         if point.distance2 != 0:
             corrective_point.yaw = point.yaw2
-            self.__navigation.navigation([corrective_point], speed, speed * 4)
+            self.__navigation.navigation([corrective_point], speed, speed * 4, 3, 3)
             self.__navigation.wait_finish()
 
             if point.distance2 > 0:
