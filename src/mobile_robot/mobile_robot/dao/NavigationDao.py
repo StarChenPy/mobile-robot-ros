@@ -46,7 +46,7 @@ class NavigationDao:
         goal_msg.back = reverse
 
         self.__action.wait_for_server()
-        self.__logger.info(f"[导航] 正在发送新的导航请求: {points}")
+        self.__logger.info(f"[NavigationDao] 正在发送新的导航请求: {points}")
 
         goal_handle = self.__action.send_goal_async(goal_msg)
         goal_handle.add_done_callback(self.__goal_response_callback)
@@ -58,16 +58,16 @@ class NavigationDao:
         """处理Goal响应"""
         self.__goal_handle = future.result()
         if not self.__goal_handle.accepted:
-            self.__logger.error("[导航] 服务端拒绝本次Goal请求!")
+            self.__logger.error("[NavigationDao] 服务端拒绝本次请求!")
             return
 
-        self.__logger.debug("[导航] 正在执行导航...")
+        self.__logger.debug("[NavigationDao] 正在执行导航...")
         __get_result_future = self.__goal_handle.get_result_async()
         __get_result_future.add_done_callback(self.__get_result_callback)
 
     def __get_result_callback(self, _) -> None:
         """处理Goal完成回调"""
-        self.__logger.debug(f"[导航] 导航完成")
+        self.__logger.debug(f"[NavigationDao] 导航完成")
 
         with self.__mtx:
             self.__is_navigating = False
@@ -79,7 +79,7 @@ class NavigationDao:
             with self.__mtx:
                 if not self.__is_navigating:
                     break
-        self.__logger.debug("[导航] 导航结束")
+        self.__logger.debug("[NavigationDao] 导航结束")
 
     def cancel(self) -> None:
         """取消路径跟随"""
@@ -87,7 +87,7 @@ class NavigationDao:
             rclpy.spin_once(self.__node)
 
         assert self.__goal_handle is not None
-        self.__logger.debug("[导航] 取消导航")
+        self.__logger.debug("[NavigationDao] 取消导航")
         self.__goal_handle.cancel_goal_async()
 
     def get_status(self) -> bool:

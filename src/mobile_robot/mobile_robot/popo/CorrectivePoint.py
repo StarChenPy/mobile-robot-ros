@@ -1,11 +1,9 @@
 from dataclasses import dataclass
 
+from .Corrective import Corrective
+from .NavigationPoint import NavigationPoint
+
 
 @dataclass
-class CorrectivePoint:
-    x: float
-    y: float
-    yaw1: float
-    distance1: float
-    yaw2: float = 0
-    distance2: float = 0
+class CorrectivePoint(NavigationPoint):
+    corrective_data: list[Corrective]

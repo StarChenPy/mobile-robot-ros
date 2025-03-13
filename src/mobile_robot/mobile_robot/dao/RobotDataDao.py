@@ -1,6 +1,9 @@
+import time
+
 import rclpy
 
 import web_message_transform_ros2.msg
+from ..util.Math import Math
 from ..util.Singleton import singleton
 
 
@@ -25,3 +28,14 @@ class RobotDataDao(object):
         rclpy.spin_once(self.__node)
         rclpy.spin_once(self.__node)
         return self.__robot_data
+
+    def get_sonar(self) -> tuple[float, float]:
+        sonar0 = []
+        sonar1 = []
+        for i in range(10):
+            sonar = self.get_robot_data().sonar
+            sonar0.append(sonar[0])
+            sonar1.append(sonar[1])
+            time.sleep(0.1)
+
+        return Math.average_without_extremes(sonar0), Math.average_without_extremes(sonar1)

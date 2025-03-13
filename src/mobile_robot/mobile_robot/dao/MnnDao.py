@@ -51,9 +51,9 @@ class MnnDao:
 
         res = self.__call_service(request)
 
-        self.__logger.debug(f'[MNN] 模型路径:"{mode_path}" 标签路径:"{label_path}" NMS阈值:{nms_threshold}')
+        self.__logger.debug(f'[MnnDao] 模型路径:"{mode_path}" 标签路径:"{label_path}" NMS阈值:{nms_threshold}')
         if res.code != 0:
-            self.__logger.error(f'[MNN] 启动检测器错误! 错误代码:{res.code} 信息:{res.info}')
+            self.__logger.error(f'[MnnDao] 启动检测器错误! 错误代码:{res.code} 信息:{res.info}')
             return False
         else:
             return True
@@ -64,9 +64,9 @@ class MnnDao:
         request.cmd = MnnCmd.CMD_CLOSE_MODEL.value
         res = self.__call_service(request)
         if res.code != 0:
-            self.__logger.error(f'[MNN] 关闭检测器错误! 错误代码:{res.code} 信息:{res.info}')
+            self.__logger.error(f'[MnnDao] 关闭检测器错误! 错误代码:{res.code} 信息:{res.info}')
         else:
-            self.__logger.debug('[MNN] 关闭检测器完成.')
+            self.__logger.debug('[MnnDao] 关闭检测器完成.')
 
     #检测
     def detect(self) -> list[IdentifyResult]:
@@ -77,18 +77,13 @@ class MnnDao:
         res = self.__call_service(request)
 
         if res.code != 0:
-            self.__logger.error(f'[MNN] 检测失败! 错误代码:{res.code} 信息:{res.info}')
+            self.__logger.error(f'[MnnDao] 检测失败! 错误代码:{res.code} 信息:{res.info}')
             return []
 
         # 打包消息数据
         for info_ in res.result.category_infos:
-            val = {
-                'label': info_.label,
-                'confidence': info_.confidence,
-                'rect': [info_.rect[0], info_.rect[1], info_.rect[2], info_.rect[3]],
-                'center3d': [info_.center3d.x, info_.center3d.y, info_.center3d.z]
-            }
-            result.append(IdentifyResult(info_.label, info_.confidence, Rectangle(info_.rect[0], info_.rect[1], info_.rect[2], info_.rect[3])))
+            result.append(IdentifyResult(info_.label, info_.confidence,
+                                         Rectangle(info_.rect[0], info_.rect[1], info_.rect[0] + info_.rect[2], info_.rect[1] + info_.rect[3])))
 
         return result
 
@@ -98,7 +93,7 @@ class MnnDao:
         request.cmd = MnnCmd.CMD_GET_RESULT_IMG.value
         res = self.__call_service(request)
         if res.code != 0:
-            self.__logger.error(f'[MNN] 获取结果失败! 错误代码:{res.code} 信息:{res.info}')
+            self.__logger.error(f'[MnnDao] 获取结果失败! 错误代码:{res.code} 信息:{res.info}')
             return None
         img = cv_bridge.CvBridge().imgmsg_to_cv2(res.image, 'bgr8')
         return img

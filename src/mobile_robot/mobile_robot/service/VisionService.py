@@ -4,7 +4,6 @@ import rclpy
 from ..dao.CameraDao import CameraDao
 from ..dao.MnnDao import MnnDao
 from ..popo.IdentifyResult import IdentifyResult
-from ..popo.Rectangle import Rectangle
 from ..util.Singleton import singleton
 from ..util.Onnx import infer_onnx_model
 
@@ -30,6 +29,6 @@ class VisionService:
         return result
 
     def get_onnx_identify_result(self) -> list[IdentifyResult]:
-        photo = self.__camera.photograph_color(False)
+        photo = self.__camera.photograph_color(True)
         return infer_onnx_model(self.__weight_path, photo)
 

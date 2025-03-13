@@ -97,8 +97,7 @@ ORCHARD_CORRIDOR_2_TO_WAREHOUSE_1_POINT = (ORCHARD_CORRIDOR_ENTER_2_POINT,
                                            WAREHOUSE_ENTER_3_POINT,
                                            WAREHOUSE_1_POINT)
 
-WAREHOUSE_TO_ORCHARD_ENTER_1 = (WAREHOUSE_CORRECTIVE_POINT,
-                                WAREHOUSE_ENTER_3_POINT,
+WAREHOUSE_TO_ORCHARD_ENTER_1 = (WAREHOUSE_ENTER_3_POINT,
                                 WAREHOUSE_ENTER_2_POINT,
                                 WAREHOUSE_ENTER_1_POINT,
                                 ORCHARD_ENTER_CORRECTIVE_POINT,

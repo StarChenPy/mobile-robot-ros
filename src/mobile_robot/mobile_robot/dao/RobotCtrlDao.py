@@ -7,6 +7,8 @@ from ..util.Singleton import singleton
 @singleton
 class RobotCtrlDao(object):
     def __init__(self, node: rclpy.node.Node):
+        self.__logger = node.get_logger()
+
         self.__topic = node.create_publisher(
             web_message_transform_ros2.msg.RobotCtrl,
             '/web_transform_node/robot_ctrl',
@@ -26,6 +28,7 @@ class RobotCtrlDao(object):
 
     # 设置DO输出(端口: 0-2, 电平: T/F)
     def write_do(self, port, state: bool):
+        self.__logger.debug(f"[RobotCtrlDao] 操作DO端口 {port} 为 {state}")
         match port:
             case 0:
                 self.__robot_ctrl.do0 = state
@@ -38,6 +41,14 @@ class RobotCtrlDao(object):
     # 设置 pwm (端口: 0-4, duty: 0-100%)
     def write_pwm(self, port, duty):
         duty = float(min(max(duty, 0), 100))
+        if duty > 100:
+            self.__logger.warning(f"[RobotCtrlDao] 操作PWM端口 {port} 占空比为 {duty} 超过最大值!")
+            duty = 100
+        elif duty < 0:
+            self.__logger.warning(f"[RobotCtrlDao] 操作PWM端口 {port} 占空比为 {duty} 超过最小值!")
+            duty = 0
+        else:
+            self.__logger.debug(f"[RobotCtrlDao] 操作PWM端口 {port} 占空比为 {duty}")
 
         match port:
             case 0:

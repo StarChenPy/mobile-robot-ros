@@ -32,15 +32,17 @@ class CameraDao:
             if future.result().success:
                 return future.result()
             else:
-                self.__logger.warning(f"[相机] 请求拍照失败，正在重试")
+                self.__logger.warning(f"[CameraDao] 请求拍照失败，正在重试")
+                time.sleep(1)
 
-        self.__logger.error("[相机] 拍照失败")
+        self.__logger.error("[CameraDao] 拍照失败")
 
     def photograph_color(self, is_sync: bool) -> cv2.Mat:
         """
         @param is_sync: true为同步模式, 拍摄实时最新的图像, 响应时间约100ms-200ms; false为异步模式, 为上一帧或当前帧, 响应时间短;
         @return 彩色图
         """
+        self.__logger.debug(f"[CameraDao] 正在拍摄彩色图, 是否是最新图像: {is_sync}")
         request = camera_orbbec2.srv.ReqImage.Request()
         request.cmd = 1
         request.sync_snap = is_sync
@@ -53,6 +55,7 @@ class CameraDao:
         @param is_sync: true为同步模式, 拍摄实时最新的图像, 响应时间约100ms-200ms; false为异步模式, 为上一帧或当前帧, 响应时间短;
         @return 深度图
         """
+        self.__logger.debug(f"[CameraDao] 正在拍摄深度图, 是否是最新图像: {is_sync}")
         request = camera_orbbec2.srv.ReqImage.Request()
         request.cmd = 2
         request.sync_snap = is_sync

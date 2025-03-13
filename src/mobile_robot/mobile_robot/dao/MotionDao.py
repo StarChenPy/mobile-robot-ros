@@ -60,7 +60,7 @@ class MotionDao:
     def line(self, distance: float, speed: float):
         """基础运动: 直线模式"""
         future = self.__call_service(MotionMode.LINE, distance, speed)
-        self.__logger.info(f'[基础运动] 已请求直线运动服务 距离 {distance} 速度 {speed}')
+        self.__logger.info(f'[MotionDao] 已请求直线运动服务 距离 {distance} 速度 {speed}')
 
         while rclpy.ok():
             rclpy.spin_once(self.__node)
@@ -69,14 +69,14 @@ class MotionDao:
                 continue
 
             if not future.result().success:
-                self.__logger.error('[基础运动] 错误, 无法直线运动!')
+                self.__logger.error('[MotionDao] 错误, 无法直线运动!')
                 return
             break
 
     def rotate(self, angle: float, speed: float):
         """基础运动: 旋转模式"""
         future = self.__call_service(MotionMode.ROTATE, angle, speed)
-        self.__logger.info(f'[基础运动] 已请求旋转运动服务 角度 {angle} 速度 {speed}')
+        self.__logger.info(f'[MotionDao] 已请求旋转运动服务 角度 {angle} 速度 {speed}')
 
         while rclpy.ok():
             rclpy.spin_once(self.__node)
@@ -85,7 +85,7 @@ class MotionDao:
                 continue
 
             if not future.result().success:
-                self.__logger.error('[基础运动] 错误, 无法旋转运动!')
+                self.__logger.error('[MotionDao] 错误, 无法旋转运动!')
                 return
             break
 
@@ -108,14 +108,14 @@ class MotionDao:
 
             feedback = future.result().feedback
             if feedback.motion_mode == 0 and feedback.motion_status == 2:
-                self.__logger.debug("[基础运动] 运动服务已结束")
+                self.__logger.debug("[MotionDao] 运动服务已结束")
                 return
 
             time.sleep(0.5)
 
     def stop(self):
         """停止基础运动"""
-        self.__logger.debug("[基础运动] 停止中...")
+        self.__logger.debug("[MotionDao] 停止中...")
 
         future = self.__call_service(MotionMode.STOP, 0, 0)
         while rclpy.ok():
@@ -125,6 +125,6 @@ class MotionDao:
                 continue
 
             if future.result().success:
-                self.__logger.debug('[基础运动] 停止完成.')
+                self.__logger.debug('[MotionDao] 停止完成.')
             else:
-                self.__logger.error('[基础运动] 停止失败.')
+                self.__logger.error('[MotionDao] 停止失败.')

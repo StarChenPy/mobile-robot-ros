@@ -3,15 +3,16 @@ import time
 import rclpy
 
 from ..param.ArmMovement import ArmMovementParam
+from ..popo.Direction import Direction
 from ..popo.FruitHeight import FruitHeight
 from ..popo.FruitType import FruitType
-from ..popo.IdentifyResult import IdentifyResult
 from ..popo.NavigationPoint import NavigationPoint
 from ..popo.Rectangle import Rectangle
 from ..service.ArmService import ArmService
 from ..service.MoveService import MoveService
 from ..service.SensorService import SensorService
 from ..service.VisionService import VisionService
+from ..util.Math import Math
 from ..util.Singleton import singleton
 
 
@@ -32,7 +33,7 @@ class GrabFruitController:
         self.__logger = node.get_logger()
 
         self.__arm = ArmService(node)
-        self.__navigation = MoveService(node)
+        self.__move = MoveService(node)
         self.__sensor = SensorService(node)
         self.__vision = VisionService(node)
 
@@ -40,20 +41,33 @@ class GrabFruitController:
         return self.__vision.get_onnx_identify_result()
 
     def patrol_the_line(self, target_point: NavigationPoint, target_fruit: FruitType, is_other_side=False) -> bool:
+        self.__logger.info(f"[巡线抓取] 准备开始 目标点 {target_point}, 目标水果 {target_fruit}")
         self.__ready_to_identify(is_other_side)
-        self.__navigation.navigation([target_point], 0.05, False)
 
-        while rclpy.ok() and self.__navigation.get_status():
-            results = self.__get_valid_detections()
+        odom = self.__sensor.get_odom_data()
+        points = Math.point_to_point(NavigationPoint(odom.x, odom.y, odom.w), target_point, 0.4)
+
+        for point in points:
+            self.__move.navigation([point], 0.2, True)
+
+            angle_from_wall = self.__sensor.get_angle_from_wall(Direction.LEFT)
+            self.__move.rotate(angle_from_wall)
+            self.__sensor.init_odom_yaw(point.yaw)
+
+            # results = self.__vision.get_onnx_identify_result()
+            results = []
+
+            self.__logger.info(f"[巡线抓取] 识别到的内容: {results}")
 
             if not results:
                 continue
 
             result = results[0]
             if result.classId == target_fruit.value:
-                self.__navigation.stop_navigation()
+                center = result.box.get_rectangle_center()
+                travel_distance = (320 - center.x) / 2000
+                self.__move.line(travel_distance if is_other_side else -travel_distance)
                 self.execute_grab_sequence(get_fruit_height(result.box), is_other_side)
-                print(3)
                 return True
 
         return False
@@ -61,38 +75,36 @@ class GrabFruitController:
     def __ready_to_identify(self, is_other_side: bool):
         """准备机械臂到视觉识别姿态"""
         if is_other_side:
-            self.__arm.control(ArmMovementParam.RECOGNITION_ORCHARD_LEFT, 20)
+            self.__arm.control(ArmMovementParam.RECOGNITION_ORCHARD_LEFT, 45)
         else:
-            self.__arm.control(ArmMovementParam.RECOGNITION_ORCHARD_RIGHT, 20)
-
-    def __get_valid_detections(self) -> list[IdentifyResult]:
-        """获取有效检测结果并进行初步过滤"""
-        return [
-            result for result in self.__vision.get_onnx_identify_result()
-            # x的范围是0～480
-            if 20 < result.box.get_rectangle_center().x < 400
-        ]
+            self.__arm.control(ArmMovementParam.RECOGNITION_ORCHARD_RIGHT, 45)
 
     def execute_grab_sequence(self, height: FruitHeight, is_other_side: bool):
         """执行抓取动作序列"""
-        self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_RIGHT, 20)
+        if is_other_side:
+            ArmMovementParam.READY_GRAB_APPLE.value.motor.rotate = -ArmMovementParam.READY_GRAB_APPLE.value.motor.rotate
+        self.__arm.control(ArmMovementParam.READY_GRAB_APPLE, 45)
 
         match height:
             case FruitHeight.TALL:
-                ready_movement = ArmMovementParam.READY_GRAB_APPLE_TALL_LEFT if is_other_side else ArmMovementParam.READY_GRAB_APPLE_TALL_RIGHT
-                movement = ArmMovementParam.GRAB_APPLE_TALL_LEFT if is_other_side else ArmMovementParam.GRAB_APPLE_TALL_RIGHT
+                ready_movement = ArmMovementParam.READY_GRAB_APPLE_TALL
+                movement = ArmMovementParam.GRAB_APPLE_TALL
             case FruitHeight.MIDDLE:
-                ready_movement = ArmMovementParam.READY_GRAB_APPLE_MIDDLE_LEFT if is_other_side else ArmMovementParam.READY_GRAB_APPLE_MIDDLE_RIGHT
-                movement = ArmMovementParam.GRAB_APPLE_MIDDLE_LEFT if is_other_side else ArmMovementParam.GRAB_APPLE_MIDDLE_RIGHT
+                ready_movement = ArmMovementParam.READY_GRAB_APPLE_MIDDLE
+                movement = ArmMovementParam.GRAB_APPLE_MIDDLE
             case FruitHeight.LOW:
-                ready_movement = ArmMovementParam.READY_GRAB_APPLE_LOW_LEFT if is_other_side else ArmMovementParam.READY_GRAB_APPLE_LOW_RIGHT
-                movement = ArmMovementParam.GRAB_APPLE_LOW_LEFT if is_other_side else ArmMovementParam.GRAB_APPLE_LOW_RIGHT
+                ready_movement = ArmMovementParam.READY_GRAB_APPLE_LOW
+                movement = ArmMovementParam.GRAB_APPLE_LOW
             case _:
                 ready_movement = ArmMovementParam.MOVING
                 movement = ArmMovementParam.MOVING
 
-        self.__arm.control(ready_movement, 20, True)
+        if is_other_side:
+            ready_movement.value.motor.rotate = -ready_movement.value.motor.rotate
+            movement.value.motor.rotate = -movement.value.motor.rotate
+
+        self.__arm.control(ready_movement, 45, True)
         time.sleep(1)
-        self.__arm.control(movement, 20, True)
+        self.__arm.control(movement, 45, True)
         time.sleep(1)
-        self.__arm.control(ArmMovementParam.MOVING, 20)
+        self.__arm.control(ArmMovementParam.MOVING, 45)

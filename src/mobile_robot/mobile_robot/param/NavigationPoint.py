@@ -1,20 +1,21 @@
+from ..popo.Corrective import Corrective
+from ..popo.Direction import Direction
 from ..popo.NavigationPoint import NavigationPoint
 from ..popo.CorrectivePoint import CorrectivePoint
 
 # 矫正点
-START_CORRECTIVE_POINT = CorrectivePoint(1.07, -2.89, 180, -20)
-ORCHARD_ENTER_CORRECTIVE_POINT = CorrectivePoint(0.42, -3.65, 0, -20, 90, -13.5)
-ORCHARD_CORRIDOR_ENTER_1_CORRECTIVE_POINT = CorrectivePoint(1.91, -3.65, 90, -13.5)
-WAREHOUSE_CORRECTIVE_POINT = CorrectivePoint(1.07, -0.42, 180, -20, -90, -20)
-ORCHARD_CORRIDOR_EXIT_1_CORRECTIVE_POINT = CorrectivePoint(1.91, -0.42, -90, -20, 0, -21)
+START_CORRECTIVE_POINT = CorrectivePoint(1.07, -2.89, 180, [Corrective(Direction.BACK, 0.422)])
+ORCHARD_ENTER_CORRECTIVE_POINT = CorrectivePoint(0.42, -3.65, 0, [Corrective(Direction.BACK, 0.422), Corrective(Direction.RIGHT, 0.135)])
+ORCHARD_CORRIDOR_ENTER_1_CORRECTIVE_POINT = CorrectivePoint(1.91, -3.65, 90, [Corrective(Direction.BACK, 0.135 + 0.222)])
+ORCHARD_CORRIDOR_EXIT_1_CORRECTIVE_POINT = CorrectivePoint(1.91, -0.42, 0, [Corrective(Direction.LEFT, 0.2), Corrective(Direction.BACK, 0.21 + 0.222)])
 
 START_POINT = NavigationPoint(1.1, -2.9, 180)
-START_ENTER_POINT = NavigationPoint(0.42, -2.9)
+START_ENTER_POINT = NavigationPoint(0.42, -2.9, 0)
 
 # 果仓坐标
-WAREHOUSE_ENTER_1_POINT = NavigationPoint(0.42, -2.0)
-WAREHOUSE_ENTER_2_POINT = NavigationPoint(1.1, -2.0)
-WAREHOUSE_ENTER_3_POINT = NavigationPoint(1.1, -1.12)
+WAREHOUSE_ENTER_1_POINT = NavigationPoint(0.42, -2.0, 0)
+WAREHOUSE_ENTER_2_POINT = NavigationPoint(1.1, -2.0, 0)
+WAREHOUSE_ENTER_3_POINT = NavigationPoint(1.1, -1.12, 0)
 
 WAREHOUSE_1_POINT = NavigationPoint(0.56, -1.12, 180)
 WAREHOUSE_2_POINT = NavigationPoint(0.56, -0.72, 180)

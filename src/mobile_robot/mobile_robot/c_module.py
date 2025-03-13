@@ -24,6 +24,10 @@ class CModule(Node):
 
         s = input("已知y，未知w，选择：")
 
+        self.__arm.reset()
+        self.__arm.control(ArmMovementParam.MOVING)
+
+        self.__robot.set_start_led(False)
         self.__robot.with_start_button()
         if s == "y":
             self._run_y()
@@ -44,9 +48,6 @@ class CModule(Node):
         self.__arm.control(ArmMovementParam.MOVING)
 
     def _run_y(self):
-        self.__arm.reset()
-        self.__arm.control(ArmMovementParam.MOVING)
-
         tasks = [
             (NavigationPath.START_TO_ORCHARD_1, NavigationPath.ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT),
             (NavigationPath.WAREHOUSE_TO_ORCHARD_2, NavigationPath.ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT),
@@ -63,9 +64,6 @@ class CModule(Node):
         """
         执行整个任务流程，如前往一号走廊抓取水果并放置到果仓
         """
-        self.__arm.reset()
-        self.__arm.control(ArmMovementParam.MOVING)
-
         # 前往一号走廊并初始化姿势
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_ENTER_1)
 
@@ -78,13 +76,15 @@ class CModule(Node):
                     self.handle_fruit_grab(index)
                 else:
                     self.get_logger().info(f"未寻找到 {fruit.name}, 前往二号走廊寻找.")
+                    self.__arm.control(ArmMovementParam.MOVING)
                     self.__move.navigation(NavigationPath.EXIT_1_TO_EXIT_2)
-                    if self.__grub_fruit.patrol_the_line(NavigationPath.ORCHARD_CORRIDOR_ENTER_2_POINT, fruit):
+                    if self.__grub_fruit.patrol_the_line(NavigationPath.ORCHARD_CORRIDOR_ENTER_2_POINT, fruit, True):
                         self.__move.navigation([NavigationPath.ORCHARD_CORRIDOR_EXIT_2_POINT])
                         self.handle_fruit_grab(index)
                     else:
                         self.get_logger().error(f"仍未寻找到 {fruit.name}, 停止.")
                         self.__arm.control(ArmMovementParam.MOVING)
+                        return
 
     def handle_fruit_grab(self, index):
         """

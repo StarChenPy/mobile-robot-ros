@@ -2,12 +2,14 @@ import time
 
 import rclpy
 
+from ..dao.LaserRadarDao import LaserRadarDao
 from ..dao.MotionDao import MotionDao
 from ..dao.NavigationDao import NavigationDao
 from ..dao.OdomDao import OdomDao
 from ..dao.RobotDataDao import RobotDataDao
 from ..dao.SensorDao import SensorDao
 from ..popo.CorrectivePoint import CorrectivePoint
+from ..popo.Direction import Direction
 from ..popo.NavigationPoint import NavigationPoint
 from ..util.Math import Math
 from ..util.Singleton import singleton
@@ -22,9 +24,10 @@ class MoveService:
         self.__motion = MotionDao(node)
         self.__sensor = SensorDao(node)
         self.__odom = OdomDao(node)
+        self.__radar = LaserRadarDao(node)
         self.__robot_data = RobotDataDao(node)
 
-    def navigation(self, nav_path: list[NavigationPoint or CorrectivePoint], speed: float, is_block: bool):
+    def navigation(self, nav_path: list[NavigationPoint], speed: float, is_block: bool):
         """
         通过路径进行导航
         @param nav_path 路径列表
@@ -35,68 +38,78 @@ class MoveService:
         buffer = None
 
         for point in nav_path:
-            if isinstance(point, NavigationPoint):
-                if buffer is None:
-                    odom = self.__robot_data.get_robot_data().odom
-                    buffer = NavigationPoint(odom.x, odom.y, odom.w)
-
-                if Math.is_behind(buffer, point, 45):
-                    # 如果这个点位在上个点位的后面，就倒车回去
-                    if path:
-                        self.__navigation.navigation(path, speed, speed * 4, 3, 3, False)
-                        self.__navigation.wait_finish()
-                        path = []
-                    self.__navigation.navigation([point], speed, speed * 4, 3, 3, True)
-                    self.__navigation.wait_finish()
-                else:
-                    path.append(point)
-
-                buffer = point
-            elif isinstance(point, CorrectivePoint):
+            if isinstance(point, CorrectivePoint):
                 self.__navigation_corrective(path, point, speed)
                 path = []
+                continue
+
+            if buffer is None:
+                odom = self.__robot_data.get_robot_data().odom
+                buffer = NavigationPoint(odom.x, odom.y, odom.w)
+
+            if Math.is_behind(buffer, point, 45):
+                # 如果这个点位在上个点位的后面，就倒车回去
+                if path:
+                    self.__navigation.navigation(path, speed, speed * 5, 3, 3, False)
+                    self.__navigation.wait_finish()
+                    path = []
+                self.__navigation.navigation([point], speed, speed * 5, 3, 3, True)
+                self.__navigation.wait_finish()
             else:
-                self.__logger.error("[导航] 未知导航点!")
+                path.append(point)
+
+            buffer = point
 
         if path:
-            self.__navigation.navigation(path, speed, speed * 4, 3, 3, False)
+            self.__navigation.navigation(path, speed, speed * 5, 3, 3, False)
 
         if is_block:
             self.__navigation.wait_finish()
 
-    def __navigation_corrective(self, path, point, speed):
-        corrective_point = NavigationPoint(point.x, point.y, point.yaw1)
-
+    def __navigation_corrective(self, path: list[NavigationPoint], point: CorrectivePoint, speed: float):
         if path:
-            path.append(corrective_point)
-            self.__navigation.navigation(path, speed, speed * 4, 3, 3, False)
+            path.append(point)
+            self.__navigation.navigation(path, speed, speed * 5, 3, 3, False)
             self.__navigation.wait_finish()
         elif self.__odom.get_init():
-            self.__navigation.navigation([corrective_point], speed, speed * 4, 3, 3, False)
+            self.__navigation.navigation([point], speed, speed * 5, 3, 3, False)
             self.__navigation.wait_finish()
 
-        if point.distance1 > 0:
-            self.__sensor.ir_revise(point.distance1)
-        else:
-            self.__sensor.ping_revise(-point.distance1)
+        x_buffer = 0
+        y_buffer = 0
+        angle_from_wall = 0
+        for corrective in point.corrective_data:
+            match corrective.direction:
+                case Direction.FRONT:
+                    distance_from_wall = self.__radar.get_distance_from_wall(corrective.direction)
+                    angle_from_wall = self.__radar.get_angle_from_wall(corrective.direction)
+                    x_buffer = distance_from_wall - corrective.distance
+                case Direction.BACK:
+                    sonar = self.__robot_data.get_sonar()
+                    distance_from_wall = Math.distance_from_origin(-5, sonar[0], 5, sonar[1]) + 0.222
+                    x_buffer = distance_from_wall - corrective.distance
+                case Direction.LEFT:
+                    distance_from_wall = self.__radar.get_distance_from_wall(corrective.direction)
+                    angle_from_wall = self.__radar.get_angle_from_wall(corrective.direction)
+                    y_buffer = distance_from_wall - corrective.distance
+                case Direction.RIGHT:
+                    distance_from_wall = self.__radar.get_distance_from_wall(corrective.direction)
+                    angle_from_wall = self.__radar.get_angle_from_wall(corrective.direction)
+                    y_buffer = distance_from_wall - corrective.distance
 
-        time.sleep(1)
-        self.__sensor.wait_finish()
-        self.__odom.init_all(corrective_point)
+            print(x_buffer, y_buffer, angle_from_wall)
 
-        if point.distance2 != 0:
-            corrective_point.yaw = point.yaw2
-            self.__navigation.navigation([corrective_point], speed, speed * 4, 3, 3, False)
-            self.__navigation.wait_finish()
+            if point.yaw == 0:
+                self.__odom.init_location(point.x + x_buffer, point.y - y_buffer)
+            elif point.yaw == 90:
+                self.__odom.init_location(point.x + x_buffer, point.y + y_buffer)
+            elif point.yaw == 180 or point.yaw == -180:
+                self.__odom.init_location(point.x - x_buffer, point.y + y_buffer)
+            elif point.yaw == -90:
+                self.__odom.init_location(point.x - x_buffer, point.y - y_buffer)
 
-            if point.distance2 > 0:
-                self.__sensor.ir_revise(point.distance2)
-            else:
-                self.__sensor.ping_revise(-point.distance2)
-
-            time.sleep(1)
-            self.__sensor.wait_finish()
-            self.__odom.init_all(corrective_point)
+            if angle_from_wall != 0:
+                self.__odom.init_yaw(point.yaw + angle_from_wall)
 
     def line(self, distance: float, speed: float = 0.4, is_block=True):
         self.__motion.line(distance, speed)

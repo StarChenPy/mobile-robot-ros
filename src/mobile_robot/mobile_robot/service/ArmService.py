@@ -18,7 +18,7 @@ class ArmService:
         self.__rotate_motor = RotateMotorDao(node)
         self.__robot_ctrl = RobotCtrlDao(node)
 
-    def control(self, movement: ArmMovementParam, speed: float, is_block=False):
+    def control(self, movement: ArmMovementParam, speed, is_block=False):
         self.__logger.info(f"[机械臂] 机械臂控制 {movement.name}")
 
         if movement.value.motor is not None:
@@ -40,7 +40,7 @@ class ArmService:
         self.__lift_motor.back_origin(speed)
         self.__rotate_motor.back_origin(speed)
         self.__lift_motor.wait_finish()
-        self.__lift_motor.ctrl_motor(0.5, 20)
+        self.__lift_motor.ctrl_motor(0.5, speed)
         self.__lift_motor.wait_finish()
         self.__rotate_motor.wait_finish()
 

@@ -1,6 +1,9 @@
+import time
+
 import rclpy
 from rclpy.node import Node
 
+from .popo.Direction import Direction
 from .controller.RobotController import RobotController
 from .controller.ArmController import ArmController
 from .controller.GrabFruitController import GrabFruitController, get_fruit_height
@@ -26,6 +29,9 @@ class BModule(Node):
 
         match select:
             case 0:
+                while True:
+                    print(self.__robot.get_angle_from_wall(Direction.RIGHT))
+                    time.sleep(0.5)
                 exit(0)
             case 1:
                 # 直线1米
@@ -37,8 +43,8 @@ class BModule(Node):
             case 3:
                 # 抓水果
                 self.__arm.reset()
-                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_TALL_RIGHT)
-                self.__arm.control(ArmMovementParam.GRAB_APPLE_TALL_RIGHT)
+                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_TALL)
+                self.__arm.control(ArmMovementParam.GRAB_APPLE_TALL)
                 self.__arm.control(ArmMovementParam.GRAB_APPLE_END)
             case 4:
                 # 果仓1到起始区
@@ -72,9 +78,9 @@ class BModule(Node):
 
                 self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_RIGHT)
-                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_TALL_RIGHT)
-                self.__arm.control(ArmMovementParam.GRAB_APPLE_TALL_RIGHT)
+                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE)
+                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_TALL)
+                self.__arm.control(ArmMovementParam.GRAB_APPLE_TALL)
                 self.__arm.control(ArmMovementParam.GRAB_APPLE_END)
             case 9:
                 # 起始区到采摘1抓中水果
@@ -83,10 +89,10 @@ class BModule(Node):
 
                 self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_RIGHT)
-                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_MIDDLE_RIGHT)
-                self.__arm.control(ArmMovementParam.GRAB_APPLE_MIDDLE_RIGHT)
-                self.__arm.control(ArmMovementParam.GRAB_APPLE_MIDDLE_END_RIGHT)
+                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE)
+                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_MIDDLE)
+                self.__arm.control(ArmMovementParam.GRAB_APPLE_MIDDLE)
+                self.__arm.control(ArmMovementParam.GRAB_APPLE_MIDDLE_END)
                 self.__arm.control(ArmMovementParam.GRAB_APPLE_END)
             case 10:
                 # 起始区到采摘1抓低水果
@@ -95,10 +101,10 @@ class BModule(Node):
 
                 self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_RIGHT)
-                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_LOW_RIGHT)
-                self.__arm.control(ArmMovementParam.GRAB_APPLE_LOW_RIGHT)
-                self.__arm.control(ArmMovementParam.GRAB_APPLE_LOW_END_RIGHT)
+                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE)
+                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_LOW)
+                self.__arm.control(ArmMovementParam.GRAB_APPLE_LOW)
+                self.__arm.control(ArmMovementParam.GRAB_APPLE_LOW_END)
                 self.__arm.control(ArmMovementParam.GRAB_APPLE_END)
             case 11:
                 # 起始区到果仓一号放水果
@@ -117,9 +123,9 @@ class BModule(Node):
 
                 self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_RIGHT)
-                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_TALL_RIGHT)
-                self.__arm.control(ArmMovementParam.GRAB_APPLE_TALL_RIGHT)
+                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE)
+                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_TALL)
+                self.__arm.control(ArmMovementParam.GRAB_APPLE_TALL)
                 self.__arm.control(ArmMovementParam.GRAB_APPLE_END)
 
                 self.__move.navigation(NavigationPath.B_MODULE_12)

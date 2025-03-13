@@ -1,5 +1,4 @@
 import math
-import time
 
 import rclpy
 
@@ -20,7 +19,7 @@ class OdomDao:
 
     def __call_service(self, pose: NavigationPoint, mode: ResetOdomMode):
         """初始化机器人位置，支持重置odom不同模式"""
-        self.__logger.debug(f"[Odom] 初始化机器人位置 [{pose.x}, {pose.y}, {pose.yaw}] 模式为 {mode.name}")
+        self.__logger.debug(f"[OdomDao] 初始化机器人位置 [{pose.x}, {pose.y}, {pose.yaw}] 模式为 {mode.name}")
 
         self.__service.wait_for_service()
 
@@ -37,14 +36,14 @@ class OdomDao:
         rclpy.spin_until_future_complete(self.__node, future, timeout_sec=15.0)
 
         if not future.done():
-            self.__logger.error("[Odom] 请求超时未响应")
+            self.__logger.error("[OdomDao] 请求超时未响应")
             return
 
         result = future.result()
         if result.success:
-            self.__logger.debug("[Odom] 重置成功")
+            self.__logger.debug("[OdomDao] 重置成功")
         else:
-            self.__logger.error("[Odom] 重置失败")
+            self.__logger.error("[OdomDao] 重置失败")
 
     def init_all(self, pose: NavigationPoint):
         self.__init = True
