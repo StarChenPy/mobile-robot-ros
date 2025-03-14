@@ -50,9 +50,11 @@ class OdomDao:
         self.__call_service(pose, ResetOdomMode.RESET_ALL)
 
     def init_location(self, x, y):
+        self.__init = True
         self.__call_service(NavigationPoint(x, y, 0), ResetOdomMode.RESET_POSE)
 
     def init_yaw(self, yaw: float):
+        self.__init = True
         self.__call_service(NavigationPoint(0, 0, yaw), ResetOdomMode.RESET_YAW)
 
     def get_init(self):

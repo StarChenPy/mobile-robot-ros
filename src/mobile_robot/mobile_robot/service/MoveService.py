@@ -74,6 +74,10 @@ class MoveService:
         elif self.__odom.get_init():
             self.__navigation.navigation([point], speed, speed * 5, 3, 3, False)
             self.__navigation.wait_finish()
+        else:
+            self.__odom.init_yaw(point.yaw)
+
+        time.sleep(1)
 
         x_buffer = 0
         y_buffer = 0
@@ -97,19 +101,20 @@ class MoveService:
                     angle_from_wall = self.__radar.get_angle_from_wall(corrective.direction)
                     y_buffer = distance_from_wall - corrective.distance
 
-            print(x_buffer, y_buffer, angle_from_wall)
+        print(x_buffer, y_buffer, angle_from_wall)
 
-            if point.yaw == 0:
-                self.__odom.init_location(point.x + x_buffer, point.y - y_buffer)
-            elif point.yaw == 90:
-                self.__odom.init_location(point.x + x_buffer, point.y + y_buffer)
-            elif point.yaw == 180 or point.yaw == -180:
-                self.__odom.init_location(point.x - x_buffer, point.y + y_buffer)
-            elif point.yaw == -90:
-                self.__odom.init_location(point.x - x_buffer, point.y - y_buffer)
+        if point.yaw == 0:
+            self.__odom.init_location(point.x + x_buffer, point.y + y_buffer)
+        elif point.yaw == 90:
+            self.__odom.init_location(point.x + x_buffer, point.y + y_buffer)
+        elif point.yaw == 180 or point.yaw == -180:
+            self.__odom.init_location(point.x + x_buffer, point.y + y_buffer)
+        elif point.yaw == -90:
+            self.__odom.init_location(point.x + x_buffer, point.y + y_buffer)
 
-            if angle_from_wall != 0:
-                self.__odom.init_yaw(point.yaw + angle_from_wall)
+        if angle_from_wall != 0:
+            self.__odom.init_yaw(point.yaw - angle_from_wall)
+
 
     def line(self, distance: float, speed: float = 0.4, is_block=True):
         self.__motion.line(distance, speed)
