@@ -47,7 +47,7 @@ class MoveService:
                 odom = self.__robot_data.get_robot_data().odom
                 buffer = NavigationPoint(odom.x, odom.y, odom.w)
 
-            if Math.is_behind(buffer, point, 45):
+            if point.yaw is not None and Math.is_behind(buffer, point, 45):
                 # 如果这个点位在上个点位的后面，就倒车回去
                 if path:
                     self.__navigation.navigation(path, speed, speed * 5, 3, 3, False)
@@ -101,15 +101,17 @@ class MoveService:
                     angle_from_wall = self.__radar.get_angle_from_wall(corrective.direction)
                     y_buffer = distance_from_wall - corrective.distance
 
-        print(x_buffer, y_buffer, angle_from_wall)
-
         if point.yaw == 0:
+            # 验证可用
             self.__odom.init_location(point.x + x_buffer, point.y + y_buffer)
         elif point.yaw == 90:
+            # 未验证可用
             self.__odom.init_location(point.x + x_buffer, point.y + y_buffer)
         elif point.yaw == 180 or point.yaw == -180:
+            # 未验证可用
             self.__odom.init_location(point.x + x_buffer, point.y + y_buffer)
         elif point.yaw == -90:
+            # 未验证可用
             self.__odom.init_location(point.x + x_buffer, point.y + y_buffer)
 
         if angle_from_wall != 0:

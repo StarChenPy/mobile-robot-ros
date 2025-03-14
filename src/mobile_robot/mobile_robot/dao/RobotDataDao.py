@@ -20,8 +20,11 @@ class RobotDataDao(object):
             10)
 
     # 读取回调
-    def __robot_data_callback(self, msg):
+    def __robot_data_callback(self, msg: web_message_transform_ros2.msg.RobotData):
         self.__robot_data = msg
+        if msg.emg:
+            self.__node.destroy_node()
+            rclpy.shutdown()
 
     def get_robot_data(self) -> web_message_transform_ros2.msg.RobotData:
         rclpy.spin_once(self.__node)

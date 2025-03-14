@@ -10,21 +10,21 @@ ORCHARD_CORRIDOR_ENTER_1_CORRECTIVE_POINT = CorrectivePoint(1.91, -3.65, 90, [Co
 ORCHARD_CORRIDOR_EXIT_1_CORRECTIVE_POINT = CorrectivePoint(1.91, -0.42, 0, [Corrective(Direction.LEFT, 0.2 + 0.222), Corrective(Direction.BACK, 0.21 + 0.222)])
 
 START_POINT = NavigationPoint(1.1, -2.9, 180)
-START_ENTER_POINT = NavigationPoint(0.42, -2.9, 0)
+START_ENTER_POINT = NavigationPoint(0.42, -2.9, None)
 
 # 果仓坐标
-WAREHOUSE_ENTER_1_POINT = NavigationPoint(0.42, -2.0, 0)
-WAREHOUSE_ENTER_2_POINT = NavigationPoint(1.1, -2.0, 0)
-WAREHOUSE_ENTER_3_POINT = NavigationPoint(1.1, -1.12, 0)
+WAREHOUSE_ENTER_1_POINT = NavigationPoint(0.42, -2.0, None)
+WAREHOUSE_ENTER_2_POINT = NavigationPoint(1.1, -2.0, None)
+WAREHOUSE_ENTER_3_POINT = NavigationPoint(1.1, -1.12, None)
 
 WAREHOUSE_1_POINT = NavigationPoint(0.56, -1.12, 180)
 WAREHOUSE_2_POINT = NavigationPoint(0.56, -0.72, 180)
 WAREHOUSE_3_POINT = NavigationPoint(0.56, -0.32, 180)
 
 # 果园坐标
-ORCHARD_ENTER_POINT = NavigationPoint(0.5, -3.65, 0)
+ORCHARD_ENTER_POINT = NavigationPoint(0.5, -3.65, None)
 
-ORCHARD_ENTER_POINT_1 = NavigationPoint(1.2, -3.65, 0)
+ORCHARD_ENTER_POINT_1 = NavigationPoint(1.2, -3.65, None)
 
 ORCHARD_CORRIDOR_ENTER_1_POINT = NavigationPoint(1.93, -3.65, 90)
 ORCHARD_CORRIDOR_EXIT_1_POINT = NavigationPoint(1.93, -0.42, -90)
