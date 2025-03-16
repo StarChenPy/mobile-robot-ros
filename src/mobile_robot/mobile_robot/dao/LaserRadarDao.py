@@ -28,7 +28,7 @@ class LaserRadarDao:
         """
         获取雷达与某物体在某角度下的距离
         @param target_angle: 目标角度
-        @return 距离
+        @return 距离与实际角度
         """
         rclpy.spin_once(self.__node)
         # 检查雷达数据是否存在
@@ -84,39 +84,19 @@ class LaserRadarDao:
 
         return points
 
-    def get_distance_from_wall(self, direction: Direction):
-        if direction == Direction.BACK:
-            self.__logger.error("[SensorService] 无法获取距离: 不支持的方向")
-            return 0
+    def get_angle_from_wall_once(self, direction: Direction) -> float:
+        points = self.__get_radar_points(direction)
+        angle = Math.fit_polar_line_and_get_angle(points)
 
-        distance_list = []
-
-        for i in range(5):
-            # 返回距离雷达扫描的5个坐标拟合成的直线的垂直距离
-            points = self.__get_radar_points(direction)
-            distance = Math.fit_polar_line_and_get_distance(points)
-
-            if direction == Direction.FRONT:
-                # 加上从雷达到机器人中心的距离
-                distance += 0.225
+        if direction == Direction.FRONT:
+            pass
+        else:
+            if angle < 0:
+                angle += 90
             else:
-                # 补偿因倾斜导致的雷达与墙和机器人中心与墙的距离不一致的问题
-                angle_from_wall = self.get_angle_from_wall(direction)
-                side = Math.calculate_dui_side(0.225, abs(angle_from_wall))
+                angle -= 90
 
-                if direction == Direction.LEFT:
-                    side = -side
-
-                if angle_from_wall > 0:
-                    distance += side
-                else:
-                    distance -= side
-
-            distance_list.append(distance)
-            time.sleep(0.2)
-
-        # 返回平均值
-        return Math.average_without_extremes(distance_list)
+        return angle
 
     def get_angle_from_wall(self, direction: Direction) -> float:
         if direction == Direction.BACK:
@@ -126,18 +106,46 @@ class LaserRadarDao:
         angle_list = []
 
         for i in range(5):
-            points = self.__get_radar_points(direction)
-            angle = Math.fit_polar_line_and_get_angle(points)
-
-            if direction == Direction.FRONT:
-                pass
-            else:
-                if angle < 0:
-                    angle += 90
-                else:
-                    angle -= 90
-
-            angle_list.append(angle)
+            once_angle = self.get_angle_from_wall_once(direction)
+            angle_list.append(once_angle)
             time.sleep(0.2)
 
         return Math.average_without_extremes(angle_list) - 2.4
+
+    def get_distance_from_wall_once(self, direction: Direction) -> float:
+        # 返回距离雷达扫描的5个坐标拟合成的直线的垂直距离
+        points = self.__get_radar_points(direction)
+        distance = Math.fit_polar_line_and_get_distance(points)
+
+        if direction == Direction.FRONT:
+            # 加上从雷达到机器人中心的距离
+            distance += 0.225
+        else:
+            # 补偿因倾斜导致的雷达与墙和机器人中心与墙的距离不一致的问题
+            angle_from_wall = self.get_angle_from_wall_once(direction)
+            side = Math.calculate_dui_side(0.225, abs(angle_from_wall))
+
+            if direction == Direction.LEFT:
+                side = -side
+
+            if angle_from_wall > 0:
+                distance += side
+            else:
+                distance -= side
+
+        return distance
+
+    def get_distance_from_wall(self, direction: Direction):
+        if direction == Direction.BACK:
+            self.__logger.error("[SensorService] 无法获取距离: 不支持的方向")
+            return 0
+
+        distance_list = []
+
+        for i in range(5):
+            once_dis = self.get_distance_from_wall_once(direction)
+            distance_list.append(once_dis)
+            time.sleep(0.2)
+
+        # 返回平均值
+        return Math.average_without_extremes(distance_list)

@@ -51,8 +51,7 @@ class GrabFruitController:
             self.__move.navigation([point], 0.2, True)
 
             angle_from_wall = self.__sensor.get_angle_from_wall(Direction.LEFT)
-            self.__move.rotate(angle_from_wall)
-            self.__sensor.init_odom_yaw(point.yaw)
+            self.__sensor.init_odom_yaw(point.yaw + angle_from_wall)
 
             # results = self.__vision.get_onnx_identify_result()
             results = []

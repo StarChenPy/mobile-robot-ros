@@ -1,4 +1,5 @@
 import time
+from typing import Tuple
 
 import rclpy
 
@@ -46,7 +47,7 @@ class SensorService:
     def get_ir_front(self) -> float:
         return self.__robot_data.get_robot_data().ir[1]
 
-    def get_radar_data(self, target_angle: float) -> float:
+    def get_radar_data(self, target_angle: float) -> tuple[float, float]:
         return self.__radar.get_radar_data(target_angle)
 
     def get_odom_data(self):
