@@ -53,8 +53,7 @@ class GrabFruitController:
             angle_from_wall = self.__sensor.get_angle_from_wall(Direction.LEFT)
             self.__sensor.init_odom_yaw(point.yaw + angle_from_wall)
 
-            # results = self.__vision.get_onnx_identify_result()
-            results = []
+            results = self.__vision.get_onnx_identify_result()
 
             self.__logger.info(f"[巡线抓取] 识别到的内容: {results}")
 

@@ -84,7 +84,10 @@ class CModule(Node):
                     else:
                         self.get_logger().error(f"仍未寻找到 {fruit.name}, 停止.")
                         self.__arm.control(ArmMovementParam.MOVING)
+                        self.__move.navigation(NavigationPath.B_MODULE_6)
                         return
+
+        self.__move.navigation(NavigationPath.B_MODULE_4)
 
     def handle_fruit_grab(self, index):
         """

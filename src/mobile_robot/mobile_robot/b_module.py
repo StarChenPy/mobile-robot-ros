@@ -29,17 +29,14 @@ class BModule(Node):
 
         match select:
             case 0:
-                while True:
-                    print(self.__robot.get_angle_from_wall(Direction.RIGHT))
-                    time.sleep(0.5)
                 exit(0)
             case 1:
                 # 直线1米
                 self.__move.init_pose(NavigationPoint(0, 0, 0))
                 self.__move.navigation([NavigationPoint(1, 0, 0)])
             case 2:
-                # 旋转180度
-                self.__move.rotate(180)
+                # 旋转360度
+                self.__move.rotate(360)
             case 3:
                 # 抓水果
                 self.__arm.reset()
@@ -60,15 +57,15 @@ class BModule(Node):
                 self.__move.navigation(NavigationPath.B_MODULE_5)
             case 6:
                 # 采摘1到起始区
-                self.__arm.reset()
-                self.__arm.control(ArmMovementParam.MOVING)
+                # self.__arm.reset()
+                # self.__arm.control(ArmMovementParam.MOVING)
 
                 self.__move.init_pose(NavigationPath.ORCHARD_1_POINT)
                 self.__move.navigation(NavigationPath.B_MODULE_6)
             case 7:
                 # 起始区到采摘1
-                self.__arm.reset()
-                self.__arm.control(ArmMovementParam.MOVING)
+                # self.__arm.reset()
+                # self.__arm.control(ArmMovementParam.MOVING)
 
                 self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
             case 8:

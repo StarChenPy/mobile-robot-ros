@@ -18,6 +18,7 @@ from ..util.Singleton import singleton
 @singleton
 class MoveService:
     def __init__(self, node: rclpy.node.Node):
+        self.__node = node
         self.__logger = node.get_logger()
 
         self.__navigation = NavigationDao(node)
@@ -47,7 +48,7 @@ class MoveService:
                 odom = self.__robot_data.get_robot_data().odom
                 buffer = NavigationPoint(odom.x, odom.y, odom.w)
 
-            if point.yaw is not None and Math.is_behind(buffer, point, 45):
+            if buffer.yaw is not None and Math.is_behind(buffer, point, 45):
                 # 如果这个点位在上个点位的后面，就倒车回去
                 if path:
                     self.__navigation.navigation(path, speed, speed * 5, 3, 3, False)
@@ -106,17 +107,22 @@ class MoveService:
             self.__odom.init_location(point.x + x_buffer, point.y + y_buffer)
         elif point.yaw == 90:
             # 未验证可用
-            self.__odom.init_location(point.x + x_buffer, point.y + y_buffer)
+            self.__odom.init_location(point.x + y_buffer, point.y + x_buffer)
         elif point.yaw == 180 or point.yaw == -180:
             # 未验证可用
             self.__odom.init_location(point.x + x_buffer, point.y + y_buffer)
         elif point.yaw == -90:
             # 未验证可用
-            self.__odom.init_location(point.x + x_buffer, point.y + y_buffer)
+            self.__odom.init_location(point.x + y_buffer, point.y - x_buffer)
 
         if angle_from_wall != 0:
             self.__odom.init_yaw(point.yaw - angle_from_wall)
 
+        rclpy.spin_once(self.__node)
+        rclpy.spin_once(self.__node)
+        rclpy.spin_once(self.__node)
+        rclpy.spin_once(self.__node)
+        rclpy.spin_once(self.__node)
 
     def line(self, distance: float, speed: float = 0.4, is_block=True):
         self.__motion.line(distance, speed)
@@ -124,7 +130,7 @@ class MoveService:
         if is_block:
             self.__motion.wait_finish()
 
-    def rotate(self, angle: float, speed: float = 40, is_block=True):
+    def rotate(self, angle: float, speed: float = 50, is_block=True):
         self.__motion.rotate(angle, speed)
 
         if is_block:
