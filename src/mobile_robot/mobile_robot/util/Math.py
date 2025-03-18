@@ -1,8 +1,16 @@
 import math
+from dataclasses import dataclass
 
 import numpy as np
 
-from ..popo.NavigationPoint import NavigationPoint
+# from ..popo.NavigationPoint import NavigationPoint
+
+
+@dataclass
+class NavigationPoint:
+    x: float
+    y: float
+    yaw: float | None
 
 
 class Math:
@@ -167,11 +175,14 @@ class Math:
         step_count = math.floor(L / dis)  # 计算最大步数
         points = []
 
+        # 计算路径与 y(ros) 轴的夹角
+        yaw = math.atan2(dy, dx)
+
         for k in range(step_count + 1):
             ratio = (k * dis) / L
             x = point1.x + dx * ratio
             y = point1.y + dy * ratio
-            points.append(NavigationPoint(x, y, point2.yaw))
+            points.append(NavigationPoint(x, y, math.degrees(yaw)))  # 转换为角度存储
 
         points.pop(0)
 
