@@ -21,7 +21,8 @@ B_MODULE_6 = (ORCHARD_CORRIDOR_ENTER_1_POINT,
 
 START_TO_ORCHARD_ENTER_1 = (START_CORRECTIVE_POINT,
                             START_ENTER_POINT,
-                            ORCHARD_CORRIDOR_ENTER_1_POINT)
+                            ORCHARD_CORRIDOR_ENTER_1_POINT,
+                            ORCHARD_CORRIDOR_ENTER_1_CORRECTIVE_POINT)
 
 START_TO_ORCHARD_1 = (START_CORRECTIVE_POINT,
                       START_ENTER_POINT,
@@ -43,6 +44,7 @@ WAREHOUSE_TO_ORCHARD_3 = (WAREHOUSE_ENTER_3_POINT,
                           WAREHOUSE_ENTER_0_CORRECTIVE_POINT,
                           START_ENTER_POINT,
                           ORCHARD_CORRIDOR_ENTER_1_POINT,
+                          ORCHARD_CORRIDOR_EXIT_1_CORRECTIVE_POINT,
                           ORCHARD_3_POINT)
 
 WAREHOUSE_TO_ORCHARD_4 = (WAREHOUSE_ENTER_3_POINT,
@@ -101,7 +103,8 @@ WAREHOUSE_TO_ORCHARD_ENTER_1 = (WAREHOUSE_ENTER_3_POINT,
                                 WAREHOUSE_ENTER_1_POINT,
                                 WAREHOUSE_ENTER_0_CORRECTIVE_POINT,
                                 START_ENTER_POINT,
-                                ORCHARD_CORRIDOR_ENTER_1_POINT)
+                                ORCHARD_CORRIDOR_ENTER_1_POINT,
+                                ORCHARD_CORRIDOR_ENTER_1_CORRECTIVE_POINT)
 
 WAREHOUSE_1_TO_WAREHOUSE_2 = (WAREHOUSE_2_POINT,)
 

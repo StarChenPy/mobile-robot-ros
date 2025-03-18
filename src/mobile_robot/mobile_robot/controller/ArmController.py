@@ -14,10 +14,9 @@ class ArmController:
 
         self.__arm = ArmService(node)
 
-    def control(self, movement: ArmMovementParam, speed = 45.0, is_block=False):
+    def control(self, movement: ArmMovementParam, speed=45.0, is_block=False):
         self.__arm.control(movement, speed, is_block)
-        time.sleep(1)
+        time.sleep(0.5)
 
     def reset(self):
         self.__arm.back_origin()
-

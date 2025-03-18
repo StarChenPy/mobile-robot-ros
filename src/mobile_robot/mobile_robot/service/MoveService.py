@@ -40,7 +40,18 @@ class MoveService:
 
         for point in nav_path:
             if isinstance(point, CorrectivePoint):
-                self.__navigation_corrective(path, point, speed)
+                if path:
+                    path.append(point)
+                    self.__navigation.navigation(path, speed, speed * 5, 3, 3, False)
+                    self.__navigation.wait_finish()
+                elif self.__odom.get_init():
+                    self.__navigation.navigation([point], speed, speed * 5, 3, 3, False)
+                    self.__navigation.wait_finish()
+                else:
+                    self.__odom.init_yaw(point.yaw)
+
+                time.sleep(1)
+                self.corrective(point)
                 path = []
                 continue
 
@@ -54,6 +65,8 @@ class MoveService:
                     self.__navigation.navigation(path, speed, speed * 5, 3, 3, False)
                     self.__navigation.wait_finish()
                     path = []
+                if point.yaw is None:
+                    point.yaw = buffer.yaw
                 self.__navigation.navigation([point], speed, speed * 5, 3, 3, True)
                 self.__navigation.wait_finish()
             else:
@@ -67,19 +80,7 @@ class MoveService:
         if is_block:
             self.__navigation.wait_finish()
 
-    def __navigation_corrective(self, path: list[NavigationPoint], point: CorrectivePoint, speed: float):
-        if path:
-            path.append(point)
-            self.__navigation.navigation(path, speed, speed * 5, 3, 3, False)
-            self.__navigation.wait_finish()
-        elif self.__odom.get_init():
-            self.__navigation.navigation([point], speed, speed * 5, 3, 3, False)
-            self.__navigation.wait_finish()
-        else:
-            self.__odom.init_yaw(point.yaw)
-
-        time.sleep(1)
-
+    def corrective(self, point: CorrectivePoint):
         x_buffer = 0
         y_buffer = 0
         angle_from_wall = 0
@@ -106,13 +107,13 @@ class MoveService:
             # 验证可用
             self.__odom.init_location(point.x + x_buffer, point.y + y_buffer)
         elif point.yaw == 90:
-            # 未验证可用
+            # 验证可用
             self.__odom.init_location(point.x + y_buffer, point.y + x_buffer)
         elif point.yaw == 180 or point.yaw == -180:
             # 未验证可用
             self.__odom.init_location(point.x + x_buffer, point.y + y_buffer)
         elif point.yaw == -90:
-            # 未验证可用
+            # 验证可用
             self.__odom.init_location(point.x + y_buffer, point.y - x_buffer)
 
         if angle_from_wall != 0:

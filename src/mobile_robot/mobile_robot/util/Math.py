@@ -171,7 +171,7 @@ class Math:
             ratio = (k * dis) / L
             x = point1.x + dx * ratio
             y = point1.y + dy * ratio
-            points.append(NavigationPoint(x, y, point1.yaw))
+            points.append(NavigationPoint(x, y, point2.yaw))
 
         points.pop(0)
 

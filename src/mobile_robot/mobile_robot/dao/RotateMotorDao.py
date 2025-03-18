@@ -67,7 +67,7 @@ class RotateMotorDao:
             self.__logger.warning(f"[旋转电机] 目标角度 {target} 低于最小值 {min_val}")
             target = min_val
 
-        enc_ppi = 1750.0 * 4.0
+        enc_ppi = 1750.0 * 3.9
         target_pulses = target * (enc_ppi / 360.0)
 
         # 调用电机服务

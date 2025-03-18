@@ -71,44 +71,42 @@ class CModule(Node):
 
         for index, warehouse in enumerate(task):
             for fruit in warehouse:
-                self.get_logger().info(f"前往1号走廊抓取 {fruit.name}.")
+                self.get_logger().info(f"[Module C] 前往1号走廊抓取 {fruit.name}.")
                 if self.__grub_fruit.patrol_the_line(NavigationPath.ORCHARD_CORRIDOR_EXIT_1_POINT, fruit):
                     self.handle_fruit_grab(index)
                 else:
-                    self.get_logger().info(f"未寻找到 {fruit.name}, 前往二号走廊寻找.")
+                    self.get_logger().info(f"[Module C] 未寻找到 {fruit.name}, 前往二号走廊寻找.")
                     self.__arm.control(ArmMovementParam.MOVING)
                     self.__move.navigation(NavigationPath.EXIT_1_TO_EXIT_2)
                     if self.__grub_fruit.patrol_the_line(NavigationPath.ORCHARD_CORRIDOR_ENTER_2_POINT, fruit, True):
-                        self.__move.navigation([NavigationPath.ORCHARD_CORRIDOR_EXIT_2_POINT])
                         self.handle_fruit_grab(index)
                     else:
-                        self.get_logger().error(f"仍未寻找到 {fruit.name}, 停止.")
+                        self.get_logger().error(f"[Module C] 仍未寻找到 {fruit.name}, 停止.")
                         self.__arm.control(ArmMovementParam.MOVING)
                         self.__move.navigation(NavigationPath.B_MODULE_6)
                         return
 
-        self.__move.navigation(NavigationPath.B_MODULE_4)
+        self.__move.navigation(NavigationPath.B_MODULE_6)
 
     def handle_fruit_grab(self, index):
         """
         根据抓取的水果，控制机械臂将其放置到相应的果仓
         :param index: 当前任务中的果仓编号
         """
-        self.get_logger().info(f"抓取成功，前往 {index} 号果仓放置.")
+        self.get_logger().info(f"[Module C] 已抓取，前往 {index} 号果仓放置.")
 
-        warehouse_paths = {
-            0: NavigationPath.ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT,
-            1: NavigationPath.WAREHOUSE_1_TO_WAREHOUSE_2,
-            2: NavigationPath.WAREHOUSE_1_TO_WAREHOUSE_3,
-        }
+        self.__move.navigation(NavigationPath.ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT)
 
-        if index in warehouse_paths:
-            self.__move.navigation(warehouse_paths[index])
-            self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
-            self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
+        if index == 1:
+            self.__move.navigation(NavigationPath.WAREHOUSE_1_TO_WAREHOUSE_2)
+        elif index == 2:
+            self.__move.navigation(NavigationPath.WAREHOUSE_1_TO_WAREHOUSE_3)
+
+        self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
+        self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
 
         self.__arm.control(ArmMovementParam.MOVING)
-        self.get_logger().info("放置完成, 前往果园一号走廊.")
+        self.get_logger().info("[Module C] 放置完成, 前往果园一号走廊.")
         self.__move.navigation(NavigationPath.WAREHOUSE_TO_ORCHARD_ENTER_1)
 
 

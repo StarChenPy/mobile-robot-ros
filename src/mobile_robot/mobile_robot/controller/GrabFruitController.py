@@ -3,6 +3,8 @@ import time
 import rclpy
 
 from ..param.ArmMovement import ArmMovementParam
+from ..popo.Corrective import Corrective
+from ..popo.CorrectivePoint import CorrectivePoint
 from ..popo.Direction import Direction
 from ..popo.FruitHeight import FruitHeight
 from ..popo.FruitType import FruitType
@@ -41,21 +43,20 @@ class GrabFruitController:
         return self.__vision.get_onnx_identify_result()
 
     def patrol_the_line(self, target_point: NavigationPoint, target_fruit: FruitType, is_other_side=False) -> bool:
-        self.__logger.info(f"[巡线抓取] 准备开始 目标点 {target_point}, 目标水果 {target_fruit}")
+        self.__logger.info(f"[GrabFruitController] 准备开始 目标点 {target_point}, 目标水果 {target_fruit}")
         self.__ready_to_identify(is_other_side)
 
         odom = self.__sensor.get_odom_data()
         points = Math.point_to_point(NavigationPoint(odom.x, odom.y, odom.w), target_point, 0.4)
 
         for point in points:
-            self.__move.navigation([point], 0.2, True)
+            self.__move.navigation([point], 0.1, True)
 
-            angle_from_wall = self.__sensor.get_angle_from_wall(Direction.LEFT)
-            self.__sensor.init_odom_yaw(point.yaw + angle_from_wall)
+            self.__move.corrective(CorrectivePoint.form_point(point, [Corrective(Direction.LEFT, 0.433)]))
 
             results = self.__vision.get_onnx_identify_result()
 
-            self.__logger.info(f"[巡线抓取] 识别到的内容: {results}")
+            self.__logger.info(f"[GrabFruitController] 识别到的内容: {results}")
 
             if not results:
                 continue
@@ -64,7 +65,7 @@ class GrabFruitController:
             if result.classId == target_fruit.value:
                 center = result.box.get_rectangle_center()
                 travel_distance = (320 - center.x) / 2000
-                self.__move.line(travel_distance if is_other_side else -travel_distance)
+                self.__move.line(-travel_distance if is_other_side else travel_distance)
                 self.execute_grab_sequence(get_fruit_height(result.box), is_other_side)
                 return True
 
