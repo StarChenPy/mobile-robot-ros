@@ -19,6 +19,8 @@ class RotateMotorDao:
             position_motor_ros2.srv.CtrlImpl,
             '/position_motor/rotate_motor/ctrl')
 
+        self.__service.wait_for_service()
+
     def __call_service(self, cmd: MotorCmd, target: float, speed: float) -> rclpy.task.Future:
         """
         呼叫电机服务

@@ -18,6 +18,7 @@ class LiftMotorDao:
         self.__service = node.create_client(
             position_motor_ros2.srv.CtrlImpl,
             '/position_motor/lift_motor/ctrl')
+        self.__service.wait_for_service()
 
     def __call_service(self, cmd: MotorCmd, target: float, speed: float) -> rclpy.task.Future:
         """

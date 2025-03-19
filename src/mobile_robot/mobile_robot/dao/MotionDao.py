@@ -35,7 +35,7 @@ class MotionDao:
                 req.rotate_param.kp = 1.8
                 req.rotate_param.ti = 0.0
                 req.rotate_param.td = 0.0001
-                req.rotate_param.max_vel = float(speed)
+                req.rotate_param.max_vel = 180.0
                 req.rotate_param.max_acc = 600.0
                 req.rotate_param.low_pass = 0.8
                 req.rotate_param.ek = 1.0

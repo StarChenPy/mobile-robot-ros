@@ -32,6 +32,8 @@ class MoveService:
         ROTATION_ACCELERATION = 3
         ROTATION_DECELERATION = 3
         self.__navigation.navigation(path, speed, speed * 5, ROTATION_ACCELERATION, ROTATION_DECELERATION, False)
+        if is_block:
+            self.__navigation.wait_finish()
 
     def navigation(self, nav_path: list[NavigationPoint], speed: float, is_block: bool):
         """
@@ -117,6 +119,10 @@ class MoveService:
         if angle_from_wall != 0:
             self.__odom.init_yaw(point.yaw - angle_from_wall)
 
+        rclpy.spin_once(self.__node)
+        rclpy.spin_once(self.__node)
+        rclpy.spin_once(self.__node)
+        rclpy.spin_once(self.__node)
         rclpy.spin_once(self.__node)
 
     def line(self, distance: float, speed: float = 0.4, is_block=True):

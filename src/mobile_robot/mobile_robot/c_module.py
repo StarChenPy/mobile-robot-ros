@@ -67,7 +67,7 @@ class CModule(Node):
         # 前往一号走廊并初始化姿势
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_ENTER_1)
 
-        task = [[FruitType.RED_APPLE, FruitType.RED_APPLE, FruitType.RED_APPLE, FruitType.RED_APPLE, FruitType.RED_APPLE]]
+        task = [[FruitType.RED_APPLE, FruitType.RED_APPLE, FruitType.RED_APPLE], [FruitType.YELLOW_APPLE, FruitType.YELLOW_APPLE]]
 
         for index, warehouse in enumerate(task):
             for fruit in warehouse:
@@ -79,6 +79,7 @@ class CModule(Node):
                     self.__arm.control(ArmMovementParam.MOVING)
                     self.__move.navigation(NavigationPath.EXIT_1_TO_EXIT_2)
                     if self.__grub_fruit.patrol_the_line(NavigationPath.ORCHARD_CORRIDOR_ENTER_2_POINT, fruit, True):
+                        self.__move.navigation([NavigationPath.ORCHARD_CORRIDOR_ENTER_2_POINT])
                         self.handle_fruit_grab(index)
                     else:
                         self.get_logger().error(f"[Module C] 仍未寻找到 {fruit.name}, 停止.")

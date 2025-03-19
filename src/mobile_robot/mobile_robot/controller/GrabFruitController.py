@@ -47,23 +47,25 @@ class GrabFruitController:
         self.__ready_to_identify(is_other_side)
 
         odom = self.__sensor.get_odom_data()
-        points = Math.point_to_point(NavigationPoint(odom.x, odom.y, odom.w), target_point, 0.4)
+        points = Math.point_to_point(NavigationPoint(odom.x, odom.y, odom.w), target_point, 0.3)
 
         for point in points:
-            print(self.__sensor.get_odom_data())
             self.__move.navigation([point], 0.2, True)
 
-            self.__move.corrective(CorrectivePoint.form_point(point, [Corrective(Direction.LEFT, 0.401 + (point.x - 1.92))]))
+            if is_other_side:
+                dis = 0.407 + (point.x - 2.78)
+                self.__move.corrective(CorrectivePoint.form_point(point, [Corrective(Direction.RIGHT, dis)]))
+            else:
+                dis = 0.401 + (point.x - 1.92)
+                self.__move.corrective(CorrectivePoint.form_point(point, [Corrective(Direction.LEFT, dis)]))
 
-            # results = self.__vision.get_onnx_identify_result()
-            results = []
+            results = self.__vision.get_onnx_identify_result()
 
             self.__logger.info(f"[GrabFruitController] 识别到的内容: {results}")
 
             result = None
             for r in results:
                 if r.box.get_area() < 5000:
-                    print(r.box.get_area())
                     continue
                 if r.classId != target_fruit.value:
                     continue
@@ -116,3 +118,8 @@ class GrabFruitController:
         self.__arm.control(movement, 45, True)
         time.sleep(1)
         self.__arm.control(ArmMovementParam.MOVING, 45)
+
+        if is_other_side:
+            ready_movement.value.motor.rotate = -ready_movement.value.motor.rotate
+            movement.value.motor.rotate = -movement.value.motor.rotate
+            ArmMovementParam.READY_GRAB_APPLE.value.motor.rotate = -ArmMovementParam.READY_GRAB_APPLE.value.motor.rotate

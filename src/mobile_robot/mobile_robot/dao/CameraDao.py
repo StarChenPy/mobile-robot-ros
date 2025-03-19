@@ -1,5 +1,3 @@
-import time
-
 import cv2
 import cv_bridge
 import rclpy
@@ -18,22 +16,23 @@ class CameraDao:
         self.__cv_bridge = cv_bridge.CvBridge()
         self.__service = node.create_client(camera_orbbec2.srv.ReqImage, "/camera/req_image")
 
-    def __call_service(self, request: camera_orbbec2.srv.ReqImage.Request) -> camera_orbbec2.srv.ReqImage.Response:
         self.__service.wait_for_service()
-        future = self.__service.call_async(request)
 
+    def __call_service(self, request: camera_orbbec2.srv.ReqImage.Request) -> camera_orbbec2.srv.ReqImage.Response:
         while rclpy.ok():
-            rclpy.spin_once(self.__node)
+            future = self.__service.call_async(request)
+
+            rclpy.spin_until_future_complete(self.__node, future, timeout_sec=15.0)
 
             if not future.done():
-                time.sleep(0.5)
+                self.__logger.warning(f"[CameraDao] 请求拍照失败，正在重试")
                 continue
 
             if future.result().success:
                 return future.result()
             else:
                 self.__logger.warning(f"[CameraDao] 请求拍照失败，正在重试")
-                time.sleep(1)
+                continue
 
         self.__logger.error("[CameraDao] 拍照失败")
 

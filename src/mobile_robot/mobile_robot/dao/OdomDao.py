@@ -59,3 +59,6 @@ class OdomDao:
 
     def get_init(self):
         return self.__init
+
+    def set_init(self, init: bool):
+        self.__init = init

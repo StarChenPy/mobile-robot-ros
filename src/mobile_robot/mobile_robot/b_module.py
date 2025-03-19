@@ -34,6 +34,7 @@ class BModule(Node):
 
             self.__robot.with_start_button()
 
+            self.__move.reset_odom()
             self.task(i)
 
             self.__robot.set_start_led(False)
@@ -53,7 +54,7 @@ class BModule(Node):
                 self.__move.navigation([NavigationPoint(1, 0, 0)])
             case 2:
                 # 旋转360度
-                self.__move.rotate(360)
+                self.__move.rotate(361)
             case 3:
                 # 抓水果
                 self.__grab_fruit.execute_grab_sequence(FruitHeight.TALL, False)
@@ -123,8 +124,9 @@ class BModule(Node):
                 self.__move.navigation(NavigationPath.B_MODULE_5)
 
                 self.__arm.control(ArmMovementParam.RECOGNITION_WAREHOUSE)
-                while True:
+                for _ in range(10):
                     print(self.__grab_fruit.vision())
+                self.__arm.control(ArmMovementParam.MOVING)
             case 14:
                 # 起始区到果园识别一个水果
                 self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
@@ -140,7 +142,7 @@ class BModule(Node):
 
                 self.__arm.control(ArmMovementParam.RECOGNITION_ORCHARD_RIGHT)
 
-                for _ in range(20):
+                for _ in range(10):
                     result = self.__grab_fruit.vision()
                     for e in result:
                         match get_fruit_height(e.box):

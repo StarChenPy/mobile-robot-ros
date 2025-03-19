@@ -67,3 +67,6 @@ class SensorService:
         self.__odom.init_yaw(yaw)
         time.sleep(1)
         rclpy.spin_once(self.__node)
+
+    def reset_odom(self):
+        self.__odom.set_init(False)
