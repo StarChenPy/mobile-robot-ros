@@ -28,6 +28,11 @@ class MoveService:
         self.__radar = LaserRadarDao(node)
         self.__robot_data = RobotDataDao(node)
 
+    def __navigation_handle(self, path: list[NavigationPoint], speed: float, is_block: bool):
+        ROTATION_ACCELERATION = 3
+        ROTATION_DECELERATION = 3
+        self.__navigation.navigation(path, speed, speed * 5, ROTATION_ACCELERATION, ROTATION_DECELERATION, False)
+
     def navigation(self, nav_path: list[NavigationPoint], speed: float, is_block: bool):
         """
         通过路径进行导航
@@ -36,49 +41,42 @@ class MoveService:
         @param is_block 是否阻塞
         """
         path = []
-        buffer = None
+        previous_point = None
 
         for point in nav_path:
             if isinstance(point, CorrectivePoint):
                 if path:
                     path.append(point)
-                    self.__navigation.navigation(path, speed, speed * 5, 3, 3, False)
-                    self.__navigation.wait_finish()
+                    self.__navigation_handle(path, speed, True)
                 elif self.__odom.get_init():
-                    self.__navigation.navigation([point], speed, speed * 5, 3, 3, False)
-                    self.__navigation.wait_finish()
+                    self.__navigation_handle([point], speed, True)
                 else:
                     self.__odom.init_yaw(point.yaw)
 
-                time.sleep(1)
                 self.corrective(point)
                 path = []
                 continue
 
-            if buffer is None:
+            if previous_point is None:
                 odom = self.__robot_data.get_robot_data().odom
-                buffer = NavigationPoint(odom.x, odom.y, odom.w)
+                previous_point = NavigationPoint(odom.x, odom.y, odom.w)
 
-            if buffer.yaw is not None and Math.is_behind(buffer, point, 45):
+            if previous_point.yaw is not None and Math.is_behind(previous_point, point, 45):
                 # 如果这个点位在上个点位的后面，就倒车回去
                 if path:
-                    self.__navigation.navigation(path, speed, speed * 5, 3, 3, False)
-                    self.__navigation.wait_finish()
+                    self.__navigation_handle(path, speed, True)
                     path = []
                 if point.yaw is None:
-                    point.yaw = buffer.yaw
+                    point.yaw = previous_point.yaw
                 self.__navigation.navigation([point], speed, speed * 5, 3, 3, True)
                 self.__navigation.wait_finish()
             else:
                 path.append(point)
 
-            buffer = point
+            previous_point = point
 
         if path:
-            self.__navigation.navigation(path, speed, speed * 5, 3, 3, False)
-
-        if is_block:
-            self.__navigation.wait_finish()
+            self.__navigation_handle(path, speed, is_block)
 
     def corrective(self, point: CorrectivePoint):
         x_buffer = 0
@@ -119,10 +117,6 @@ class MoveService:
         if angle_from_wall != 0:
             self.__odom.init_yaw(point.yaw - angle_from_wall)
 
-        rclpy.spin_once(self.__node)
-        rclpy.spin_once(self.__node)
-        rclpy.spin_once(self.__node)
-        rclpy.spin_once(self.__node)
         rclpy.spin_once(self.__node)
 
     def line(self, distance: float, speed: float = 0.4, is_block=True):

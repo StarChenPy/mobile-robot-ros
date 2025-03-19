@@ -53,6 +53,8 @@ class GrabFruitController:
             print(self.__sensor.get_odom_data())
             self.__move.navigation([point], 0.2, True)
 
+            self.__move.corrective(CorrectivePoint.form_point(point, [Corrective(Direction.LEFT, 0.401 + (point.x - 1.92))]))
+
             # results = self.__vision.get_onnx_identify_result()
             results = []
 

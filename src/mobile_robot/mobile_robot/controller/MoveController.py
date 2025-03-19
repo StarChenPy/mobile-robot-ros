@@ -19,7 +19,6 @@ class MoveController:
 
     def navigation(self, nav_path: list[NavigationPoint or CorrectivePoint], speed=0.4, is_block=True):
         self.__navigation.navigation(nav_path, speed, is_block)
-        time.sleep(0.5)
 
     def init_pose(self, point: NavigationPoint):
         self.__sensor.init_odom_all(point)

@@ -3,7 +3,6 @@ import time
 import rclpy
 from rclpy.node import Node
 
-from .util.Math import Math
 from .controller.RobotController import RobotController
 from .controller.ArmController import ArmController
 from .controller.GrabFruitController import GrabFruitController, get_fruit_height
@@ -25,20 +24,28 @@ class BModule(Node):
 
         self.__robot.with_robot_connect()
 
-        select = int(input("等待按键按下, 1 - 15, 0 退出\n"))
+        select = int(input("从1 - 15开始, 0 退出, 你的选择是: "))
         self.__robot.set_start_led(False)
 
         self.__arm.reset()
         self.__arm.control(ArmMovementParam.MOVING)
 
-        self.__robot.with_start_button()
+        for i in range(select, 16):
 
+            self.__robot.with_start_button()
+
+            self.task(i)
+
+            self.__robot.set_start_led(False)
+            time.sleep(1)
+            rclpy.spin_once(self)
+
+        rclpy.shutdown()
+        exit(0)
+
+    def task(self, select: int):
         match select:
             case 0:
-                self.__move.init_pose(NavigationPoint(0, -2, 90))
-                odom_data = self.__robot.get_odom_data()
-                for p in Math.point_to_point(NavigationPoint(odom_data.x, odom_data.y, odom_data.w), NavigationPoint(0, -0.4, -90), 0.4):
-                    self.__move.navigation([p])
                 exit(0)
             case 1:
                 # 直线1米
@@ -124,15 +131,16 @@ class BModule(Node):
 
                 self.__arm.control(ArmMovementParam.RECOGNITION_ORCHARD_RIGHT)
 
-                while True:
+                for _ in range(10):
                     print(self.__grab_fruit.vision())
+                self.__arm.control(ArmMovementParam.MOVING)
             case 15:
                 # 起始区到果园识别一个水果的高低
                 self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
                 self.__arm.control(ArmMovementParam.RECOGNITION_ORCHARD_RIGHT)
 
-                while True:
+                for _ in range(20):
                     result = self.__grab_fruit.vision()
                     for e in result:
                         match get_fruit_height(e.box):
@@ -142,11 +150,8 @@ class BModule(Node):
                                 print("中水果")
                             case FruitHeight.LOW:
                                 print("低水果")
-        self.__robot.set_start_led(False)
-        time.sleep(1)
-        rclpy.spin_once(self)
-        rclpy.shutdown()
-        exit(0)
+                self.__arm.control(ArmMovementParam.MOVING)
+
 
 
 def main():
