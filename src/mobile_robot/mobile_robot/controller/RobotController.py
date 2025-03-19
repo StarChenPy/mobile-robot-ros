@@ -17,6 +17,9 @@ class RobotController:
     def get_radar_data(self, angle):
         return self.__sensor.get_radar_data(angle)
 
+    def get_odom_data(self):
+        return self.__sensor.get_odom_data()
+
     def get_distance_from_wall(self, direction: Direction) -> float:
         return self.__sensor.get_distance_from_wall(direction)
 

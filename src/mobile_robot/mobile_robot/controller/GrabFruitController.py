@@ -50,24 +50,31 @@ class GrabFruitController:
         points = Math.point_to_point(NavigationPoint(odom.x, odom.y, odom.w), target_point, 0.4)
 
         for point in points:
-            self.__move.navigation([point], 0.1, True)
+            print(self.__sensor.get_odom_data())
+            self.__move.navigation([point], 0.2, True)
 
-            self.__move.corrective(CorrectivePoint.form_point(point, [Corrective(Direction.LEFT, 0.433)]))
-
-            results = self.__vision.get_onnx_identify_result()
+            # results = self.__vision.get_onnx_identify_result()
+            results = []
 
             self.__logger.info(f"[GrabFruitController] 识别到的内容: {results}")
 
-            if not results:
+            result = None
+            for r in results:
+                if r.box.get_area() < 5000:
+                    print(r.box.get_area())
+                    continue
+                if r.classId != target_fruit.value:
+                    continue
+                result = r
+
+            if not result:
                 continue
 
-            result = results[0]
-            if result.classId == target_fruit.value:
-                center = result.box.get_rectangle_center()
-                travel_distance = (320 - center.x) / 2000
-                self.__move.line(-travel_distance if is_other_side else travel_distance)
-                self.execute_grab_sequence(get_fruit_height(result.box), is_other_side)
-                return True
+            center = result.box.get_rectangle_center()
+            travel_distance = (320 - center.x) / 2000
+            self.__move.line(-travel_distance if is_other_side else travel_distance)
+            self.execute_grab_sequence(get_fruit_height(result.box), is_other_side)
+            return True
 
         return False
 

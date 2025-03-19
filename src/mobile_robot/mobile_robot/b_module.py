@@ -3,6 +3,7 @@ import time
 import rclpy
 from rclpy.node import Node
 
+from .util.Math import Math
 from .controller.RobotController import RobotController
 from .controller.ArmController import ArmController
 from .controller.GrabFruitController import GrabFruitController, get_fruit_height
@@ -34,9 +35,10 @@ class BModule(Node):
 
         match select:
             case 0:
-                self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
-                self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
-                self.__arm.control(ArmMovementParam.MOVING)
+                self.__move.init_pose(NavigationPoint(0, -2, 90))
+                odom_data = self.__robot.get_odom_data()
+                for p in Math.point_to_point(NavigationPoint(odom_data.x, odom_data.y, odom_data.w), NavigationPoint(0, -0.4, -90), 0.4):
+                    self.__move.navigation([p])
                 exit(0)
             case 1:
                 # 直线1米

@@ -1,16 +1,8 @@
 import math
-from dataclasses import dataclass
 
 import numpy as np
 
-# from ..popo.NavigationPoint import NavigationPoint
-
-
-@dataclass
-class NavigationPoint:
-    x: float
-    y: float
-    yaw: float | None
+from ..popo.NavigationPoint import NavigationPoint
 
 
 class Math:
