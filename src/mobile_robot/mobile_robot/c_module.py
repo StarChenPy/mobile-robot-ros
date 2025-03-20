@@ -4,7 +4,7 @@ from rclpy.node import Node
 from .popo.FruitHeight import FruitHeight
 from .controller.RobotController import RobotController
 from .param import NavigationPath
-from .param.ArmMovement import ArmMovementParam
+from .param import ArmMovement
 from .popo.FruitType import FruitType
 from .controller.MoveController import MoveController
 from .controller.GrabFruitController import GrabFruitController
@@ -25,7 +25,7 @@ class CModule(Node):
         s = input("已知y，未知w，选择：")
 
         self.__arm.reset()
-        self.__arm.control(ArmMovementParam.MOVING)
+        self.__arm.control(ArmMovement.MOVING)
 
         self.__robot.set_start_led(False)
         self.__robot.with_start_button()
@@ -43,9 +43,9 @@ class CModule(Node):
         self.__move.navigation(orchard_path)
         self.__grub_fruit.execute_grab_sequence(FruitHeight.TALL, False)
         self.__move.navigation(warehouse_path)
-        self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
-        self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
-        self.__arm.control(ArmMovementParam.MOVING)
+        self.__arm.control(ArmMovement.READY_PULL_GUO_CANG)
+        self.__arm.control(ArmMovement.PULL_GUO_CANG)
+        self.__arm.control(ArmMovement.MOVING)
 
     def _run_y(self):
         tasks = [
@@ -76,14 +76,14 @@ class CModule(Node):
                     self.handle_fruit_grab(index)
                 else:
                     self.get_logger().info(f"[Module C] 未寻找到 {fruit.name}, 前往二号走廊寻找.")
-                    self.__arm.control(ArmMovementParam.MOVING)
+                    self.__arm.control(ArmMovement.MOVING)
                     self.__move.navigation(NavigationPath.EXIT_1_TO_EXIT_2)
                     if self.__grub_fruit.patrol_the_line(NavigationPath.ORCHARD_CORRIDOR_ENTER_2_POINT, fruit, True):
                         self.__move.navigation([NavigationPath.ORCHARD_CORRIDOR_ENTER_2_POINT])
                         self.handle_fruit_grab(index)
                     else:
                         self.get_logger().error(f"[Module C] 仍未寻找到 {fruit.name}, 停止.")
-                        self.__arm.control(ArmMovementParam.MOVING)
+                        self.__arm.control(ArmMovement.MOVING)
                         self.__move.navigation(NavigationPath.B_MODULE_6)
                         return
 
@@ -103,10 +103,10 @@ class CModule(Node):
         elif index == 2:
             self.__move.navigation(NavigationPath.WAREHOUSE_1_TO_WAREHOUSE_3)
 
-        self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
-        self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
+        self.__arm.control(ArmMovement.READY_PULL_GUO_CANG)
+        self.__arm.control(ArmMovement.PULL_GUO_CANG)
 
-        self.__arm.control(ArmMovementParam.MOVING)
+        self.__arm.control(ArmMovement.MOVING)
         self.get_logger().info("[Module C] 放置完成, 前往果园一号走廊.")
         self.__move.navigation(NavigationPath.WAREHOUSE_TO_ORCHARD_ENTER_1)
 

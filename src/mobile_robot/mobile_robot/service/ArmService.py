@@ -4,7 +4,7 @@ from ..dao.LiftMotorDao import LiftMotorDao
 from ..dao.RobotCtrlDao import RobotCtrlDao
 from ..dao.RotateMotorDao import RotateMotorDao
 from ..popo.Servo import Servo
-from ..param.ArmMovement import ArmMovementParam
+from ..popo.ArmMovement import ArmMovement
 from ..util.Config import Config
 from ..util.Singleton import singleton
 
@@ -18,18 +18,18 @@ class ArmService:
         self.__rotate_motor = RotateMotorDao(node)
         self.__robot_ctrl = RobotCtrlDao(node)
 
-    def control(self, movement: ArmMovementParam, speed, is_block=False):
-        self.__logger.info(f"[机械臂] 机械臂控制 {movement.name}")
+    def control(self, movement: ArmMovement, speed, is_block=False):
+        self.__logger.debug(f"[机械臂] 机械臂控制 {movement}")
 
-        if movement.value.motor is not None:
-            self.lift(movement.value.motor.lift, speed, is_block)
-            self.rotate(movement.value.motor.rotate, speed, is_block)
+        if movement.motor is not None:
+            self.lift(movement.motor.lift, speed, is_block)
+            self.rotate(movement.motor.rotate, speed, is_block)
 
-        if movement.value.servo is not None:
-            self.nod_servo(movement.value.servo.nod)
-            self.telescopic_servo(movement.value.servo.telescopic)
-            self.gripper_servo(movement.value.servo.gripper)
-            self.rotary_servo(movement.value.servo.rotary)
+        if movement.servo is not None:
+            self.nod_servo(movement.servo.nod)
+            self.telescopic_servo(movement.servo.telescopic)
+            self.gripper_servo(movement.servo.gripper)
+            self.rotary_servo(movement.servo.rotary)
 
         self.__lift_motor.wait_finish()
         self.__rotate_motor.wait_finish()
@@ -56,28 +56,28 @@ class ArmService:
         if is_block:
             self.__lift_motor.wait_finish()
 
-    def rotary_servo(self, angle, enable=True):
+    def rotary_servo(self, angle: float, enable=True):
         """
         卡爪舵机 旋转
         原 gripper_rz
         """
         self.__ctrl_servo(Servo.ROTARY, angle, enable)
 
-    def nod_servo(self, angle=0, enable=True):
+    def nod_servo(self, angle: float, enable=True):
         """
         卡爪舵机 点头(角度)
         原 gripper_ry
         """
         self.__ctrl_servo(Servo.NOD, angle, enable)
 
-    def telescopic_servo(self, distance=0, enable=True):
+    def telescopic_servo(self, distance: float, enable=True):
         """
         卡爪舵机 伸缩 ( cm )
         原 telescopic
         """
         self.__ctrl_servo(Servo.TELESCOPIC, distance, enable)
 
-    def gripper_servo(self, distance=0, enable=True):
+    def gripper_servo(self, distance: float, enable=True):
         """
         卡爪舵机 夹合 ( cm )
         原 gripper

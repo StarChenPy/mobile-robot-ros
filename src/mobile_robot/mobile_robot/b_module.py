@@ -9,7 +9,7 @@ from .controller.GrabFruitController import GrabFruitController, get_fruit_heigh
 from .controller.MoveController import MoveController
 from .popo.NavigationPoint import NavigationPoint
 from .popo.FruitHeight import FruitHeight
-from .param.ArmMovement import ArmMovementParam
+from .param import ArmMovement
 from .param import NavigationPath
 
 
@@ -28,7 +28,7 @@ class BModule(Node):
         self.__robot.set_start_led(False)
 
         self.__arm.reset()
-        self.__arm.control(ArmMovementParam.MOVING)
+        self.__arm.control(ArmMovement.MOVING)
 
         for i in range(select, 16):
 
@@ -76,71 +76,71 @@ class BModule(Node):
                 # 起始区到采摘1抓高水果
                 self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE)
-                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_TALL)
-                self.__arm.control(ArmMovementParam.GRAB_APPLE_TALL)
-                self.__arm.control(ArmMovementParam.GRAB_APPLE_END)
+                self.__arm.control(ArmMovement.READY_GRAB_APPLE)
+                self.__arm.control(ArmMovement.READY_GRAB_APPLE_TALL)
+                self.__arm.control(ArmMovement.GRAB_APPLE_TALL)
+                self.__arm.control(ArmMovement.GRAB_APPLE_END)
             case 9:
                 # 起始区到采摘1抓中水果
                 self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE)
-                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_MIDDLE)
-                self.__arm.control(ArmMovementParam.GRAB_APPLE_MIDDLE)
-                self.__arm.control(ArmMovementParam.GRAB_APPLE_MIDDLE_END)
-                self.__arm.control(ArmMovementParam.GRAB_APPLE_END)
+                self.__arm.control(ArmMovement.READY_GRAB_APPLE)
+                self.__arm.control(ArmMovement.READY_GRAB_APPLE_MIDDLE)
+                self.__arm.control(ArmMovement.GRAB_APPLE_MIDDLE)
+                self.__arm.control(ArmMovement.GRAB_APPLE_MIDDLE_END)
+                self.__arm.control(ArmMovement.GRAB_APPLE_END)
             case 10:
                 # 起始区到采摘1抓低水果
                 self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE)
-                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_LOW)
-                self.__arm.control(ArmMovementParam.GRAB_APPLE_LOW)
-                self.__arm.control(ArmMovementParam.GRAB_APPLE_LOW_END)
-                self.__arm.control(ArmMovementParam.GRAB_APPLE_END)
+                self.__arm.control(ArmMovement.READY_GRAB_APPLE)
+                self.__arm.control(ArmMovement.READY_GRAB_APPLE_LOW)
+                self.__arm.control(ArmMovement.GRAB_APPLE_LOW)
+                self.__arm.control(ArmMovement.GRAB_APPLE_LOW_END)
+                self.__arm.control(ArmMovement.GRAB_APPLE_END)
             case 11:
                 # 起始区到果仓一号放水果
                 self.__move.navigation(NavigationPath.B_MODULE_11)
 
-                self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
-                self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
-                self.__arm.control(ArmMovementParam.MOVING)
+                self.__arm.control(ArmMovement.READY_PULL_GUO_CANG)
+                self.__arm.control(ArmMovement.PULL_GUO_CANG)
+                self.__arm.control(ArmMovement.MOVING)
             case 12:
                 # 起始区到果园摘水果然后去果仓1号放水果
                 self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE)
-                self.__arm.control(ArmMovementParam.READY_GRAB_APPLE_TALL)
-                self.__arm.control(ArmMovementParam.GRAB_APPLE_TALL)
-                self.__arm.control(ArmMovementParam.GRAB_APPLE_END)
+                self.__arm.control(ArmMovement.READY_GRAB_APPLE)
+                self.__arm.control(ArmMovement.READY_GRAB_APPLE_TALL)
+                self.__arm.control(ArmMovement.GRAB_APPLE_TALL)
+                self.__arm.control(ArmMovement.GRAB_APPLE_END)
 
                 self.__move.navigation(NavigationPath.B_MODULE_12)
 
-                self.__arm.control(ArmMovementParam.READY_PULL_GUO_CANG)
-                self.__arm.control(ArmMovementParam.PULL_GUO_CANG)
-                self.__arm.control(ArmMovementParam.MOVING)
+                self.__arm.control(ArmMovement.READY_PULL_GUO_CANG)
+                self.__arm.control(ArmMovement.PULL_GUO_CANG)
+                self.__arm.control(ArmMovement.MOVING)
             case 13:
                 # 起始区到果仓识别一个水果
                 self.__move.navigation(NavigationPath.B_MODULE_5)
 
-                self.__arm.control(ArmMovementParam.RECOGNITION_WAREHOUSE)
+                self.__arm.control(ArmMovement.RECOGNITION_WAREHOUSE)
                 for _ in range(10):
                     print(self.__grab_fruit.vision())
-                self.__arm.control(ArmMovementParam.MOVING)
+                self.__arm.control(ArmMovement.MOVING)
             case 14:
                 # 起始区到果园识别一个水果
                 self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-                self.__arm.control(ArmMovementParam.RECOGNITION_ORCHARD_RIGHT)
+                self.__arm.control(ArmMovement.RECOGNITION_ORCHARD_RIGHT)
 
                 for _ in range(10):
                     print(self.__grab_fruit.vision())
-                self.__arm.control(ArmMovementParam.MOVING)
+                self.__arm.control(ArmMovement.MOVING)
             case 15:
                 # 起始区到果园识别一个水果的高低
                 self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-                self.__arm.control(ArmMovementParam.RECOGNITION_ORCHARD_RIGHT)
+                self.__arm.control(ArmMovement.RECOGNITION_ORCHARD_RIGHT)
 
                 for _ in range(10):
                     result = self.__grab_fruit.vision()
@@ -152,7 +152,7 @@ class BModule(Node):
                                 print("中水果")
                             case FruitHeight.LOW:
                                 print("低水果")
-                self.__arm.control(ArmMovementParam.MOVING)
+                self.__arm.control(ArmMovement.MOVING)
 
 
 

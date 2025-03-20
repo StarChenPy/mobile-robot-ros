@@ -2,7 +2,7 @@ import time
 
 import rclpy
 
-from ..param.ArmMovement import ArmMovementParam
+from ..popo.ArmMovement import ArmMovement
 from ..service.ArmService import ArmService
 from ..util.Singleton import singleton
 
@@ -14,7 +14,7 @@ class ArmController:
 
         self.__arm = ArmService(node)
 
-    def control(self, movement: ArmMovementParam, speed=45.0, is_block=False):
+    def control(self, movement: ArmMovement, speed=45.0, is_block=False):
         self.__arm.control(movement, speed, is_block)
         time.sleep(0.5)
 
