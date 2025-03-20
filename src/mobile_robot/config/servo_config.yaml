@@ -1,6 +1,6 @@
 rotary:
   pin: 4
-  min_value: -40
+  min_value: -80
   max_value: 90
   zero_duty: 23.45
   deg90_duty: 11.3
@@ -23,7 +23,7 @@ telescopic:
 gripper:
   pin: 3
   min_value: 0
-  max_value: 24.5
+  max_value: 25
   min_duty: 12.5
   max_duty: 41.0
   itinerary: 10.5

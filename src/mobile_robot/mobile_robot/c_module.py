@@ -41,10 +41,10 @@ class CModule(Node):
     def grab_and_store(self, orchard_path, warehouse_path):
         """通用的抓取水果并存储的函数"""
         self.__move.navigation(orchard_path)
-        self.__grub_fruit.execute_grab_sequence(FruitHeight.TALL, False)
+        ArmMovement.grab_fruit(self.__arm, FruitHeight.TALL, False)
         self.__move.navigation(warehouse_path)
-        self.__arm.control(ArmMovement.READY_PULL_GUO_CANG)
-        self.__arm.control(ArmMovement.PULL_GUO_CANG)
+        self.__arm.control(ArmMovement.READY_PULL_WAREHOUSE)
+        self.__arm.control(ArmMovement.PULL_WAREHOUSE)
         self.__arm.control(ArmMovement.MOVING)
 
     def _run_y(self):
@@ -103,8 +103,8 @@ class CModule(Node):
         elif index == 2:
             self.__move.navigation(NavigationPath.WAREHOUSE_1_TO_WAREHOUSE_3)
 
-        self.__arm.control(ArmMovement.READY_PULL_GUO_CANG)
-        self.__arm.control(ArmMovement.PULL_GUO_CANG)
+        self.__arm.control(ArmMovement.READY_PULL_WAREHOUSE)
+        self.__arm.control(ArmMovement.PULL_WAREHOUSE)
 
         self.__arm.control(ArmMovement.MOVING)
         self.get_logger().info("[Module C] 放置完成, 前往果园一号走廊.")

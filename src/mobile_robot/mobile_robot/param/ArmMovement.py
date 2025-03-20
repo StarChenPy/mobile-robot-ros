@@ -1,48 +1,119 @@
 from ..popo.ArmMovement import ArmMovement
+from ..popo.Direction import Direction
+from ..popo.FruitHeight import FruitHeight
 from ..popo.MotorMovement import MotorMovement
 from ..popo.ServoMotor import ServoMotor
 
 
 # 基础动作
-RESET = ArmMovement(MotorMovement(-1, -1), ServoMotor(0, 0, 3, 5))
-TEST = ArmMovement(servo=ServoMotor(0, 0, 0, 20))
-MOVING = ArmMovement(MotorMovement(0, 15), ServoMotor(0, 9, 3, 7))
-BASKET_MOVING = ArmMovement(MotorMovement(180, 15), ServoMotor(0, 0, 3, 5))
+MOVING = ArmMovement(MotorMovement(0, 18), ServoMotor(0, 9, 3, 7))
 
-# 篮子动作
-READY_PUT_BASKET = ArmMovement(MotorMovement(0, 0.5), ServoMotor(90, -90, 10, 19))
-
-PUT_BASKET_1 = ArmMovement(MotorMovement(20, 10), ServoMotor(90, -90, 10, 24))
-PUT_BASKET_2 = ArmMovement(MotorMovement(0, 10), ServoMotor(90, -90, 10, 24))
-PUT_BASKET_3 = ArmMovement(MotorMovement(-20, 10), ServoMotor(90, -90, 10, 24))
-
-FINISH_PUT_BASKET = ArmMovement(MotorMovement(0, 0.5), ServoMotor(90, -90, 10, 24))
-
-# 识别动作
-RECOGNITION_ORCHARD_RIGHT = ArmMovement(MotorMovement(-90, 25), ServoMotor(0, -30, 3, 20))
-RECOGNITION_ORCHARD_LEFT = ArmMovement(MotorMovement(90, 25), ServoMotor(0, -30, 3, 20))
+# 识别果仓中的水果动作
 RECOGNITION_WAREHOUSE = ArmMovement(MotorMovement(175, 15), ServoMotor(0, -90, 14, 20))
 
-READY_GRAB_APPLE = ArmMovement(MotorMovement(-90, 16), ServoMotor(0, -20, 0, 23))
-# 抓苹果（上）
-READY_GRAB_APPLE_TALL = ArmMovement(MotorMovement(-90, 25), ServoMotor(0, 0, 10, 23))
-GRAB_APPLE_TALL = ArmMovement(MotorMovement(-90, 25), ServoMotor(0, 0, 10, 7))
-# 抓苹果（中）
-READY_GRAB_APPLE_MIDDLE = ArmMovement(MotorMovement(-90, 26), ServoMotor(0, -20, 12.5, 23))
-GRAB_APPLE_MIDDLE = ArmMovement(MotorMovement(-90, 26), ServoMotor(0, -20, 12.5, 7))
-GRAB_APPLE_MIDDLE_END = ArmMovement(MotorMovement(-90, 26), ServoMotor(0, -30, 7, 7))
-# 抓苹果（下）
-READY_GRAB_APPLE_LOW = ArmMovement(MotorMovement(-90, 27.5), ServoMotor(0, -45, 15, 23))
-GRAB_APPLE_LOW = ArmMovement(MotorMovement(-90, 27.5), ServoMotor(0, -45, 15, 7))
-GRAB_APPLE_LOW_END = ArmMovement(MotorMovement(-90, 20), ServoMotor(0, -45, 7, 7))
-GRAB_APPLE_END = ArmMovement(MotorMovement(0, 10), ServoMotor(0, 0, 7, 7))
-
 # 放水果到果仓
-READY_PULL_GUO_CANG = ArmMovement(MotorMovement(180, 10), ServoMotor(0, 0, 8, 7))
-PULL_GUO_CANG = ArmMovement(MotorMovement(180, 10), ServoMotor(0, 0, 8, 20))
+READY_PULL_WAREHOUSE = ArmMovement(MotorMovement(180, 10), ServoMotor(0, 0, 8, 7))
+PULL_WAREHOUSE = ArmMovement(MotorMovement(180, 10), ServoMotor(0, 0, 8, 10))
 
-# 放水果到框子动作
-READY_PUT_FRUIT_INTO_BASKET = ArmMovement(MotorMovement(0, 0.5), ServoMotor(0, -90, 10, 0))
-PUT_FRUIT_INTO_BASKET_1 = ArmMovement(MotorMovement(-20, 0.5), ServoMotor(0, -90, 10, 10))
-PUT_FRUIT_INTO_BASKET_2 = ArmMovement(servo=ServoMotor(0, -90, 10, 10))
-PUT_FRUIT_INTO_BASKET_3 = ArmMovement(MotorMovement(20, 0.5), ServoMotor(0, -90, 10, 10))
+
+def recognition_orchard(arm, direction: Direction.LEFT or Direction.RIGHT):
+    """调整为识别姿态"""
+
+    if direction == Direction.LEFT:
+        arm_pos = -90
+    elif direction == Direction.RIGHT:
+        arm_pos = 90
+    else:
+        raise ValueError("不可用的Direction")
+
+    arm.control(ArmMovement(MotorMovement(arm_pos, 25), ServoMotor(0, -30, 3, 20)))
+
+
+def grab_fruit(arm, height: FruitHeight, direction: Direction.LEFT or Direction.RIGHT):
+    """执行抓取动作"""
+
+    if height == FruitHeight.TALL:
+        arm_height = 25
+        servo_params = (0, 10)
+    elif height == FruitHeight.MIDDLE:
+        arm_height = 26
+        servo_params = (-20, 12.5)
+    elif height == FruitHeight.LOW:
+        arm_height = 27.5
+        servo_params = (-45, 15)
+    else:
+        raise ValueError("未知的FruitHeight")
+
+    if direction == Direction.LEFT:
+        arm_pos = -90
+    elif direction == Direction.RIGHT:
+        arm_pos = 90
+    else:
+        raise ValueError("不可用的Direction")
+
+    nod, telescopic = servo_params
+
+    # 准备抓
+    arm.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, nod, telescopic, 23)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, arm_height), ServoMotor(0, nod, telescopic, 23)))
+    # 夹合
+    arm.control(ArmMovement(MotorMovement(arm_pos, arm_height), ServoMotor(0, nod, telescopic, 7)))
+    # 提起
+    arm.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, nod, 3, 7)))
+    # 结束
+    arm.control(ArmMovement(MotorMovement(0, 18), ServoMotor(0, 0, 3, 7)))
+
+
+def put_fruit_into_basket(arm, box_number: int) -> None:
+    """将水果放置到指定框子中"""
+
+    # 根据框号确定参数
+    if box_number == 1:
+        arm_pos = 28
+        telescopic = 2.5
+    elif box_number == 2:
+        arm_pos = 0
+        telescopic = 1
+    elif box_number == 3:
+        arm_pos = -30
+        telescopic = 2.5
+    else:
+        raise ValueError("篮子编号无效")
+
+    arm.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, 0, telescopic, 7)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, 0, telescopic, 10)))
+
+
+def grab_basket_to_warehouse(arm, box_number: int) -> None:
+    """将指定框子放到面前的仓库中"""
+
+    # 根据框号确定参数
+    if box_number == 1:
+        arm_pos = 28
+        servo_params = (-61, -87, 14.5)
+    elif box_number == 2:
+        arm_pos = 0
+        servo_params = (90, -87, 11.7)
+    elif box_number == 3:
+        arm_pos = -30
+        servo_params = (61, -87, 14.5)
+    else:
+        raise ValueError("篮子编号无效")
+
+    rotary, nod, telescopic = servo_params
+
+    # 准备抓
+    arm.control(ArmMovement(MotorMovement(0, 10), ServoMotor(0, 0, 3, 7)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 10), ServoMotor(rotary, nod, telescopic, 25)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 14.5), ServoMotor(rotary, nod, telescopic, 25)))
+    # 夹合
+    arm.control(ArmMovement(MotorMovement(arm_pos, 14.5), ServoMotor(rotary, nod, telescopic, 20)))
+    # 提起
+    arm.control(ArmMovement(MotorMovement(arm_pos, 10), ServoMotor(rotary, nod, telescopic, 20)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 10), ServoMotor(0, 0, 8, 20)))
+
+    # 放下（公共部分）
+    arm.control(ArmMovement(MotorMovement(180, 5), ServoMotor(0, 0, 8, 20)))
+    arm.control(ArmMovement(MotorMovement(180, 14), ServoMotor(0, 0, 8, 25)), is_block=True)
+    # 结束（公共部分）
+    arm.control(ArmMovement(MotorMovement(0, 18), ServoMotor(0, 0, 3, 7)))

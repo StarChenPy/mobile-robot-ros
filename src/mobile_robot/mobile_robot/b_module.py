@@ -3,6 +3,7 @@ import time
 import rclpy
 from rclpy.node import Node
 
+from .popo.Direction import Direction
 from .controller.RobotController import RobotController
 from .controller.ArmController import ArmController
 from .controller.GrabFruitController import GrabFruitController, get_fruit_height
@@ -57,7 +58,7 @@ class BModule(Node):
                 self.__move.rotate(361)
             case 3:
                 # 抓水果
-                self.__grab_fruit.execute_grab_sequence(FruitHeight.TALL, False)
+                ArmMovement.grab_fruit(self.__arm, FruitHeight.TALL, False)
             case 4:
                 # 果仓1到起始区
                 self.__move.init_pose(NavigationPoint(0.56, -1.12, 90))
@@ -76,48 +77,34 @@ class BModule(Node):
                 # 起始区到采摘1抓高水果
                 self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-                self.__arm.control(ArmMovement.READY_GRAB_APPLE)
-                self.__arm.control(ArmMovement.READY_GRAB_APPLE_TALL)
-                self.__arm.control(ArmMovement.GRAB_APPLE_TALL)
-                self.__arm.control(ArmMovement.GRAB_APPLE_END)
+                ArmMovement.grab_fruit(self.__arm, FruitHeight.TALL, False)
             case 9:
                 # 起始区到采摘1抓中水果
                 self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-                self.__arm.control(ArmMovement.READY_GRAB_APPLE)
-                self.__arm.control(ArmMovement.READY_GRAB_APPLE_MIDDLE)
-                self.__arm.control(ArmMovement.GRAB_APPLE_MIDDLE)
-                self.__arm.control(ArmMovement.GRAB_APPLE_MIDDLE_END)
-                self.__arm.control(ArmMovement.GRAB_APPLE_END)
+                ArmMovement.grab_fruit(self.__arm, FruitHeight.MIDDLE, False)
             case 10:
                 # 起始区到采摘1抓低水果
                 self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-                self.__arm.control(ArmMovement.READY_GRAB_APPLE)
-                self.__arm.control(ArmMovement.READY_GRAB_APPLE_LOW)
-                self.__arm.control(ArmMovement.GRAB_APPLE_LOW)
-                self.__arm.control(ArmMovement.GRAB_APPLE_LOW_END)
-                self.__arm.control(ArmMovement.GRAB_APPLE_END)
+                ArmMovement.grab_fruit(self.__arm, FruitHeight.LOW, False)
             case 11:
                 # 起始区到果仓一号放水果
                 self.__move.navigation(NavigationPath.B_MODULE_11)
 
-                self.__arm.control(ArmMovement.READY_PULL_GUO_CANG)
-                self.__arm.control(ArmMovement.PULL_GUO_CANG)
+                self.__arm.control(ArmMovement.READY_PULL_WAREHOUSE)
+                self.__arm.control(ArmMovement.PULL_WAREHOUSE)
                 self.__arm.control(ArmMovement.MOVING)
             case 12:
                 # 起始区到果园摘水果然后去果仓1号放水果
                 self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-                self.__arm.control(ArmMovement.READY_GRAB_APPLE)
-                self.__arm.control(ArmMovement.READY_GRAB_APPLE_TALL)
-                self.__arm.control(ArmMovement.GRAB_APPLE_TALL)
-                self.__arm.control(ArmMovement.GRAB_APPLE_END)
+                ArmMovement.grab_fruit(self.__arm, FruitHeight.TALL, False)
 
                 self.__move.navigation(NavigationPath.B_MODULE_12)
 
-                self.__arm.control(ArmMovement.READY_PULL_GUO_CANG)
-                self.__arm.control(ArmMovement.PULL_GUO_CANG)
+                self.__arm.control(ArmMovement.READY_PULL_WAREHOUSE)
+                self.__arm.control(ArmMovement.PULL_WAREHOUSE)
                 self.__arm.control(ArmMovement.MOVING)
             case 13:
                 # 起始区到果仓识别一个水果
@@ -131,7 +118,7 @@ class BModule(Node):
                 # 起始区到果园识别一个水果
                 self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-                self.__arm.control(ArmMovement.RECOGNITION_ORCHARD_RIGHT)
+                ArmMovement.recognition_orchard(self.__arm, Direction.RIGHT)
 
                 for _ in range(10):
                     print(self.__grab_fruit.vision())
@@ -140,7 +127,7 @@ class BModule(Node):
                 # 起始区到果园识别一个水果的高低
                 self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-                self.__arm.control(ArmMovement.RECOGNITION_ORCHARD_RIGHT)
+                ArmMovement.recognition_orchard(self.__arm, Direction.RIGHT)
 
                 for _ in range(10):
                     result = self.__grab_fruit.vision()
