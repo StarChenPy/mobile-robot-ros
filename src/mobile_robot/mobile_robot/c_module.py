@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
 
+from .popo.Direction import Direction
 from .popo.FruitHeight import FruitHeight
 from .controller.RobotController import RobotController
 from .param import NavigationPath
@@ -32,7 +33,8 @@ class CModule(Node):
         if s == "y":
             self._run_y()
         elif s == "w":
-            self._run_w()
+            task = {1: FruitType.RED_APPLE, 2: FruitType.YELLOW_APPLE}
+            self.__grub_fruit.grub_task(task)
 
         self.__robot.set_start_led(False)
 
@@ -48,7 +50,7 @@ class CModule(Node):
         self.__arm.control(ArmMovement.MOVING)
 
     def _run_y(self):
-        tasks = [
+        task = [
             (NavigationPath.START_TO_ORCHARD_1, NavigationPath.ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT),
             (NavigationPath.WAREHOUSE_TO_ORCHARD_2, NavigationPath.ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT),
             (NavigationPath.WAREHOUSE_TO_ORCHARD_3, NavigationPath.ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT),
@@ -56,7 +58,7 @@ class CModule(Node):
             (NavigationPath.WAREHOUSE_TO_ORCHARD_5, NavigationPath.ORCHARD_CORRIDOR_2_TO_WAREHOUSE_1_POINT),
         ]
 
-        for orchard, warehouse in tasks:
+        for orchard, warehouse in task:
             self.grab_and_store(orchard, warehouse)
         self.__move.navigation(NavigationPath.B_MODULE_4)
 
@@ -72,13 +74,13 @@ class CModule(Node):
         for index, warehouse in enumerate(task):
             for fruit in warehouse:
                 self.get_logger().info(f"[Module C] 前往1号走廊抓取 {fruit.name}.")
-                if self.__grub_fruit.patrol_the_line(NavigationPath.ORCHARD_CORRIDOR_EXIT_1_POINT, fruit):
+                if self.__grub_fruit.patrol_the_line(NavigationPath.ORCHARD_CORRIDOR_EXIT_1_POINT, fruit, Direction.RIGHT):
                     self.handle_fruit_grab(index)
                 else:
                     self.get_logger().info(f"[Module C] 未寻找到 {fruit.name}, 前往二号走廊寻找.")
                     self.__arm.control(ArmMovement.MOVING)
                     self.__move.navigation(NavigationPath.EXIT_1_TO_EXIT_2)
-                    if self.__grub_fruit.patrol_the_line(NavigationPath.ORCHARD_CORRIDOR_ENTER_2_POINT, fruit, True):
+                    if self.__grub_fruit.patrol_the_line(NavigationPath.ORCHARD_CORRIDOR_ENTER_2_POINT, fruit, Direction.LEFT):
                         self.__move.navigation([NavigationPath.ORCHARD_CORRIDOR_ENTER_2_POINT])
                         self.handle_fruit_grab(index)
                     else:
@@ -99,9 +101,9 @@ class CModule(Node):
         self.__move.navigation(NavigationPath.ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT)
 
         if index == 1:
-            self.__move.navigation(NavigationPath.WAREHOUSE_1_TO_WAREHOUSE_2)
+            self.__move.navigation([NavigationPath.WAREHOUSE_2_POINT])
         elif index == 2:
-            self.__move.navigation(NavigationPath.WAREHOUSE_1_TO_WAREHOUSE_3)
+            self.__move.navigation([NavigationPath.WAREHOUSE_3_POINT])
 
         self.__arm.control(ArmMovement.READY_PULL_WAREHOUSE)
         self.__arm.control(ArmMovement.PULL_WAREHOUSE)

@@ -1,6 +1,7 @@
 import math
 import time
 
+import numpy as np
 import rclpy
 import rclpy.qos
 
@@ -146,6 +147,16 @@ class LaserRadarDao:
             once_dis = self.get_distance_from_wall_once(direction)
             distance_list.append(once_dis)
             time.sleep(0.2)
+
+        # 方差过大，说明扫出墙壁，姑且取第一个点作为可信数据
+        var = np.var(distance_list)
+        if var > 0.3:
+            if direction == Direction.FRONT:
+                self.__logger.warning(f"方差 {var} 过大，取 {distance_list[2]}")
+                return distance_list[2]
+            else:
+                self.__logger.warning(f"方差 {var} 过大，取 {distance_list[0]}")
+                return distance_list[0]
 
         # 返回平均值
         return Math.average_without_extremes(distance_list)

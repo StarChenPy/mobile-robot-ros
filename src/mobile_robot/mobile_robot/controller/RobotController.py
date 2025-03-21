@@ -34,7 +34,6 @@ class RobotController:
     def with_start_button(self):
         self.__robot.start_button()
         self.__logger.info("[机器人] 开始按钮被按下")
-        self.set_start_led(True)
 
     def set_start_led(self, state: bool):
         self.__robot.start_led(state)

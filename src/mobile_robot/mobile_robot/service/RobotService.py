@@ -24,7 +24,6 @@ class RobotService:
         while self.__robot_data.get_robot_data().di[1]:
             rclpy.spin_once(self.__node)
             time.sleep(0.1)
-        self.__logger.info("[机器人] 开始按钮被按下")
         self.start_led(True)
 
     def start_led(self, state: bool):

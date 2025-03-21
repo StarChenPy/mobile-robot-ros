@@ -76,7 +76,7 @@ class MotionDao:
     def rotate(self, angle: float, speed: float):
         """基础运动: 旋转模式"""
         future = self.__call_service(MotionMode.ROTATE, angle, speed)
-        self.__logger.info(f'[MotionDao] 已请求旋转运动服务 角度 {angle} 速度 {speed}')
+        self.__logger.debug(f'[MotionDao] 已请求旋转运动服务 角度 {angle} 速度 {speed}')
 
         while rclpy.ok():
             rclpy.spin_once(self.__node)

@@ -18,12 +18,12 @@ class ArmService:
         self.__rotate_motor = RotateMotorDao(node)
         self.__robot_ctrl = RobotCtrlDao(node)
 
-    def control(self, movement: ArmMovement, speed, is_block=False):
+    def control(self, movement: ArmMovement, speed=45.0, is_block=True):
         self.__logger.debug(f"[机械臂] 机械臂控制 {movement}")
 
         if movement.motor is not None:
-            self.lift(movement.motor.lift, speed, is_block)
-            self.rotate(movement.motor.rotate, speed, is_block)
+            self.lift(movement.motor.lift, speed, False)
+            self.rotate(movement.motor.rotate, speed, False)
 
         if movement.servo is not None:
             self.nod_servo(movement.servo.nod)
@@ -31,8 +31,9 @@ class ArmService:
             self.gripper_servo(movement.servo.gripper)
             self.rotary_servo(movement.servo.rotary)
 
-        self.__lift_motor.wait_finish()
-        self.__rotate_motor.wait_finish()
+        if is_block:
+            self.__lift_motor.wait_finish()
+            self.__rotate_motor.wait_finish()
 
     def back_origin(self, speed=20):
         self.__logger.info(f"[机械臂] 回原点")
