@@ -28,22 +28,7 @@ def recognition_orchard(arm: ArmService, direction: Direction.LEFT or Direction.
     else:
         raise ValueError("不可用的Direction")
 
-    arm.control(ArmMovement(MotorMovement(arm_pos, 15), ServoMotor(0, -30, 3, 20)))
-    arm.control(ArmMovement(MotorMovement(arm_pos, 25), ServoMotor(0, -30, 3, 20)))
-
-
-def recognition_orchard_end(arm: ArmService, direction: Direction.LEFT or Direction.RIGHT):
-    """调整为识别姿态"""
-
-    if direction == Direction.LEFT:
-        arm_pos = 90
-    elif direction == Direction.RIGHT:
-        arm_pos = -90
-    else:
-        raise ValueError("不可用的Direction")
-
-    arm.control(ArmMovement(MotorMovement(arm_pos, 15), ServoMotor(0, -30, 3, 20)))
-    arm.control(ArmMovement(MotorMovement(0, 18), ServoMotor(0, 9, 3, 7)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 12), ServoMotor(0, -90, 15, 20)))
 
 
 def grab_fruit(arm: ArmService, height: FruitHeight, direction: Direction.LEFT or Direction.RIGHT):

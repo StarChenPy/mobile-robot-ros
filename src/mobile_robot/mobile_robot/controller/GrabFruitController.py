@@ -17,13 +17,16 @@ from ..util.Singleton import singleton
 
 
 def get_fruit_height(box: Rectangle) -> FruitHeight:
-    height = box.get_rectangle_center().y
+    area = box.get_area()
 
-    if height < 150:
+    if area > 25000:
+        # 28957.116839879658
         return FruitHeight.TALL
-    elif height < 240:
+    elif area > 11000:
+        # 14398.919244294986
         return FruitHeight.MIDDLE
     else:
+        # 9217.546026840864
         return FruitHeight.LOW
 
 
@@ -73,7 +76,7 @@ class GrabFruitController:
                     ArmMovement.recognition_orchard(self.__arm, Direction.RIGHT)
                     break
 
-        ArmMovement.recognition_orchard_end(self.__arm, Direction.RIGHT)
+        self.__arm.control(ArmMovement.MOVING, 45, False)
         self.__move.navigation(NavigationPath.EXIT_1_TO_EXIT_2, 0.4, True)
 
         # ----------------分割线----------------
@@ -108,7 +111,7 @@ class GrabFruitController:
                     ArmMovement.recognition_orchard(self.__arm, Direction.LEFT)
                     break
 
-        ArmMovement.recognition_orchard_end(self.__arm, Direction.LEFT)
+        self.__arm.control(ArmMovement.MOVING, 45, False)
 
         self.__move.navigation(NavigationPath.ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT, 0.4, True)
         if 1 in task:
@@ -120,7 +123,7 @@ class GrabFruitController:
             self.__move.navigation([NavigationPath.WAREHOUSE_CORRECTIVE_POINT, NavigationPath.WAREHOUSE_3_POINT], 0.4, True)
             ArmMovement.grab_basket_to_warehouse(self.__arm, 3)
 
-        self.__arm.control(ArmMovement.MOVING, 0.4, True)
+        self.__arm.control(ArmMovement.MOVING, 0.4, False)
         self.__move.navigation(NavigationPath.B_MODULE_4, 0.4, True)
 
     def patrol_the_line(self, target_point: NavigationPoint, target_fruit: FruitType, direction: Direction) -> bool:

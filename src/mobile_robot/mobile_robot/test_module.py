@@ -1,6 +1,8 @@
 import rclpy
 from rclpy.node import Node
 
+from .controller.GrabFruitController import GrabFruitController
+from .popo.Direction import Direction
 from .param import ArmMovement
 from .controller.RobotController import RobotController
 from .controller.MoveController import MoveController
@@ -14,14 +16,22 @@ class TestModule(Node):
         self.__arm = ArmController(self)
         self.__move = MoveController(self)
         self.__robot = RobotController(self)
+        self.__grab = GrabFruitController(self)
 
         self.__robot.with_robot_connect()
 
         input("按任意键开始游戏")
 
-        self.__arm.reset()
+        # self.__arm.reset()
 
-        ArmMovement.grab_basket_to_warehouse(self.__arm, 1)
+        ArmMovement.recognition_orchard(self.__arm, Direction.RIGHT)
+
+        for _ in range(3):
+            input("等待")
+            for i in self.__grab.vision():
+                print(i.box.get_area())
+
+        ArmMovement.recognition_orchard_end(self.__arm, Direction.RIGHT)
 
         self.destroy_node()
         rclpy.shutdown()
