@@ -8,7 +8,7 @@ from ..popo.ServoMotor import ServoMotor
 from ..service.ArmService import ArmService
 
 # 基础动作
-MOVING = ArmMovement(MotorMovement(0, 18), ServoMotor(0, 9, 3, 7))
+MOVING = ArmMovement(MotorMovement(0, 18), ServoMotor(0, 0, 3, 7))
 
 # 识别果仓中的水果动作
 RECOGNITION_WAREHOUSE = ArmMovement(MotorMovement(175, 15), ServoMotor(0, -90, 14, 20))
@@ -28,6 +28,7 @@ def recognition_orchard(arm: ArmService, direction: Direction.LEFT or Direction.
     else:
         raise ValueError("不可用的Direction")
 
+    arm.control(ArmMovement(MotorMovement(arm_pos, 12), ServoMotor(0, 0, 3, 7)))
     arm.control(ArmMovement(MotorMovement(arm_pos, 12), ServoMotor(0, -90, 15, 20)))
 
 
@@ -36,13 +37,13 @@ def grab_fruit(arm: ArmService, height: FruitHeight, direction: Direction.LEFT o
 
     if height == FruitHeight.TALL:
         arm_height = 25
-        servo_params = (0, 10)
+        servo_params = (0, 4)
     elif height == FruitHeight.MIDDLE:
-        arm_height = 26
-        servo_params = (-20, 12.5)
+        arm_height = 26.5
+        servo_params = (-20, 5)
     elif height == FruitHeight.LOW:
         arm_height = 28
-        servo_params = (-30, 15)
+        servo_params = (-40, 7)
     else:
         raise ValueError("未知的FruitHeight")
 
@@ -60,7 +61,7 @@ def grab_fruit(arm: ArmService, height: FruitHeight, direction: Direction.LEFT o
     arm.control(ArmMovement(MotorMovement(arm_pos, arm_height), ServoMotor(0, nod, telescopic, 23)))
     # 夹合
     arm.control(ArmMovement(MotorMovement(arm_pos, arm_height), ServoMotor(0, nod, telescopic, 7)))
-    time.sleep(0.5)
+    time.sleep(1)
     # 提起
     arm.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, nod, 3, 7)))
     # 结束
@@ -108,17 +109,22 @@ def grab_basket_to_warehouse(arm: ArmService, box_number: int) -> None:
 
     # 准备抓
     arm.control(ArmMovement(MotorMovement(0, 10), ServoMotor(0, 0, 3, 7)))
+    time.sleep(1)
     arm.control(ArmMovement(MotorMovement(arm_pos, 10), ServoMotor(rotary, nod, telescopic, 25)))
+    time.sleep(1)
     arm.control(ArmMovement(MotorMovement(arm_pos, 14.5), ServoMotor(rotary, nod, telescopic, 25)))
+    time.sleep(1)
     # 夹合
     arm.control(ArmMovement(MotorMovement(arm_pos, 14.5), ServoMotor(rotary, nod, telescopic, 20)))
+    time.sleep(1)
     # 提起
     arm.control(ArmMovement(MotorMovement(arm_pos, 10), ServoMotor(rotary, nod, telescopic, 20)))
     arm.control(ArmMovement(MotorMovement(arm_pos, 10), ServoMotor(0, 0, 5, 20)))
 
     # 放下（公共部分）
     arm.control(ArmMovement(MotorMovement(180, 5), ServoMotor(0, 0, 5, 20)))
-    arm.control(ArmMovement(MotorMovement(180, 20), ServoMotor(0, 0, 5, 25)), is_block=True)
-    time.sleep(1)
+    arm.control(ArmMovement(MotorMovement(180, 20), ServoMotor(0, 0, 5, 20)))
+    arm.control(ArmMovement(MotorMovement(180, 20), ServoMotor(0, 0, 5, 25)))
+    time.sleep(2)
     # 结束（公共部分）
     arm.control(ArmMovement(MotorMovement(0, 18), ServoMotor(0, 0, 3, 7)))

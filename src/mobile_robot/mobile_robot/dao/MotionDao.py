@@ -60,7 +60,7 @@ class MotionDao:
     def line(self, distance: float, speed: float):
         """基础运动: 直线模式"""
         future = self.__call_service(MotionMode.LINE, distance, speed)
-        self.__logger.info(f'[MotionDao] 已请求直线运动服务 距离 {distance} 速度 {speed}')
+        self.__logger.debug(f'[MotionDao] 已请求直线运动服务 距离 {distance} 速度 {speed}')
 
         while rclpy.ok():
             rclpy.spin_once(self.__node)

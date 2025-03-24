@@ -14,7 +14,7 @@ class ArmController:
 
         self.__arm = ArmService(node)
 
-    def control(self, movement: ArmMovement, speed=45.0, is_block=False):
+    def control(self, movement: ArmMovement, speed=45.0, is_block=True):
         self.__arm.control(movement, speed, is_block)
         time.sleep(0.5)
 

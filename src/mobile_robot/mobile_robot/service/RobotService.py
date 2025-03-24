@@ -17,8 +17,9 @@ class RobotService:
         self.__robot_ctrl = RobotCtrlDao(node)
 
     def with_robot_connect(self):
-        if self.__robot_data.get_robot_data() is not None:
-            return
+        while self.__robot_data.get_robot_data() is None:
+            time.sleep(0.5)
+        return
 
     def start_button(self):
         while self.__robot_data.get_robot_data().di[1]:

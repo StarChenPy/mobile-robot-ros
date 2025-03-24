@@ -58,7 +58,7 @@ class BModule(Node):
                 self.__move.rotate(361)
             case 3:
                 # 抓水果
-                ArmMovement.grab_fruit(self.__arm, FruitHeight.TALL, False)
+                ArmMovement.grab_fruit(self.__arm, FruitHeight.TALL, Direction.RIGHT)
             case 4:
                 # 果仓1到起始区
                 self.__move.init_pose(NavigationPoint(0.56, -1.12, 90))
@@ -77,17 +77,17 @@ class BModule(Node):
                 # 起始区到采摘1抓高水果
                 self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-                ArmMovement.grab_fruit(self.__arm, FruitHeight.TALL, False)
+                ArmMovement.grab_fruit(self.__arm, FruitHeight.TALL, Direction.RIGHT)
             case 9:
                 # 起始区到采摘1抓中水果
                 self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-                ArmMovement.grab_fruit(self.__arm, FruitHeight.MIDDLE, False)
+                ArmMovement.grab_fruit(self.__arm, FruitHeight.MIDDLE, Direction.RIGHT)
             case 10:
                 # 起始区到采摘1抓低水果
                 self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-                ArmMovement.grab_fruit(self.__arm, FruitHeight.LOW, False)
+                ArmMovement.grab_fruit(self.__arm, FruitHeight.LOW, Direction.RIGHT)
             case 11:
                 # 起始区到果仓一号放水果
                 self.__move.navigation(NavigationPath.B_MODULE_11)
@@ -99,7 +99,7 @@ class BModule(Node):
                 # 起始区到果园摘水果然后去果仓1号放水果
                 self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-                ArmMovement.grab_fruit(self.__arm, FruitHeight.TALL, False)
+                ArmMovement.grab_fruit(self.__arm, FruitHeight.TALL, Direction.RIGHT)
 
                 self.__move.navigation(NavigationPath.B_MODULE_12)
 

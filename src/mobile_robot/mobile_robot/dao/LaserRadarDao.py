@@ -150,7 +150,7 @@ class LaserRadarDao:
 
         # 方差过大，说明扫出墙壁，姑且取第一个点作为可信数据
         var = np.var(distance_list)
-        if var > 0.3:
+        if var > 0.2:
             if direction == Direction.FRONT:
                 self.__logger.warning(f"方差 {var} 过大，取 {distance_list[2]}")
                 return distance_list[2]

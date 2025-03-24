@@ -51,6 +51,7 @@ class SensorService:
         return self.__radar.get_radar_data(target_angle)
 
     def get_odom_data(self):
+        rclpy.spin_once(self.__node)
         return self.__robot_data.get_robot_data().odom
 
     def init_odom_all(self, point: NavigationPoint):
