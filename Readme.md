@@ -22,7 +22,7 @@
 
 ### Controller层
 
-在本项目，Controller层也可能会包含逻辑，主要是单段且可复用的动作
+在本项目，Controller层也会包含逻辑，主要是任务的执行
 
 ### Module层
 

@@ -8,7 +8,7 @@ import rclpy.qos
 from sensor_msgs.msg import LaserScan
 
 from ..popo.Direction import Direction
-from ..util.Math import Math
+from ..util import Math
 from ..util.Singleton import singleton
 
 

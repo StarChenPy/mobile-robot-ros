@@ -1,5 +1,3 @@
-import time
-
 import rclpy
 
 from ..dao.LaserRadarDao import LaserRadarDao
@@ -11,7 +9,7 @@ from ..dao.SensorDao import SensorDao
 from ..popo.CorrectivePoint import CorrectivePoint
 from ..popo.Direction import Direction
 from ..popo.NavigationPoint import NavigationPoint
-from ..util.Math import Math
+from ..util import Math
 from ..util.Singleton import singleton
 
 
@@ -35,7 +33,7 @@ class MoveService:
         if is_block:
             self.__navigation.wait_finish()
 
-    def navigation(self, nav_path: list[NavigationPoint], speed: float, is_block: bool):
+    def navigation(self, nav_path: list[NavigationPoint], speed = 0.4, is_block=True):
         """
         通过路径进行导航
         @param nav_path 路径列表

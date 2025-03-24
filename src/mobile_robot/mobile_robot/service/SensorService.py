@@ -1,5 +1,4 @@
 import time
-from typing import Tuple
 
 import rclpy
 

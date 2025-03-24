@@ -21,11 +21,11 @@ class RobotService:
             time.sleep(0.5)
         return
 
-    def start_button(self):
+    def with_start_button(self):
         while self.__robot_data.get_robot_data().di[1]:
             rclpy.spin_once(self.__node)
             time.sleep(0.1)
-        self.start_led(True)
+        self.set_start_led(True)
 
-    def start_led(self, state: bool):
+    def set_start_led(self, state: bool):
         self.__robot_ctrl.write_do(0, state)
