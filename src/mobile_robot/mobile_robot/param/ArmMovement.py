@@ -9,13 +9,14 @@ from ..service.ArmService import ArmService
 
 # 基础动作
 MOVING = ArmMovement(MotorMovement(0, 18), ServoMotor(0, 0, 3, 7))
+TEST = ArmMovement(servo=ServoMotor(0, 0, 3, 20))
 
 # 识别果仓中的水果动作
 RECOGNITION_WAREHOUSE = ArmMovement(MotorMovement(175, 15), ServoMotor(0, -90, 14, 20))
 
 # 放水果到果仓
 READY_PULL_WAREHOUSE = ArmMovement(MotorMovement(180, 10), ServoMotor(0, 0, 8, 7))
-PULL_WAREHOUSE = ArmMovement(MotorMovement(180, 10), ServoMotor(0, 0, 8, 10))
+PULL_WAREHOUSE = ArmMovement(MotorMovement(180, 10), ServoMotor(0, 0, 8, 16))
 
 
 def recognition_orchard(arm: ArmService, direction: Direction.LEFT or Direction.RIGHT):
@@ -109,9 +110,7 @@ def grab_basket_to_warehouse(arm: ArmService, box_number: int) -> None:
 
     # 准备抓
     arm.control(ArmMovement(MotorMovement(0, 10), ServoMotor(0, 0, 3, 7)))
-    time.sleep(1)
     arm.control(ArmMovement(MotorMovement(arm_pos, 10), ServoMotor(rotary, nod, telescopic, 25)))
-    time.sleep(1)
     arm.control(ArmMovement(MotorMovement(arm_pos, 14.5), ServoMotor(rotary, nod, telescopic, 25)))
     time.sleep(1)
     # 夹合

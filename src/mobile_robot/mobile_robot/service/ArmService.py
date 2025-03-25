@@ -57,6 +57,12 @@ class ArmService:
         if is_block:
             self.__lift_motor.wait_finish()
 
+    def disable_servo(self):
+        self.nod_servo(0, enable=False)
+        self.telescopic_servo(0, enable=False)
+        self.gripper_servo(0, enable=False)
+        self.rotary_servo(0, enable=False)
+
     def rotary_servo(self, angle: float, enable=True):
         """
         卡爪舵机 旋转

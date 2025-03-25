@@ -103,12 +103,13 @@ class MoveService:
 
         if angle_from_wall != 0:
             new_yaw = point.yaw - angle_from_wall
-            abs1 = abs(self.__robot_data.get_robot_data().odom.w - new_yaw)
+            odom_w = self.__robot_data.get_robot_data().odom.w
+            abs1 = abs(odom_w - new_yaw)
             # 陀螺仪不会歪那么多，角度超过10就是不可信的数据
-            if abs1 > 170:
-                self.__logger.warn("[MoveService] 矫正角度与陀螺仪误差超过170度, 可能是180度分界线.")
+            if abs1 > 300:
+                self.__logger.warn("[MoveService] 矫正角度与陀螺仪误差超过300度, 可能是180度分界线.")
             elif abs1 > 15:
-                self.__logger.warn(f"[MoveService] 矫正角度与陀螺仪误差超过15度，不可信数据。检测角度：{new_yaw}")
+                self.__logger.warn(f"[MoveService] 矫正角度与陀螺仪误差超过15度，不可信数据。陀螺仪角度: {odom_w}, 测量角度: {new_yaw}")
                 return
             self.__odom.init_yaw(new_yaw)
 
