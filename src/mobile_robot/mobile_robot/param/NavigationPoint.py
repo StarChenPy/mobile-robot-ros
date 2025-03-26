@@ -7,7 +7,7 @@ from ..popo.CorrectivePoint import CorrectivePoint
 START_CORRECTIVE_POINT = CorrectivePoint(1.15, -2.83, -90, [Corrective(Direction.BACK, 0.33)])
 WAREHOUSE_ENTER_0_CORRECTIVE_POINT = CorrectivePoint(0.42, -3.65, 0, [Corrective(Direction.BACK, 0.422), Corrective(Direction.RIGHT, 0.357)])
 ORCHARD_CORRIDOR_ENTER_1_CORRECTIVE_POINT = CorrectivePoint(2, -3.45, 90, [Corrective(Direction.BACK, 0.555), Corrective(Direction.LEFT, 0.49)])
-ORCHARD_CORRIDOR_EXIT_1_CORRECTIVE_POINT = CorrectivePoint(2, -0.42, 0, [Corrective(Direction.BACK, 0.49), Corrective(Direction.LEFT, 0.418)])
+ORCHARD_CORRIDOR_START_1_CORRECTIVE_POINT = CorrectivePoint(2, -0.42, 0, [Corrective(Direction.BACK, 0.49), Corrective(Direction.LEFT, 0.418)])
 WAREHOUSE_CORRECTIVE_POINT = CorrectivePoint(1.09, -0.36, 180, [Corrective(Direction.BACK, 0.40), Corrective(Direction.RIGHT, 0.36)])
 
 START_POINT = NavigationPoint(1.15, -2.83, -90)
@@ -25,9 +25,13 @@ WAREHOUSE_3_POINT = NavigationPoint(0.53, -0.38, 180)
 
 # 果园坐标
 ORCHARD_CORRIDOR_ENTER_1_POINT = NavigationPoint(2, -3.65, 90)
+ORCHARD_CORRIDOR_START_1_POINT = NavigationPoint(2, -3.45, 90)
+ORCHARD_CORRIDOR_END_1_POINT = NavigationPoint(2, -0.72, -90)
 ORCHARD_CORRIDOR_EXIT_1_POINT = NavigationPoint(2, -0.42, -90)
 
 ORCHARD_CORRIDOR_ENTER_2_POINT = NavigationPoint(2.82, -3.65, 90)
+ORCHARD_CORRIDOR_START_2_POINT = NavigationPoint(2.82, -3.45, 90)
+ORCHARD_CORRIDOR_END_2_POINT = NavigationPoint(2.82, -0.72, -90)
 ORCHARD_CORRIDOR_EXIT_2_POINT = NavigationPoint(2.82, -0.36, -90)
 
 # ORCHARD_CORRIDOR_ENTER_3_POINT = NavigationPoint(3.6, -3.65, 90)

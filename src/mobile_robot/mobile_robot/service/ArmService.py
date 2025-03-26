@@ -1,10 +1,17 @@
+import time
+
 import rclpy
 
+from ..dao.LaserRadarDao import LaserRadarDao
 from ..dao.LiftMotorDao import LiftMotorDao
 from ..dao.RobotCtrlDao import RobotCtrlDao
 from ..dao.RotateMotorDao import RotateMotorDao
+from ..popo.Direction import Direction
+from ..popo.FruitHeight import FruitHeight
+from ..popo.MotorMovement import MotorMovement
 from ..popo.Servo import Servo
 from ..popo.ArmMovement import ArmMovement
+from ..popo.ServoMotor import ServoMotor
 from ..util.Config import Config
 from ..util.Singleton import singleton
 
@@ -17,6 +24,48 @@ class ArmService:
         self.__lift_motor = LiftMotorDao(node)
         self.__rotate_motor = RotateMotorDao(node)
         self.__robot_ctrl = RobotCtrlDao(node)
+        self.__radar = LaserRadarDao(node)
+
+    def grab_fruit(self, height: FruitHeight, direction: Direction.LEFT or Direction.RIGHT):
+        """执行抓取动作"""
+        if height == FruitHeight.TALL:
+            arm_height = 25
+            nod = 0
+        elif height == FruitHeight.MIDDLE:
+            arm_height = 26.5
+            nod = -20
+        elif height == FruitHeight.LOW:
+            arm_height = 28
+            nod = -40
+        else:
+            raise ValueError("未知的FruitHeight")
+
+        default_distance_from_wall = 0.34
+        distance_from_wall = self.__radar.get_distance_from_wall(direction)
+
+        # 计算伸缩要伸出的距离
+        k = abs(nod) // 20
+        dis = (distance_from_wall - default_distance_from_wall) * 100
+        telescopic = (4 + k + (k * (k - 1)) // 2) + dis
+
+        angle_from_wall = self.__radar.get_angle_from_wall(direction)
+        if direction == Direction.LEFT:
+            arm_pos = 90 + angle_from_wall
+        elif direction == Direction.RIGHT:
+            arm_pos = -90 - angle_from_wall
+        else:
+            raise ValueError("不可用的Direction")
+
+        # 准备抓
+        self.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, nod, telescopic, 23)))
+        self.control(ArmMovement(MotorMovement(arm_pos, arm_height), ServoMotor(0, nod, telescopic, 23)))
+        # 夹合
+        self.control(ArmMovement(MotorMovement(arm_pos, arm_height), ServoMotor(0, nod, telescopic, 7)))
+        time.sleep(1)
+        # 提起
+        self.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, nod, 3, 7)))
+        # 结束
+        self.control(ArmMovement(MotorMovement(0, 18), ServoMotor(0, 0, 3, 7)))
 
     def control(self, movement: ArmMovement, speed=45.0, is_block=True):
         self.__logger.debug(f"[机械臂] 机械臂控制 {movement}")

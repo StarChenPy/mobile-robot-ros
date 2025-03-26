@@ -63,7 +63,7 @@ class BModuleController:
 
     def task3(self):
         # 抓水果
-        ArmMovement.grab_fruit(self.__arm, FruitHeight.TALL, Direction.RIGHT)
+        self.__arm.grab_fruit(FruitHeight.TALL, Direction.RIGHT)
 
     def task4(self):
         # 果仓1到起始区
@@ -87,19 +87,19 @@ class BModuleController:
         # 起始区到采摘1抓高水果
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-        ArmMovement.grab_fruit(self.__arm, FruitHeight.TALL, Direction.RIGHT)
+        self.__arm.grab_fruit(FruitHeight.TALL, Direction.RIGHT)
 
     def task9(self):
         # 起始区到采摘1抓中水果
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-        ArmMovement.grab_fruit(self.__arm, FruitHeight.MIDDLE, Direction.RIGHT)
+        self.__arm.grab_fruit(FruitHeight.MIDDLE, Direction.RIGHT)
 
     def task10(self):
         # 起始区到采摘1抓低水果
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-        ArmMovement.grab_fruit(self.__arm, FruitHeight.LOW, Direction.RIGHT)
+        self.__arm.grab_fruit(FruitHeight.LOW, Direction.RIGHT)
 
     def task11(self):
         # 起始区到果仓一号放水果
@@ -113,7 +113,7 @@ class BModuleController:
         # 起始区到果园摘水果然后去果仓1号放水果
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-        ArmMovement.grab_fruit(self.__arm, FruitHeight.TALL, Direction.RIGHT)
+        self.__arm.grab_fruit(FruitHeight.TALL, Direction.RIGHT)
 
         self.__move.navigation(NavigationPath.B_MODULE_12)
 

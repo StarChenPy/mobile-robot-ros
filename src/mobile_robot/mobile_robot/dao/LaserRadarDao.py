@@ -12,6 +12,9 @@ from ..util import Math
 from ..util.Singleton import singleton
 
 
+RADAR_ERROR = 2.4
+
+
 @singleton
 class LaserRadarDao:
     def __init__(self, node: rclpy.node.Node):
@@ -65,7 +68,6 @@ class LaserRadarDao:
             return 0, 0
 
         best_angle = angle_min + best_index * angle_increment
-        self.__logger.debug(f"[LaserRadarDao] 距离 {best_range} 米，对应 {math.degrees(best_angle)} 度")
         return best_range, math.degrees(best_angle)
 
     def __get_radar_points(self, direction: Direction) -> list[tuple[float, float]]:
@@ -97,11 +99,15 @@ class LaserRadarDao:
             else:
                 angle -= 90
 
+        if abs(angle) > 30:
+            self.__logger.warning(f"[LaserRadarDao] 异常角度{angle}, 不可信")
+            return 0
+
         return angle
 
     def get_angle_from_wall(self, direction: Direction) -> float:
         if direction == Direction.BACK:
-            self.__logger.error("[SensorService] 无法获取角度: 不支持的方向")
+            self.__logger.error("[LaserRadarDao] 无法获取角度: 不支持的方向")
             return 0
 
         angle_list = []
@@ -111,7 +117,9 @@ class LaserRadarDao:
             angle_list.append(once_angle)
             time.sleep(0.2)
 
-        return Math.average_without_extremes(angle_list) - 2.4
+        self.__logger.debug(f"[LaserRadarDao] 扫描到的雷达角度为 {angle_list}")
+
+        return Math.average_without_extremes(angle_list) - RADAR_ERROR
 
     def get_distance_from_wall_once(self, direction: Direction) -> float:
         # 返回距离雷达扫描的5个坐标拟合成的直线的垂直距离
@@ -124,7 +132,7 @@ class LaserRadarDao:
         else:
             # 补偿因倾斜导致的雷达与墙和机器人中心与墙的距离不一致的问题
             angle_from_wall = self.get_angle_from_wall_once(direction)
-            side = Math.calculate_dui_side(0.225, abs(angle_from_wall))
+            side = Math.calculate_right_angle_side(0.225, abs(angle_from_wall))
 
             if direction == Direction.LEFT:
                 side = -side
@@ -150,13 +158,15 @@ class LaserRadarDao:
 
         # 方差过大，说明扫出墙壁，姑且取第一个点作为可信数据
         var = np.var(distance_list)
-        if var > 0.2:
+        if var > 0.1:
             if direction == Direction.FRONT:
-                self.__logger.warning(f"方差 {var} 过大，取 {distance_list[2]}")
+                self.__logger.warning(f"[LaserRadarDao] {distance_list} 方差 {var} 过大，取 {distance_list[2]}")
                 return distance_list[2]
             else:
-                self.__logger.warning(f"方差 {var} 过大，取 {distance_list[0]}")
+                self.__logger.warning(f"[LaserRadarDao] {distance_list} 方差 {var} 过大，取 {distance_list[0]}")
                 return distance_list[0]
+
+        self.__logger.info(f"[LaserRadarDao] 扫描到的雷达距离为 {distance_list}")
 
         # 返回平均值
         return Math.average_without_extremes(distance_list)

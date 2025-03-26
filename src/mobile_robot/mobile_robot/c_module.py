@@ -1,4 +1,5 @@
 import rclpy
+from rclpy.impl.logging_severity import LoggingSeverity
 from rclpy.node import Node
 
 from .controller.RobotController import RobotController
@@ -10,6 +11,8 @@ from .controller.CModuleController import CModuleController
 class CModule(Node):
     def __init__(self):
         super().__init__("c_module")
+
+        self.get_logger().set_level(LoggingSeverity.INFO)
 
         self.__grub_fruit = CModuleController(self)
         self.__robot = RobotController(self)

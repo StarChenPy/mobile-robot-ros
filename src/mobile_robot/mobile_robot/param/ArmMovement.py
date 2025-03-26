@@ -2,7 +2,6 @@ import time
 
 from ..popo.ArmMovement import ArmMovement
 from ..popo.Direction import Direction
-from ..popo.FruitHeight import FruitHeight
 from ..popo.MotorMovement import MotorMovement
 from ..popo.ServoMotor import ServoMotor
 from ..service.ArmService import ArmService
@@ -31,42 +30,6 @@ def recognition_orchard(arm: ArmService, direction: Direction.LEFT or Direction.
 
     arm.control(ArmMovement(MotorMovement(arm_pos, 12), ServoMotor(0, 0, 3, 7)))
     arm.control(ArmMovement(MotorMovement(arm_pos, 12), ServoMotor(0, -90, 15, 20)))
-
-
-def grab_fruit(arm: ArmService, height: FruitHeight, direction: Direction.LEFT or Direction.RIGHT):
-    """执行抓取动作"""
-
-    if height == FruitHeight.TALL:
-        arm_height = 25
-        servo_params = (0, 4)
-    elif height == FruitHeight.MIDDLE:
-        arm_height = 26.5
-        servo_params = (-20, 5)
-    elif height == FruitHeight.LOW:
-        arm_height = 28
-        servo_params = (-40, 7)
-    else:
-        raise ValueError("未知的FruitHeight")
-
-    if direction == Direction.LEFT:
-        arm_pos = 90
-    elif direction == Direction.RIGHT:
-        arm_pos = -90
-    else:
-        raise ValueError("不可用的Direction")
-
-    nod, telescopic = servo_params
-
-    # 准备抓
-    arm.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, nod, telescopic, 23)))
-    arm.control(ArmMovement(MotorMovement(arm_pos, arm_height), ServoMotor(0, nod, telescopic, 23)))
-    # 夹合
-    arm.control(ArmMovement(MotorMovement(arm_pos, arm_height), ServoMotor(0, nod, telescopic, 7)))
-    time.sleep(1)
-    # 提起
-    arm.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, nod, 3, 7)))
-    # 结束
-    arm.control(ArmMovement(MotorMovement(0, 18), ServoMotor(0, 0, 3, 7)))
 
 
 def put_fruit_into_basket(arm: ArmService, box_number: int) -> None:

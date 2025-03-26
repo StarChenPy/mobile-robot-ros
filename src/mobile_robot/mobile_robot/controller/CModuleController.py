@@ -59,7 +59,7 @@ class CModuleController:
                 if r.box.get_area() < 5000:
                     self.__logger.warn(f"[GrabFruitController] 识别对象面积 {r.box.get_area()} 过小，跳过")
                     continue
-                if 140 > r.box.get_rectangle_center().x > 500:
+                if 160 > r.box.get_rectangle_center().x > 480:
                     self.__logger.warn(f"[GrabFruitController] 识别对象中心点 {r.box.get_rectangle_center().x} 位于边缘，跳过")
                     continue
                 result = r
@@ -69,9 +69,9 @@ class CModuleController:
             for key in task:
                 if task[key] == FruitType.get_by_value(result.classId):
                     center = result.box.get_rectangle_center()
-                    travel_distance = (320 - center.x) / 1400
+                    travel_distance = (0.43 * (320 - center.x)) / 554
                     self.__move.line(travel_distance if direction == Direction.RIGHT else -travel_distance)
-                    ArmMovement.grab_fruit(self.__arm, Util.get_fruit_height(result.box), direction)
+                    self.__arm.grab_fruit(Util.get_fruit_height(result.box), direction)
                     ArmMovement.put_fruit_into_basket(self.__arm, key)
                     ArmMovement.recognition_orchard(self.__arm, direction)
                     break
@@ -82,18 +82,17 @@ class CModuleController:
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_ENTER_1, 0.4, True)
         self.__move.navigation([NavigationPath.ORCHARD_CORRIDOR_ENTER_1_CORRECTIVE_POINT], 0.2, True)
 
-        self.patrol_the_line(task, NavigationPath.ORCHARD_CORRIDOR_EXIT_1_POINT, Direction.RIGHT, (0.5, 2))
+        self.patrol_the_line(task, NavigationPath.ORCHARD_CORRIDOR_END_1_POINT, Direction.RIGHT, (0.5, 2))
 
         # ----------------去2号走廊的分割线----------------
 
         self.__move.navigation(NavigationPath.EXIT_1_TO_EXIT_2, 0.4, True)
-        self.__move.navigation([NavigationPath.ORCHARD_CORRIDOR_EXIT_2_POINT], 0.2, True)
 
         # ----------------去2号走廊的分割线----------------
 
-        self.patrol_the_line(task, NavigationPath.ORCHARD_CORRIDOR_ENTER_2_POINT, Direction.LEFT, (0.48, 2.82))
+        self.patrol_the_line(task, NavigationPath.ORCHARD_CORRIDOR_START_2_POINT, Direction.LEFT, (0.48, 2.82))
 
-        self.__move.navigation(NavigationPath.ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT, 0.4, True)
+        self.__move.navigation(NavigationPath.ORCHARD_CORRIDOR_2_TO_WAREHOUSE_1_POINT, 0.4, True)
         if 1 in task:
             ArmMovement.grab_basket_to_warehouse(self.__arm, 1)
         if 2 in task:
@@ -110,7 +109,7 @@ class CModuleController:
         def grab_and_store(orchard_path, warehouse_path):
             """通用的抓取水果并存储的函数"""
             self.__move.navigation(orchard_path, 0.4, True)
-            ArmMovement.grab_fruit(self.__arm, FruitHeight.TALL, Direction.RIGHT)
+            self.__arm.grab_fruit(FruitHeight.TALL, Direction.RIGHT)
             self.__move.navigation(warehouse_path, 0.4, True)
             self.__arm.control(ArmMovement.READY_PULL_WAREHOUSE)
             self.__arm.control(ArmMovement.PULL_WAREHOUSE)
