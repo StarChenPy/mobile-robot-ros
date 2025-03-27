@@ -71,7 +71,7 @@ class CModuleController:
                     center = result.box.get_rectangle_center()
                     travel_distance = (0.43 * (320 - center.x)) / 554
                     self.__move.line(travel_distance if direction == Direction.RIGHT else -travel_distance)
-                    self.__arm.grab_fruit(Util.get_fruit_height(result.box), direction)
+                    self.__arm.grab_fruit(Util.get_fruit_height(result), direction)
                     ArmMovement.put_fruit_into_basket(self.__arm, key)
                     ArmMovement.recognition_orchard(self.__arm, direction)
                     break

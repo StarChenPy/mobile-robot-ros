@@ -17,7 +17,7 @@ class TestModule(Node):
 
         self.__robot.with_robot_connect()
 
-        # self.__robot.reset_arm()
+        self.__robot.reset_arm()
 
         self.__test.run()
 

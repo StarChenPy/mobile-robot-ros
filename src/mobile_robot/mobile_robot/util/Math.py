@@ -5,21 +5,18 @@ import numpy as np
 from ..popo.NavigationPoint import NavigationPoint
 
 
-def calculate_adjacent_side(hypotenuse, angle_degrees):
+def calculate_adjacent_side(hypotenuse: float, angle_degrees: float) -> float:
     """
-    根据斜边长度和与斜边形成的角度计算邻边的长度。
+    根据直角三角形斜边长度和斜边与邻边的夹角角度，计算邻边长度
 
-    参数：
-        hypotenuse (float): 斜边的长度（必须为正数）
-        angle_degrees (float): 斜边与邻边的夹角（度数，范围0°到90°）
-
-    返回：
-        float: 邻边的长度
+    @param hypotenuse: 直角三角形的斜边长度（必须为正数）
+    @param angle_degrees: 斜边与邻边的夹角角度（单位：度，范围 0° < angle < 90°）
+    @return float: 与输入角度相邻的直角边长度
     """
-    # 将角度转换为弧度，因为math.cos函数使用弧度作为输入
+
+    # 将角度从度数转换为弧度，因为math模块的三角函数使用弧度制
     angle_radians = math.radians(angle_degrees)
-
-    # 使用余弦函数计算邻边长度：邻边 = 斜边 * cos(角度)
+    # 使用余弦函数计算邻边长度：邻边 = 斜边 × cos(θ)
     adjacent = hypotenuse * math.cos(angle_radians)
 
     return adjacent
@@ -29,13 +26,11 @@ def calculate_right_angle_side(adjacent_length, angle_degrees):
     """
     根据直角边长度和与斜边形成的角度计算另一直角边的长度。
 
-    参数：
-        adjacent_length (float): 直角边的长度（必须为正数）
-        angle_degrees (float): 斜边与直角边的夹角（度数，范围0°到90°）
-
-    返回：
-        float: 对边的长度
+    @param adjacent_length: 直角边的长度（必须为正数）
+    @param angle_degrees: 斜边与直角边的夹角（度数，范围0°到90°）
+    @return float: 对边的长度
     """
+
     # 将角度转换为弧度
     angle_radians = math.radians(angle_degrees)
     # 计算另一条直角边（对边）的长度
@@ -48,13 +43,9 @@ def get_target_coordinate(point: NavigationPoint, dis) -> NavigationPoint:
     根据输入的坐标 (x, y) 和角度 yaw（单位：度），以及前进距离 dis，
     计算沿着 yaw 方向前进 dis 距离后得到的新坐标 (new_x, new_y)
 
-    参数：
-        x, y      : 原始坐标
-        yaw_deg   : 朝向角度（单位：度）
-        dis       : 前进距离
-
-    返回：
-        new_x, new_y : 新的坐标
+    @param point: 坐标点
+    @param dis: 前进距离
+    @return NavigationPoint: 新的坐标
     """
     # 将角度转换为弧度
     yaw_rad = math.radians(point.yaw)
@@ -71,10 +62,8 @@ def fit_polar_line_and_get_distance(polar_points: list[tuple[float, float]]):
     给定一组极坐标点 (r, theta)，其中 theta 的单位为度，
     拟合出一条直线，并计算原点 (0,0) 到该直线的垂直距离。
 
-    参数：
-        polar_points: list of tuples，每个元组为 (r, theta)，其中 theta 单位为度。
-
-    返回：原点 (0,0) 到直线的垂直距离
+    @param polar_points: list of tuples，每个元组为 (r, theta)，其中 theta 单位为度。
+    @return: 原点 (0,0) 到直线的垂直距离
     """
     # 将极坐标转换为直角坐标（输入角度转换为弧度）
     x = np.array([r * np.cos(np.radians(theta)) for r, theta in polar_points])
@@ -93,10 +82,8 @@ def fit_polar_line_and_get_angle(polar_points: list[tuple[float, float]]) -> flo
     给定一组极坐标点 (r, theta)，其中 theta 的单位为度，
     拟合出一条直线，并计算直线相对于极坐标0度的角度。
 
-    参数：
-        polar_points: list of tuples，每个元组为 (r, theta)，其中 theta 单位为度。
-
-    返回：直线相对于极坐标0度的角度
+    @param polar_points: list of tuples，每个元组为 (r, theta)，其中 theta 单位为度。
+    @return: 直线相对于极坐标0度的角度
     """
 
     # 将极坐标转换为直角坐标（输入角度转换为弧度）
@@ -115,10 +102,10 @@ def is_behind(point1: NavigationPoint, point2: NavigationPoint, angle_threshold:
     """
     判断 B 是否在 A 的后方
 
-    :param point1: NavigationPoint，包含坐标 (x, y) 和朝向角 yaw（单位：度）
-    :param point2: NavigationPoint，包含坐标 (x, y) 和朝向角 yaw（可以忽略）
-    :param angle_threshold: 判断阈值
-    :return: True 如果 B 在 A 的后面，否则 False
+    @param point1: NavigationPoint，包含坐标 (x, y) 和朝向角 yaw（单位：度）
+    @param point2: NavigationPoint，包含坐标 (x, y) 和朝向角 yaw（可以忽略）
+    @param angle_threshold: 判断阈值
+    @return: True 如果 B 在 A 的后面，否则 False
     """
     dx = point2.x - point1.x
     dy = point2.y - point1.y
@@ -143,9 +130,10 @@ def is_behind(point1: NavigationPoint, point2: NavigationPoint, angle_threshold:
     return abs(delta) <= angle_threshold
 
 
-def point_to_point(point1: NavigationPoint, point2: NavigationPoint, dis: float):
+def point_to_point(point1: NavigationPoint, point2: NavigationPoint, dis: float) -> list[NavigationPoint]:
     """
     给定点1和点2，根据给定的距离分割路径
+
     @param point1 路径点1
     @param point2 路径点2
     @param dis 步进距离
@@ -158,7 +146,7 @@ def point_to_point(point1: NavigationPoint, point2: NavigationPoint, dis: float)
     L = math.hypot(dx, dy)  # 计算两点之间的距离
 
     if L == 0:
-        return point1  # 两点重合，返回起点
+        return [point1]  # 两点重合，返回起点
 
     step_count = math.floor(L / dis)  # 计算最大步数
     points = []

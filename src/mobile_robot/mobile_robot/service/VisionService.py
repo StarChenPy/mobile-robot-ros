@@ -36,5 +36,8 @@ class VisionService:
             point = r.box.get_rectangle_center()
             distance = depth[int(point.y), int(point.x)] / 1000
             # 0.171875 为每像素所对应度角度
-            r.distance = Math.calculate_adjacent_side(distance, abs(point.x - 320) * 0.171875)
+            print(distance)
+            print(abs(point.x - 320) * 0.171875)
+            print(Math.calculate_adjacent_side(distance.item(), abs(point.x - 320) * 0.171875))
+            r.distance = Math.calculate_adjacent_side(distance.item(), abs(point.x - 320) * 0.171875)
         return result
