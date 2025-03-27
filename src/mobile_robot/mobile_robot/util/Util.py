@@ -1,13 +1,14 @@
 from ..popo.FruitHeight import FruitHeight
-from ..popo.Rectangle import Rectangle
+from ..popo.IdentifyResult import IdentifyResult
 
 
-def get_fruit_height(box: Rectangle) -> FruitHeight:
-    area = box.get_area()
-
-    if area > 18000:
+def get_fruit_height(data: IdentifyResult) -> FruitHeight:
+    # 32000-33000
+    if data.distance < 0.3:
         return FruitHeight.TALL
-    elif area > 13000:
+    # 15000-16000
+    elif data.distance < 0.44:
         return FruitHeight.MIDDLE
+    # 9000-10000
     else:
         return FruitHeight.LOW

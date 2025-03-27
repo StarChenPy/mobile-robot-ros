@@ -42,6 +42,7 @@ def calculate_right_angle_side(adjacent_length, angle_degrees):
     opposite_length = adjacent_length * math.tan(angle_radians)
     return opposite_length
 
+
 def get_target_coordinate(point: NavigationPoint, dis) -> NavigationPoint:
     """
     根据输入的坐标 (x, y) 和角度 yaw（单位：度），以及前进距离 dis，
@@ -64,6 +65,7 @@ def get_target_coordinate(point: NavigationPoint, dis) -> NavigationPoint:
 
     return NavigationPoint(new_x, new_y, point.yaw)
 
+
 def fit_polar_line_and_get_distance(polar_points: list[tuple[float, float]]):
     """
     给定一组极坐标点 (r, theta)，其中 theta 的单位为度，
@@ -83,7 +85,8 @@ def fit_polar_line_and_get_distance(polar_points: list[tuple[float, float]]):
     a, b = np.linalg.lstsq(A, y, rcond=None)[0]
 
     # 计算原点 (0,0) 到直线的垂直距离：d = |b| / sqrt(a^2 + 1) 并返回
-    return np.abs(b) / np.sqrt(a**2 + 1)
+    return np.abs(b) / np.sqrt(a ** 2 + 1)
+
 
 def fit_polar_line_and_get_angle(polar_points: list[tuple[float, float]]) -> float:
     """
@@ -106,6 +109,7 @@ def fit_polar_line_and_get_angle(polar_points: list[tuple[float, float]]) -> flo
 
     # 计算直线与x轴正方向的夹角，然后转换为角度并返回
     return np.degrees(np.arctan(a))
+
 
 def is_behind(point1: NavigationPoint, point2: NavigationPoint, angle_threshold: float) -> bool:
     """
@@ -137,6 +141,7 @@ def is_behind(point1: NavigationPoint, point2: NavigationPoint, angle_threshold:
     delta = (delta + 180) % 360 - 180
 
     return abs(delta) <= angle_threshold
+
 
 def point_to_point(point1: NavigationPoint, point2: NavigationPoint, dis: float):
     """
@@ -171,6 +176,7 @@ def point_to_point(point1: NavigationPoint, point2: NavigationPoint, dis: float)
 
     return points
 
+
 def average_without_extremes(lst: list[float]) -> float:
     """
     去掉一个最高值和一个最低值，返回剩下数的平均值
@@ -180,6 +186,7 @@ def average_without_extremes(lst: list[float]) -> float:
     sorted_lst = sorted(lst)
     trimmed = sorted_lst[1:-1]
     return sum(trimmed) / len(trimmed)
+
 
 def distance_from_origin(x1, y1, x2, y2):
     """

@@ -28,8 +28,8 @@ def recognition_orchard(arm: ArmService, direction: Direction.LEFT or Direction.
     else:
         raise ValueError("不可用的Direction")
 
-    arm.control(ArmMovement(MotorMovement(arm_pos, 12), ServoMotor(0, 0, 3, 7)))
-    arm.control(ArmMovement(MotorMovement(arm_pos, 12), ServoMotor(0, -90, 15, 20)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 2), ServoMotor(0, 0, 3, 7)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 2), ServoMotor(0, -90, 15, 20)))
 
 
 def put_fruit_into_basket(arm: ArmService, box_number: int) -> None:

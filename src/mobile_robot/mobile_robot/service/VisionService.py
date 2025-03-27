@@ -4,6 +4,7 @@ import rclpy
 from ..dao.CameraDao import CameraDao
 from ..dao.MnnDao import MnnDao
 from ..popo.IdentifyResult import IdentifyResult
+from ..util import Math
 from ..util.Singleton import singleton
 from ..util.Onnx import infer_onnx_model
 
@@ -29,6 +30,11 @@ class VisionService:
         return result
 
     def get_onnx_identify_result(self) -> list[IdentifyResult]:
-        photo = self.__camera.photograph_color(False)
-        return infer_onnx_model(self.__weight_path, photo)
-
+        photo, depth = self.__camera.photograph_all(False)
+        result = infer_onnx_model(self.__weight_path, photo)
+        for r in result:
+            point = r.box.get_rectangle_center()
+            distance = depth[int(point.y), int(point.x)] / 1000
+            # 0.171875 为每像素所对应度角度
+            r.distance = Math.calculate_adjacent_side(distance, abs(point.x - 320) * 0.171875)
+        return result

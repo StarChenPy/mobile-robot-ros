@@ -14,7 +14,6 @@ class RobotController:
 
         self.__robot = RobotService(node)
         self.__arm = ArmService(node)
-        self.__sensor = SensorService()
 
     def with_robot_connect(self):
         self.__logger.info("[机器人] 正在链接")
