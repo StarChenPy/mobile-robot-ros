@@ -7,6 +7,7 @@ from ..util.Singleton import singleton
 @singleton
 class RobotCtrlDao(object):
     def __init__(self, node: rclpy.node.Node):
+        self.__node = node
         self.__logger = node.get_logger()
 
         self.__topic = node.create_publisher(
@@ -62,3 +63,6 @@ class RobotCtrlDao(object):
             case 4:
                 self.__robot_ctrl.pwm4 = duty
         self.__topic.publish(self.__robot_ctrl)
+        self.__topic.publish(self.__robot_ctrl)
+        self.__topic.publish(self.__robot_ctrl)
+        rclpy.spin_once(self.__node)

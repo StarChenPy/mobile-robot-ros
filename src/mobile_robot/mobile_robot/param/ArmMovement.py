@@ -14,8 +14,8 @@ TEST = ArmMovement(MotorMovement(0, 10))
 RECOGNITION_WAREHOUSE = ArmMovement(MotorMovement(175, 15), ServoMotor(0, -90, 14, 20))
 
 # 放水果到果仓
-READY_PULL_WAREHOUSE = ArmMovement(MotorMovement(180, 10), ServoMotor(0, 0, 8, 6.5))
-PULL_WAREHOUSE = ArmMovement(MotorMovement(180, 10), ServoMotor(0, 0, 8, 16))
+READY_PULL_WAREHOUSE = ArmMovement(MotorMovement(180, 16), ServoMotor(0, 0, 8, 6.5))
+PULL_WAREHOUSE = ArmMovement(servo=ServoMotor(0, 0, 8, 16))
 
 
 def recognition_orchard(arm: ArmService, direction: Direction.LEFT or Direction.RIGHT):
@@ -31,6 +31,7 @@ def recognition_orchard(arm: ArmService, direction: Direction.LEFT or Direction.
     arm.control(ArmMovement(MotorMovement(arm_pos, 6), ServoMotor(0, 0, 3, 6.5)))
     arm.control(ArmMovement(MotorMovement(arm_pos, 6), ServoMotor(0, -90, 15, 20)))
     arm.control(ArmMovement(MotorMovement(arm_pos, 6), ServoMotor(0, -90, 15, 20)))
+    time.sleep(2)
 
 
 def put_fruit_into_basket(arm: ArmService, box_number: int) -> None:
@@ -75,10 +76,11 @@ def grab_basket_to_warehouse(arm: ArmService, box_number: int) -> None:
     # 准备抓
     arm.control(ArmMovement(MotorMovement(0, 10), ServoMotor(0, 0, 3, 6.5)))
     arm.control(ArmMovement(MotorMovement(arm_pos, 10), ServoMotor(rotary, nod, telescopic, 25)))
-    arm.control(ArmMovement(MotorMovement(arm_pos, 15.5), ServoMotor(rotary, nod, telescopic, 25)))
+    time.sleep(1)
+    arm.control(ArmMovement(MotorMovement(arm_pos, 16), ServoMotor(rotary, nod, telescopic, 25)))
     time.sleep(1)
     # 夹合
-    arm.control(ArmMovement(MotorMovement(arm_pos, 15.5), ServoMotor(rotary, nod, telescopic, 19.5)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 16), ServoMotor(rotary, nod, telescopic, 19.5)))
     time.sleep(1)
     # 提起
     arm.control(ArmMovement(MotorMovement(arm_pos, 10), ServoMotor(rotary, nod, telescopic, 19.5)))

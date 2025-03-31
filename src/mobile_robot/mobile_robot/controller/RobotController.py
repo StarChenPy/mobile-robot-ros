@@ -15,13 +15,13 @@ class RobotController:
         self.__arm = ArmService(node)
 
     def with_robot_connect(self):
-        self.__logger.info("[机器人] 正在链接")
+        self.__logger.info("[RobotController] 正在链接")
         self.__robot.with_robot_connect()
-        self.__logger.info("[机器人] 链接成功")
+        self.__logger.info("[RobotController] 链接成功")
 
     def with_start_button(self):
         self.__robot.with_start_button()
-        self.__logger.info("[机器人] 开始按钮被按下")
+        self.__logger.info("[RobotController] 开始按钮被按下")
 
     def set_start_led(self, state: bool):
         self.__robot.set_start_led(state)

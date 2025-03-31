@@ -32,7 +32,7 @@ class ArmService:
             nod = -40
             height -= 10
         elif height >= 29:
-            telescopic = 6
+            telescopic = 5.5
             nod = -20
             height -= 5
         else:
@@ -42,9 +42,11 @@ class ArmService:
         # 计算伸缩要伸出的距离
         default_distance_from_wall = 0.34
         distance_from_wall = self.__radar.get_distance_from_wall(direction)
-        if distance_from_wall and distance_from_wall < 0.4:
+        if distance_from_wall and 0.4 > distance_from_wall > 0.1:
             dis = (distance_from_wall - default_distance_from_wall) * 100
             telescopic += dis
+
+        self.__logger.info(f"[ArmService] 伸缩距离计算为 {telescopic}")
 
         # 计算要旋转的角度
         angle_from_wall = self.__radar.get_angle_from_wall(direction)
@@ -54,6 +56,8 @@ class ArmService:
             arm_pos = -90 + angle_from_wall
         else:
             raise ValueError("不可用的Direction")
+
+        self.__logger.info(f"[ArmService] 旋转角度计算为 {arm_pos}")
 
         # 准备抓
         self.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, nod, telescopic, 23)))
@@ -117,12 +121,14 @@ class ArmService:
         原 gripper_rz
         """
         self.__ctrl_servo(Servo.ROTARY, angle, enable)
+        self.__ctrl_servo(Servo.ROTARY, angle, enable)
 
     def nod_servo(self, angle: float, enable=True):
         """
         卡爪舵机 点头(角度)
         原 gripper_ry
         """
+        self.__ctrl_servo(Servo.NOD, angle, enable)
         self.__ctrl_servo(Servo.NOD, angle, enable)
 
     def telescopic_servo(self, distance: float, enable=True):
@@ -131,12 +137,14 @@ class ArmService:
         原 telescopic
         """
         self.__ctrl_servo(Servo.TELESCOPIC, distance, enable)
+        self.__ctrl_servo(Servo.TELESCOPIC, distance, enable)
 
     def gripper_servo(self, distance: float, enable=True):
         """
         卡爪舵机 夹合 ( cm )
         原 gripper
         """
+        self.__ctrl_servo(Servo.GRIPPER, distance, enable)
         self.__ctrl_servo(Servo.GRIPPER, distance, enable)
 
     def __ctrl_servo(self, servo: Servo, value: float, enable: bool):
@@ -208,4 +216,6 @@ class ArmService:
                 coeff = (config["deg90_duty"] - config["zero_duty"]) / 90.0
                 duty = config["zero_duty"] + value * coeff
 
+        self.__robot_ctrl.write_pwm(pin, duty)
+        self.__robot_ctrl.write_pwm(pin, duty)
         self.__robot_ctrl.write_pwm(pin, duty)

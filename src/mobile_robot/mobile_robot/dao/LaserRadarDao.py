@@ -156,7 +156,7 @@ class LaserRadarDao:
             distance_list.append(once_dis)
             time.sleep(0.2)
 
-        # 方差过大，说明扫出墙壁，姑且取第一个点作为可信数据
+        # 方差过大，说明扫出墙壁
         var = np.var(distance_list)
         if var > 0.1:
             self.__logger.warning(f"[LaserRadarDao] {distance_list} 方差 {var} 过大")

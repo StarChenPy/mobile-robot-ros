@@ -1,3 +1,5 @@
+import time
+
 import rclpy
 
 from ..param import ArmMovement, NavigationPath
@@ -54,63 +56,87 @@ class BModuleController:
 
     def task1(self):
         # 直线1米
+        self.__logger.info("[BModuleController] 任务 1 开始.")
         self.__sensor.init_odom_all(NavigationPoint(0, 0, 0))
         self.__move.navigation([NavigationPoint(1, 0, 0)])
+        self.__logger.info("[BModuleController] 任务 1 结束.")
 
     def task2(self):
         # 旋转360度
+        self.__logger.info("[BModuleController] 任务 2 开始.")
         self.__move.rotate(361)
+        self.__logger.info("[BModuleController] 任务 2 结束.")
 
     def task3(self):
         # 抓水果
+        self.__logger.info("[BModuleController] 任务 3 开始.")
         self.__arm.grab_fruit(FruitHeight.TALL.value, Direction.RIGHT)
+        self.__logger.info("[BModuleController] 任务 3 结束.")
 
     def task4(self):
         # 果仓1到起始区
-        self.__sensor.init_odom_all(NavigationPoint(0.56, -1.12, 90))
+        self.__logger.info("[BModuleController] 任务 4 开始.")
+        self.__sensor.init_odom_all(NavigationPoint(0.63, -1.29, 90))
         self.__move.navigation(NavigationPath.B_MODULE_4)
+        self.__logger.info("[BModuleController] 任务 4 结束.")
 
     def task5(self):
         # 起始区到果仓1
+        self.__logger.info("[BModuleController] 任务 5 开始.")
         self.__move.navigation(NavigationPath.B_MODULE_5)
+        self.__logger.info("[BModuleController] 任务 5 结束.")
 
     def task6(self):
         # 采摘1到起始区
+        self.__logger.info("[BModuleController] 任务 6 开始.")
         self.__sensor.init_odom_all(NavigationPath.ORCHARD_1_POINT)
         self.__move.navigation(NavigationPath.B_MODULE_6)
+        self.__logger.info("[BModuleController] 任务 6 结束.")
 
     def task7(self):
         # 起始区到采摘1
+        self.__logger.info("[BModuleController] 任务 7 开始.")
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
+        self.__logger.info("[BModuleController] 任务 7 结束.")
 
     def task8(self):
         # 起始区到采摘1抓高水果
+        self.__logger.info("[BModuleController] 任务 8 开始.")
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
         self.__arm.grab_fruit(FruitHeight.TALL.value, Direction.RIGHT)
+        self.__logger.info("[BModuleController] 任务 8 结束.")
 
     def task9(self):
         # 起始区到采摘1抓中水果
+        self.__logger.info("[BModuleController] 任务 9 开始.")
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
         self.__arm.grab_fruit(FruitHeight.MIDDLE.value, Direction.RIGHT)
+        self.__logger.info("[BModuleController] 任务 9 结束.")
 
     def task10(self):
         # 起始区到采摘1抓低水果
+        self.__logger.info("[BModuleController] 任务 10 开始.")
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
         self.__arm.grab_fruit(FruitHeight.LOW.value, Direction.RIGHT)
+        self.__logger.info("[BModuleController] 任务 10 结束.")
 
     def task11(self):
         # 起始区到果仓一号放水果
+        self.__logger.info("[BModuleController] 任务 11 开始.")
         self.__move.navigation(NavigationPath.B_MODULE_11)
 
         self.__arm.control(ArmMovement.READY_PULL_WAREHOUSE)
         self.__arm.control(ArmMovement.PULL_WAREHOUSE)
+        time.sleep(3)
         self.__arm.control(ArmMovement.MOVING)
+        self.__logger.info("[BModuleController] 任务 11 结束.")
 
     def task12(self):
         # 起始区到果园摘水果然后去果仓1号放水果
+        self.__logger.info("[BModuleController] 任务 12 开始.")
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
         self.__arm.grab_fruit(FruitHeight.TALL.value, Direction.RIGHT)
@@ -119,18 +145,23 @@ class BModuleController:
 
         self.__arm.control(ArmMovement.READY_PULL_WAREHOUSE)
         self.__arm.control(ArmMovement.PULL_WAREHOUSE)
+        time.sleep(3)
         self.__arm.control(ArmMovement.MOVING)
+        self.__logger.info("[BModuleController] 任务 12 结束.")
 
     def task13(self):
         # 起始区到果仓识别一个水果
-        self.__move.navigation(NavigationPath.B_MODULE_5)
+        self.__logger.info("[BModuleController] 任务 13 开始.")
+        self.__move.navigation(NavigationPath.B_MODULE_13)
 
         self.__arm.control(ArmMovement.RECOGNITION_WAREHOUSE)
         for _ in range(10):
             print(self.__vision.get_onnx_identify_result())
         self.__arm.control(ArmMovement.MOVING)
+        self.__logger.info("[BModuleController] 任务 13 结束.")
 
     def task14(self):
+        self.__logger.info("[BModuleController] 任务 14 开始.")
         # 起始区到果园识别一个水果
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
@@ -139,8 +170,10 @@ class BModuleController:
         for _ in range(10):
             print(self.__vision.get_onnx_identify_result())
         self.__arm.control(ArmMovement.MOVING)
+        self.__logger.info("[BModuleController] 任务 14 结束.")
 
     def task15(self):
+        self.__logger.info("[BModuleController] 任务 15 开始.")
         # 起始区到果园识别一个水果的高低
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
@@ -149,12 +182,12 @@ class BModuleController:
         for _ in range(10):
             result = self.__vision.get_onnx_identify_result()
             for e in result:
-                depth_data = self.__vision.get_depth_data(e.box.get_rectangle_center())
-                match Util.get_fruit_height(depth_data):
+                match Util.get_fruit_height(e.distance):
                     case FruitHeight.TALL:
-                        print("高水果")
+                        print(f"{e.distance} 高水果")
                     case FruitHeight.MIDDLE:
-                        print("中水果")
+                        print(f"{e.distance} 中水果")
                     case FruitHeight.LOW:
-                        print("低水果")
+                        print(f"{e.distance} 低水果")
         self.__arm.control(ArmMovement.MOVING)
+        self.__logger.info("[BModuleController] 任务 15 结束.")
