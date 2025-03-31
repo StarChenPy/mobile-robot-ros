@@ -86,20 +86,23 @@ class MoveService:
             match corrective.direction:
                 case Direction.FRONT:
                     distance_from_wall = self.__radar.get_distance_from_wall(corrective.direction)
-                    angle_from_wall = self.__radar.get_angle_from_wall(corrective.direction)
-                    x_buffer = distance_from_wall - corrective.distance
+                    if distance_from_wall:
+                        angle_from_wall = self.__radar.get_angle_from_wall(corrective.direction)
+                        x_buffer = distance_from_wall - corrective.distance
                 case Direction.BACK:
                     sonar = self.__robot_data.get_sonar()
                     distance_from_wall = Math.distance_from_origin(-5, sonar[0], 5, sonar[1]) + 0.222
                     x_buffer = distance_from_wall - corrective.distance
                 case Direction.LEFT:
                     distance_from_wall = self.__radar.get_distance_from_wall(corrective.direction)
-                    angle_from_wall = self.__radar.get_angle_from_wall(corrective.direction)
-                    y_buffer = distance_from_wall - corrective.distance
+                    if distance_from_wall:
+                        angle_from_wall = self.__radar.get_angle_from_wall(corrective.direction)
+                        y_buffer = distance_from_wall - corrective.distance
                 case Direction.RIGHT:
                     distance_from_wall = self.__radar.get_distance_from_wall(corrective.direction)
-                    angle_from_wall = self.__radar.get_angle_from_wall(corrective.direction)
-                    y_buffer = distance_from_wall - corrective.distance
+                    if distance_from_wall:
+                        angle_from_wall = self.__radar.get_angle_from_wall(corrective.direction)
+                        y_buffer = distance_from_wall - corrective.distance
 
         if angle_from_wall != 0:
             new_yaw = point.yaw - angle_from_wall
@@ -132,7 +135,7 @@ class MoveService:
         rclpy.spin_once(self.__node)
         rclpy.spin_once(self.__node)
 
-    def line(self, distance: float, speed: float = 0.4, is_block=True):
+    def line(self, distance: float, speed: float = 0.2, is_block=True):
         self.__motion.line(distance, speed)
 
         if is_block:

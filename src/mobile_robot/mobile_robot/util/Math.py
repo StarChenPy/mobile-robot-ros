@@ -5,23 +5,6 @@ import numpy as np
 from ..popo.NavigationPoint import NavigationPoint
 
 
-def calculate_adjacent_side(hypotenuse: float, angle_degrees: float) -> float:
-    """
-    根据直角三角形斜边长度和斜边与邻边的夹角角度，计算邻边长度
-
-    @param hypotenuse: 直角三角形的斜边长度（必须为正数）
-    @param angle_degrees: 斜边与邻边的夹角角度（单位：度，范围 0° < angle < 90°）
-    @return float: 与输入角度相邻的直角边长度
-    """
-
-    # 将角度从度数转换为弧度，因为math模块的三角函数使用弧度制
-    angle_radians = math.radians(angle_degrees)
-    # 使用余弦函数计算邻边长度：邻边 = 斜边 × cos(θ)
-    adjacent = hypotenuse * math.cos(angle_radians)
-
-    return adjacent
-
-
 def calculate_right_angle_side(adjacent_length, angle_degrees):
     """
     根据直角边长度和与斜边形成的角度计算另一直角边的长度。
@@ -203,3 +186,20 @@ def distance_from_origin(x1, y1, x2, y2):
         raise ValueError("两个点不能重合，必须确定一条直线。")
 
     return numerator / denominator
+
+
+def pixel_to_horizontal_distance(x_pixel: float, camera_height: float) -> float:
+    """
+    计算苹果的横向现实距离（米）。
+    相机垂直向下，固定参数：
+    - 图像宽度 640px
+    - 水平 FOV 110°
+
+    @param x_pixel: 苹果的水平像素坐标（图像中心为0，向右为正）
+    @param camera_height: 相机高度（米）
+    """
+
+    fov_deg = 110  # 水平视场角
+    image_width = 640  # 图像宽度
+    focal_length = image_width / (1.3 * math.tan(math.radians(fov_deg) / 2))
+    return (camera_height * x_pixel) / focal_length

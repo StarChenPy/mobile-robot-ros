@@ -100,7 +100,7 @@ class LaserRadarDao:
                 angle -= 90
 
         if abs(angle) > 30:
-            self.__logger.warning(f"[LaserRadarDao] 异常角度{angle}, 不可信")
+            self.__logger.warning(f"[LaserRadarDao] 异常角度 {angle}, 不可信")
             return 0
 
         return angle
@@ -159,14 +159,10 @@ class LaserRadarDao:
         # 方差过大，说明扫出墙壁，姑且取第一个点作为可信数据
         var = np.var(distance_list)
         if var > 0.1:
-            if direction == Direction.FRONT:
-                self.__logger.warning(f"[LaserRadarDao] {distance_list} 方差 {var} 过大，取 {distance_list[2]}")
-                return distance_list[2]
-            else:
-                self.__logger.warning(f"[LaserRadarDao] {distance_list} 方差 {var} 过大，取 {distance_list[0]}")
-                return distance_list[0]
+            self.__logger.warning(f"[LaserRadarDao] {distance_list} 方差 {var} 过大")
+            return None
 
-        self.__logger.info(f"[LaserRadarDao] 扫描到的雷达距离为 {distance_list}")
+        self.__logger.debug(f"[LaserRadarDao] 扫描到的雷达距离为 {distance_list}")
 
         # 返回平均值
         return Math.average_without_extremes(distance_list)

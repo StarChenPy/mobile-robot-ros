@@ -63,7 +63,7 @@ class BModuleController:
 
     def task3(self):
         # 抓水果
-        self.__arm.grab_fruit(FruitHeight.TALL, Direction.RIGHT)
+        self.__arm.grab_fruit(FruitHeight.TALL.value, Direction.RIGHT)
 
     def task4(self):
         # 果仓1到起始区
@@ -87,19 +87,19 @@ class BModuleController:
         # 起始区到采摘1抓高水果
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-        self.__arm.grab_fruit(FruitHeight.TALL, Direction.RIGHT)
+        self.__arm.grab_fruit(FruitHeight.TALL.value, Direction.RIGHT)
 
     def task9(self):
         # 起始区到采摘1抓中水果
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-        self.__arm.grab_fruit(FruitHeight.MIDDLE, Direction.RIGHT)
+        self.__arm.grab_fruit(FruitHeight.MIDDLE.value, Direction.RIGHT)
 
     def task10(self):
         # 起始区到采摘1抓低水果
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-        self.__arm.grab_fruit(FruitHeight.LOW, Direction.RIGHT)
+        self.__arm.grab_fruit(FruitHeight.LOW.value, Direction.RIGHT)
 
     def task11(self):
         # 起始区到果仓一号放水果
@@ -113,7 +113,7 @@ class BModuleController:
         # 起始区到果园摘水果然后去果仓1号放水果
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
-        self.__arm.grab_fruit(FruitHeight.TALL, Direction.RIGHT)
+        self.__arm.grab_fruit(FruitHeight.TALL.value, Direction.RIGHT)
 
         self.__move.navigation(NavigationPath.B_MODULE_12)
 
@@ -149,7 +149,8 @@ class BModuleController:
         for _ in range(10):
             result = self.__vision.get_onnx_identify_result()
             for e in result:
-                match Util.get_fruit_height(e.box):
+                depth_data = self.__vision.get_depth_data(e.box.get_rectangle_center())
+                match Util.get_fruit_height(depth_data):
                     case FruitHeight.TALL:
                         print("高水果")
                     case FruitHeight.MIDDLE:

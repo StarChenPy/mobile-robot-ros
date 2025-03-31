@@ -1,8 +1,8 @@
-max_value: 28.0
+max_value: 29.5
 min_value: 0.0
 
 origin_param:
-  back_origin_vel: 75.0
+  back_origin_vel: 40.0
   find_origin_cnt: 2
   approix_origin_vel: 10.0
   approix_origin_step: 150.0
@@ -18,5 +18,5 @@ ctrl_param:
   ek: 10.0
   steady_clk: 10
 
-coding_step: 3000
+coding_step: 2670
 coding_dis: 30

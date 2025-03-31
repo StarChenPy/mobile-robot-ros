@@ -13,7 +13,6 @@ from ..service.ArmService import ArmService
 from ..service.MoveService import MoveService
 from ..service.SensorService import SensorService
 from ..service.VisionService import VisionService
-from ..util import Util
 from ..util import Math
 from ..util.Singleton import singleton
 
@@ -49,38 +48,60 @@ class CModuleController:
         for point in points:
             self.__move.navigation([point], 0.2, True)
 
-            if corrective_data is not None:
+            if corrective_data:
                 dis = corrective_data[0] + (point.x - corrective_data[1])
                 self.__move.corrective(CorrectivePoint.form_point(point, [Corrective(direction.invert(), dis)]))
 
-            results = self.__vision.get_onnx_identify_result()
-            result = None
-            for r in results:
-                if r.box.get_area() < 5000:
-                    self.__logger.warn(f"[GrabFruitController] 识别对象面积 {r.box.get_area()} 过小，跳过")
-                    continue
-                if 160 > r.box.get_rectangle_center().x > 480:
-                    self.__logger.warn(f"[GrabFruitController] 识别对象中心点 {r.box.get_rectangle_center().x} 位于边缘，跳过")
-                    continue
-                result = r
+            # 获取可靠的水果识别结果
+            result = self.get_identify_result()
             if not result:
                 continue
 
             for key in task:
                 if task[key] == FruitType.get_by_value(result.classId):
+                    # 平移到水果前
                     center = result.box.get_rectangle_center()
-                    travel_distance = (0.43 * (320 - center.x)) / 554
+                    travel_distance = Math.pixel_to_horizontal_distance(320 - center.x, result.distance)
                     self.__move.line(travel_distance if direction == Direction.RIGHT else -travel_distance)
-                    self.__arm.grab_fruit(Util.get_fruit_height(result), direction)
+
+                    # 再次检测
+                    result = None
+                    for i in range(1, 11):
+                        result = self.get_identify_result()
+                        if result:
+                            if result.distance != 0:
+                                break
+                        self.__logger.warn(f"[CModuleController] 二次检测未能通过，正在重试第 {i} 次")
+
+                    if not result:
+                        self.__logger.error("[CModuleController] 二次检测失败，跳过该水果")
+                        break
+
+                    # 获取水果高度并抓取到框子中
+                    self.__arm.grab_fruit(result.distance * 100, direction)
                     ArmMovement.put_fruit_into_basket(self.__arm, key)
                     ArmMovement.recognition_orchard(self.__arm, direction)
                     break
 
-        self.__arm.control(ArmMovement.MOVING, 45, False)
+        # self.__arm.control(ArmMovement.MOVING, 45, False)
+
+    def get_identify_result(self):
+        results = self.__vision.get_onnx_identify_result()
+        result = None
+        for r in results:
+            if r.box.get_area() < 4000:
+                self.__logger.warn(f"[GrabFruitController] 识别对象面积 {r.box.get_area()} 过小，跳过")
+                continue
+            if 220 > r.box.get_rectangle_center().x > 420:
+                self.__logger.warn(
+                    f"[GrabFruitController] 识别对象中心点 {r.box.get_rectangle_center().x} 位于边缘，跳过")
+                continue
+            result = r
+        return result
 
     def unknown_fruit_grab_task(self, task: dict[int: FruitType]):
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_ENTER_1, 0.4, True)
-        self.__move.navigation([NavigationPath.ORCHARD_CORRIDOR_ENTER_1_CORRECTIVE_POINT], 0.2, True)
+        self.__move.navigation([NavigationPath.ORCHARD_CORRIDOR_START_1_CORRECTIVE_POINT], 0.2, True)
 
         self.patrol_the_line(task, NavigationPath.ORCHARD_CORRIDOR_END_1_POINT, Direction.RIGHT, (0.5, 2))
 
@@ -108,14 +129,27 @@ class CModuleController:
     def known_fruit_grab_task(self, task):
         def grab_and_store(orchard_path, warehouse_path):
             """通用的抓取水果并存储的函数"""
+            self.__logger.info(f"[CModuleController] 正在前往果园")
             self.__move.navigation(orchard_path, 0.4, True)
-            self.__arm.grab_fruit(FruitHeight.TALL, Direction.RIGHT)
+
+            self.__logger.info(f"[CModuleController] 正在抓取水果")
+            self.__arm.grab_fruit(FruitHeight.TALL.value, Direction.RIGHT)
+
+            self.__logger.info(f"[CModuleController] 正在前往果仓")
             self.__move.navigation(warehouse_path, 0.4, True)
+
+            self.__logger.info(f"[CModuleController] 正在放置水果")
             self.__arm.control(ArmMovement.READY_PULL_WAREHOUSE)
             self.__arm.control(ArmMovement.PULL_WAREHOUSE)
             time.sleep(1)
             self.__arm.control(ArmMovement.MOVING)
 
+        i = 1
         for orchard, warehouse in task:
+            self.__logger.info(f"[CModuleController] 正在执行第{i}个任务")
+            i += 1
             grab_and_store(orchard, warehouse)
+
+        self.__logger.info(f"[CModuleController] 任务完成，正在返程")
         self.__move.navigation(NavigationPath.B_MODULE_4, 0.4, True)
+        self.__logger.info(f"[CModuleController] 已知任务结束")

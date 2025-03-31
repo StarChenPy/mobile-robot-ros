@@ -12,7 +12,7 @@ class CModule(Node):
     def __init__(self):
         super().__init__("c_module")
 
-        self.get_logger().set_level(LoggingSeverity.INFO)
+        self.get_logger().set_level(LoggingSeverity.DEBUG)
 
         self.__grub_fruit = CModuleController(self)
         self.__robot = RobotController(self)
@@ -36,7 +36,7 @@ class CModule(Node):
             ]
             self.__grub_fruit.known_fruit_grab_task(task)
         elif s == "w":
-            task = {1: FruitType.RED_APPLE, 2: FruitType.YELLOW_APPLE}
+            task = {1: FruitType.RED_APPLE, 2: FruitType.GREEN_APPLE, 3: FruitType.YELLOW_APPLE}
             self.__grub_fruit.unknown_fruit_grab_task(task)
 
         self.__robot.set_start_led(False)

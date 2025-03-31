@@ -7,14 +7,14 @@ from ..popo.ServoMotor import ServoMotor
 from ..service.ArmService import ArmService
 
 # 基础动作
-MOVING = ArmMovement(MotorMovement(0, 18), ServoMotor(0, 0, 3, 7))
-TEST = ArmMovement(servo=ServoMotor(0, 0, 3, 20))
+MOVING = ArmMovement(MotorMovement(0, 18), ServoMotor(0, 0, 3, 6.5))
+TEST = ArmMovement(MotorMovement(0, 10))
 
 # 识别果仓中的水果动作
 RECOGNITION_WAREHOUSE = ArmMovement(MotorMovement(175, 15), ServoMotor(0, -90, 14, 20))
 
 # 放水果到果仓
-READY_PULL_WAREHOUSE = ArmMovement(MotorMovement(180, 10), ServoMotor(0, 0, 8, 7))
+READY_PULL_WAREHOUSE = ArmMovement(MotorMovement(180, 10), ServoMotor(0, 0, 8, 6.5))
 PULL_WAREHOUSE = ArmMovement(MotorMovement(180, 10), ServoMotor(0, 0, 8, 16))
 
 
@@ -28,8 +28,9 @@ def recognition_orchard(arm: ArmService, direction: Direction.LEFT or Direction.
     else:
         raise ValueError("不可用的Direction")
 
-    arm.control(ArmMovement(MotorMovement(arm_pos, 2), ServoMotor(0, 0, 3, 7)))
-    arm.control(ArmMovement(MotorMovement(arm_pos, 2), ServoMotor(0, -90, 15, 20)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 6), ServoMotor(0, 0, 3, 6.5)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 6), ServoMotor(0, -90, 15, 20)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 6), ServoMotor(0, -90, 15, 20)))
 
 
 def put_fruit_into_basket(arm: ArmService, box_number: int) -> None:
@@ -48,7 +49,7 @@ def put_fruit_into_basket(arm: ArmService, box_number: int) -> None:
     else:
         raise ValueError("篮子编号无效")
 
-    arm.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, 0, telescopic, 7)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, 0, telescopic, 6.5)))
     arm.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, 0, telescopic, 10)))
     time.sleep(1)
 
@@ -72,21 +73,21 @@ def grab_basket_to_warehouse(arm: ArmService, box_number: int) -> None:
     rotary, nod, telescopic = servo_params
 
     # 准备抓
-    arm.control(ArmMovement(MotorMovement(0, 10), ServoMotor(0, 0, 3, 7)))
+    arm.control(ArmMovement(MotorMovement(0, 10), ServoMotor(0, 0, 3, 6.5)))
     arm.control(ArmMovement(MotorMovement(arm_pos, 10), ServoMotor(rotary, nod, telescopic, 25)))
-    arm.control(ArmMovement(MotorMovement(arm_pos, 14.5), ServoMotor(rotary, nod, telescopic, 25)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 15.5), ServoMotor(rotary, nod, telescopic, 25)))
     time.sleep(1)
     # 夹合
-    arm.control(ArmMovement(MotorMovement(arm_pos, 14.5), ServoMotor(rotary, nod, telescopic, 20)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 15.5), ServoMotor(rotary, nod, telescopic, 19.5)))
     time.sleep(1)
     # 提起
-    arm.control(ArmMovement(MotorMovement(arm_pos, 10), ServoMotor(rotary, nod, telescopic, 20)))
-    arm.control(ArmMovement(MotorMovement(arm_pos, 10), ServoMotor(0, 0, 5, 20)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 10), ServoMotor(rotary, nod, telescopic, 19.5)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 10), ServoMotor(0, 0, 5, 19.5)))
 
     # 放下（公共部分）
-    arm.control(ArmMovement(MotorMovement(180, 5), ServoMotor(0, 0, 5, 20)))
-    arm.control(ArmMovement(MotorMovement(180, 20), ServoMotor(0, 0, 5, 20)))
-    arm.control(ArmMovement(MotorMovement(180, 20), ServoMotor(0, 0, 5, 25)))
+    arm.control(ArmMovement(MotorMovement(180, 5), ServoMotor(0, 0, 5, 19.5)))
+    arm.control(ArmMovement(MotorMovement(180, 24), ServoMotor(0, 0, 5, 19.5)))
+    arm.control(ArmMovement(MotorMovement(180, 24), ServoMotor(0, 0, 5, 25)))
     time.sleep(2)
     # 结束（公共部分）
-    arm.control(ArmMovement(MotorMovement(0, 18), ServoMotor(0, 0, 3, 7)))
+    arm.control(ArmMovement(MotorMovement(0, 18), ServoMotor(0, 0, 3, 6.5)))

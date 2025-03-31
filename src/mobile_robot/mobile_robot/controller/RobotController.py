@@ -3,7 +3,6 @@ import rclpy.node
 from ..param import ArmMovement
 from ..service.ArmService import ArmService
 from ..service.RobotService import RobotService
-from ..service.SensorService import SensorService
 from ..util.Singleton import singleton
 
 

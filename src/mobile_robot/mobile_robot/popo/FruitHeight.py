@@ -2,6 +2,6 @@ import enum
 
 
 class FruitHeight(enum.Enum):
-    TALL = 0
-    MIDDLE = 1
-    LOW = 2
+    TALL = 28.5
+    MIDDLE = 36.4
+    LOW = 42.6

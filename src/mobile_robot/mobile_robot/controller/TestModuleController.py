@@ -1,3 +1,5 @@
+import time
+
 import rclpy.node
 
 from ..param import ArmMovement
@@ -15,12 +17,13 @@ class TestModuleController:
 
     def run(self):
         ArmMovement.recognition_orchard(self.__arm, Direction.RIGHT)
-
-        while True:
-            s = input("等待...")
-            if s == "q":
-                break
-            for e in self.__vision.get_onnx_identify_result():
-                print(e)
+        time.sleep(2)
+        result = self.__vision.get_onnx_identify_result()
+        for p in result:
+            point = p.box.get_rectangle_center()
+            depth = self.__vision.get_depth_data(point)
+            print(depth)
+            self.__arm.grab_fruit(depth, Direction.RIGHT)
+            break
 
         self.__arm.control(ArmMovement.MOVING)
