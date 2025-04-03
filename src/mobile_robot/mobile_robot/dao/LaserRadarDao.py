@@ -9,6 +9,7 @@ from sensor_msgs.msg import LaserScan
 
 from ..popo.Direction import Direction
 from ..util import Math
+from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
 
@@ -19,7 +20,8 @@ RADAR_ERROR = 2.4
 class LaserRadarDao:
     def __init__(self, node: rclpy.node.Node):
         self.__node = node
-        self.__logger = node.get_logger()
+        self.__logger = Logger()
+
         self.__radar_data = LaserScan()
 
         qos_profile = rclpy.qos.QoSProfile(reliability = rclpy.qos.QoSReliabilityPolicy.BEST_EFFORT,depth = 10)
@@ -100,14 +102,14 @@ class LaserRadarDao:
                 angle -= 90
 
         if abs(angle) > 30:
-            self.__logger.warning(f"[LaserRadarDao] 异常角度 {angle}, 不可信")
+            self.__logger.warn(f"异常角度 {angle}, 不可信")
             return 0
 
         return angle
 
     def get_angle_from_wall(self, direction: Direction) -> float:
         if direction == Direction.BACK:
-            self.__logger.error("[LaserRadarDao] 无法获取角度: 不支持的方向")
+            self.__logger.error("无法获取角度: 不支持的方向")
             return 0
 
         angle_list = []
@@ -118,10 +120,10 @@ class LaserRadarDao:
             time.sleep(0.2)
 
         if angle_list.count(0) > 2:
-            self.__logger.warn(f"[LaserRadarDao] 过多不可信角度")
+            self.__logger.warn(f"过多不可信角度")
             return 0
 
-        self.__logger.debug(f"[LaserRadarDao] 扫描到的雷达角度为 {angle_list}")
+        self.__logger.debug(f"扫描到的雷达角度为 {angle_list}")
 
         return Math.average_without_extremes(angle_list) - RADAR_ERROR
 
@@ -150,7 +152,7 @@ class LaserRadarDao:
 
     def get_distance_from_wall(self, direction: Direction) -> float | None:
         if direction == Direction.BACK:
-            self.__logger.error("[SensorService] 无法获取距离: 不支持的方向")
+            self.__logger.error("无法获取距离: 不支持的方向")
             return 0
 
         distance_list = []
@@ -163,10 +165,10 @@ class LaserRadarDao:
         # 方差过大，说明扫出墙壁
         var = np.var(distance_list)
         if var > 0.1:
-            self.__logger.warning(f"[LaserRadarDao] {distance_list} 方差 {var} 过大")
+            self.__logger.warn(f"{distance_list} 方差 {var} 过大")
             return None
 
-        self.__logger.debug(f"[LaserRadarDao] 扫描到的雷达距离为 {distance_list}")
+        self.__logger.debug(f"扫描到的雷达距离为 {distance_list}")
 
         # 返回平均值
         return Math.average_without_extremes(distance_list)

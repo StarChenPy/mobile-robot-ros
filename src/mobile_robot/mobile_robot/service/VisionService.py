@@ -5,6 +5,7 @@ from ..dao.CameraDao import CameraDao
 from ..dao.MnnDao import MnnDao
 from ..popo.IdentifyResult import IdentifyResult
 from ..popo.Point import Point
+from ..util.Logger import Logger
 from ..util.Singleton import singleton
 from ..util.Onnx import infer_onnx_model
 
@@ -12,7 +13,7 @@ from ..util.Onnx import infer_onnx_model
 @singleton
 class VisionService:
     def __init__(self, node: rclpy.node.Node):
-        self.__logger = node.get_logger()
+        self.__logger = Logger()
 
         self.__mnn = MnnDao(node)
         self.__camera = CameraDao(node)

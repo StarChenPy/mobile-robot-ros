@@ -14,13 +14,14 @@ from ..service.MoveService import MoveService
 from ..service.SensorService import SensorService
 from ..service.VisionService import VisionService
 from ..util import Math
+from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
 
 @singleton
 class CModuleController:
     def __init__(self, node: rclpy.node.Node):
-        self.__logger = node.get_logger()
+        self.__logger = Logger()
 
         self.__arm = ArmService(node)
         self.__move = MoveService(node)

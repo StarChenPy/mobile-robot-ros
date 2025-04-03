@@ -8,6 +8,7 @@ from ..dao.RobotDataDao import RobotDataDao
 from ..dao.SensorDao import SensorDao
 from ..popo.Direction import Direction
 from ..popo.NavigationPoint import NavigationPoint
+from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
 
@@ -15,7 +16,7 @@ from ..util.Singleton import singleton
 class SensorService:
     def __init__(self, node: rclpy.node.Node):
         self.__node = node
-        self.__logger = node.get_logger()
+        self.__logger = Logger()
 
         self.__sensor = SensorDao(node)
         self.__radar = LaserRadarDao(node)

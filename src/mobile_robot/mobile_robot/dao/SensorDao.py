@@ -3,6 +3,7 @@ import time
 import rclpy
 
 import user_sensor_msgs.srv
+from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
 
@@ -10,7 +11,7 @@ from ..util.Singleton import singleton
 class SensorDao(object):
     def __init__(self, node: rclpy.node.Node):
         self.__node = node
-        self.__logger = node.get_logger()
+        self.__logger = Logger()
 
         self.__service = self.__node.create_client(user_sensor_msgs.srv.SensorService, '/user/sensor_service_cmd')
 
@@ -30,13 +31,13 @@ class SensorDao(object):
                 case 0:
                     pass
                 case -1:
-                    self.__logger.error("[修正控制接口] ping端口选择错误")
+                    self.__logger.error("ping端口选择错误")
                 case -2:
-                    self.__logger.error("[修正控制接口] ir端口选择错误")
+                    self.__logger.error("ir端口选择错误")
                 case -3:
-                    self.__logger.error("[修正控制接口] 传感器类型错误")
+                    self.__logger.error("传感器类型错误")
                 case -101:
-                    self.__logger.error("[修正控制接口] 安全控制触发(急停)")
+                    self.__logger.error("安全控制触发(急停)")
 
             return result.success
 
@@ -52,7 +53,7 @@ class SensorDao(object):
         request.speed_reversal = False
         request.start = True
 
-        self.__logger.info(f"[传感器] 请求超声矫正.")
+        self.__logger.debug(f"请求超声矫正.")
         self.__call_service(request)
 
     def ir_revise(self, distance: float):
@@ -67,7 +68,7 @@ class SensorDao(object):
         request.speed_reversal = True
         request.start = True
 
-        self.__logger.info(f"[传感器] 请求红外矫正.")
+        self.__logger.debug(f"请求红外矫正.")
         self.__call_service(request)
 
     # 等待修正结束
@@ -77,6 +78,6 @@ class SensorDao(object):
 
         while rclpy.ok():
             if self.__call_service(request):
-                self.__logger.info(f"[传感器] 修正结束！")
+                self.__logger.debug(f"修正结束！")
                 break
             time.sleep(0.2)

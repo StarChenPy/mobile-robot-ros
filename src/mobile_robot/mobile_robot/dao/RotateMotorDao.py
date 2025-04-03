@@ -7,6 +7,7 @@ import position_motor_ros2.msg
 
 from ..popo.MotorCmd import MotorCmd
 from ..util.Config import Config
+from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
 
@@ -14,7 +15,8 @@ from ..util.Singleton import singleton
 class RotateMotorDao:
     def __init__(self, node: rclpy.node.Node):
         self.__node = node
-        self.__logger = node.get_logger()
+        self.__logger = Logger()
+
         self.__service = node.create_client(
             position_motor_ros2.srv.CtrlImpl,
             '/position_motor/rotate_motor/ctrl')
@@ -63,10 +65,10 @@ class RotateMotorDao:
         min_val = rotate_motor_config["min_value"]
         max_val = rotate_motor_config["max_value"]
         if target > max_val:
-            self.__logger.warning(f"[旋转电机] 目标角度 {target} 超过最大值 {max_val}")
+            self.__logger.warn(f"目标角度 {target} 超过最大值 {max_val}")
             target = max_val
         elif target < min_val:
-            self.__logger.warning(f"[旋转电机] 目标角度 {target} 低于最小值 {min_val}")
+            self.__logger.warn(f"目标角度 {target} 低于最小值 {min_val}")
             target = min_val
 
         enc_ppi = 1750.0 * 3.9
@@ -74,11 +76,11 @@ class RotateMotorDao:
 
         # 调用电机服务
         self.__call_service(MotorCmd.SET_POSITION, target_pulses, speed)
-        self.__logger.debug(f"[旋转电机] 已请求服务")
+        self.__logger.debug(f"已请求服务")
 
     def back_origin(self, speed: float):
         self.__call_service(MotorCmd.BACK_ORIGIN, 0, speed)
-        self.__logger.debug(f"[旋转电机] 已请求回原点服务")
+        self.__logger.debug(f"已请求回原点服务")
 
     def wait_finish(self):
         while rclpy.ok():
@@ -92,7 +94,7 @@ class RotateMotorDao:
                 break
 
             if future.result().feedback.reached:
-                self.__logger.debug("[旋转电机] 电机运动服务已结束")
+                self.__logger.debug("电机运动服务已结束")
                 return
 
             time.sleep(0.5)

@@ -3,13 +3,14 @@ import rclpy.node
 from ..param import ArmMovement
 from ..service.ArmService import ArmService
 from ..service.RobotService import RobotService
+from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
 
 @singleton
 class RobotController:
     def __init__(self, node: rclpy.node.Node):
-        self.__logger = node.get_logger()
+        self.__logger = Logger()
 
         self.__robot = RobotService(node)
         self.__arm = ArmService(node)

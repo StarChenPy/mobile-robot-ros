@@ -7,6 +7,7 @@ import mnn_detector.msg
 from ..popo.IdentifyResult import IdentifyResult
 from ..popo.MnnCmd import MnnCmd
 from ..popo.Rectangle import Rectangle
+from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
 
@@ -14,7 +15,8 @@ from ..util.Singleton import singleton
 class MnnDao:
     def __init__(self, node: rclpy.node.Node):
         self.__node = node
-        self.__logger = node.get_logger()
+        self.__logger = Logger()
+
         self.__service = node.create_client(mnn_detector.srv.CmdImpl, '/mnn_detector/ctrl_impl')
 
     def __call_service(self, request: mnn_detector.srv.CmdImpl.Request):
@@ -51,9 +53,9 @@ class MnnDao:
 
         res = self.__call_service(request)
 
-        self.__logger.debug(f'[MnnDao] 模型路径:"{mode_path}" 标签路径:"{label_path}" NMS阈值:{nms_threshold}')
+        self.__logger.debug(f'模型路径:"{mode_path}" 标签路径:"{label_path}" NMS阈值:{nms_threshold}')
         if res.code != 0:
-            self.__logger.error(f'[MnnDao] 启动检测器错误! 错误代码:{res.code} 信息:{res.info}')
+            self.__logger.error(f'启动检测器错误! 错误代码:{res.code} 信息:{res.info}')
             return False
         else:
             return True
@@ -64,9 +66,9 @@ class MnnDao:
         request.cmd = MnnCmd.CMD_CLOSE_MODEL.value
         res = self.__call_service(request)
         if res.code != 0:
-            self.__logger.error(f'[MnnDao] 关闭检测器错误! 错误代码:{res.code} 信息:{res.info}')
+            self.__logger.error(f'关闭检测器错误! 错误代码:{res.code} 信息:{res.info}')
         else:
-            self.__logger.debug('[MnnDao] 关闭检测器完成.')
+            self.__logger.debug('关闭检测器完成.')
 
     #检测
     def detect(self) -> list[IdentifyResult]:
@@ -77,7 +79,7 @@ class MnnDao:
         res = self.__call_service(request)
 
         if res.code != 0:
-            self.__logger.error(f'[MnnDao] 检测失败! 错误代码:{res.code} 信息:{res.info}')
+            self.__logger.error(f'检测失败! 错误代码:{res.code} 信息:{res.info}')
             return []
 
         # 打包消息数据
@@ -93,7 +95,7 @@ class MnnDao:
         request.cmd = MnnCmd.CMD_GET_RESULT_IMG.value
         res = self.__call_service(request)
         if res.code != 0:
-            self.__logger.error(f'[MnnDao] 获取结果失败! 错误代码:{res.code} 信息:{res.info}')
+            self.__logger.error(f'获取结果失败! 错误代码:{res.code} 信息:{res.info}')
             return None
         img = cv_bridge.CvBridge().imgmsg_to_cv2(res.image, 'bgr8')
         return img

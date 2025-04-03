@@ -10,6 +10,7 @@ from ..popo.CorrectivePoint import CorrectivePoint
 from ..popo.Direction import Direction
 from ..popo.NavigationPoint import NavigationPoint
 from ..util import Math
+from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
 
@@ -17,7 +18,7 @@ from ..util.Singleton import singleton
 class MoveService:
     def __init__(self, node: rclpy.node.Node):
         self.__node = node
-        self.__logger = node.get_logger()
+        self.__logger = Logger()
 
         self.__navigation = NavigationDao(node)
         self.__motion = MotionDao(node)
@@ -110,9 +111,9 @@ class MoveService:
             abs1 = abs(odom_w - new_yaw)
             # 陀螺仪不会歪那么多，角度超过10就是不可信的数据
             if abs1 > 300:
-                self.__logger.warn("[MoveService] 矫正角度与陀螺仪误差超过300度, 可能是180度分界线.")
+                self.__logger.warn("矫正角度与陀螺仪误差超过300度, 可能是180度分界线.")
             elif abs1 > 15:
-                self.__logger.warn(f"[MoveService] 矫正角度与陀螺仪误差超过15度，不可信数据。陀螺仪角度: {odom_w}, 测量角度: {new_yaw}")
+                self.__logger.warn(f"矫正角度与陀螺仪误差超过15度，不可信数据。陀螺仪角度: {odom_w}, 测量角度: {new_yaw}")
                 return
             self.__odom.init_yaw(new_yaw)
 

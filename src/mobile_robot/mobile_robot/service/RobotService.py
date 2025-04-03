@@ -11,7 +11,6 @@ from ..util.Singleton import singleton
 class RobotService:
     def __init__(self, node: rclpy.node.Node):
         self.__node = node
-        self.__logger = node.get_logger()
 
         self.__robot_data = RobotDataDao(node)
         self.__robot_ctrl = RobotCtrlDao(node)

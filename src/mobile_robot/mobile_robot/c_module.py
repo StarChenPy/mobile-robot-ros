@@ -1,7 +1,7 @@
 import rclpy
-from rclpy.impl.logging_severity import LoggingSeverity
 from rclpy.node import Node
 
+from .util.Logger import Logger
 from .controller.RobotController import RobotController
 from .param import NavigationPath
 from .popo.FruitType import FruitType
@@ -12,7 +12,7 @@ class CModule(Node):
     def __init__(self):
         super().__init__("c_module")
 
-        self.get_logger().set_level(LoggingSeverity.INFO)
+        Logger().set_ros_logger(self.get_logger())
 
         self.__grub_fruit = CModuleController(self)
         self.__robot = RobotController(self)

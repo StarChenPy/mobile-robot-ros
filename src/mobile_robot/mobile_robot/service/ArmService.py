@@ -13,13 +13,14 @@ from ..popo.Servo import Servo
 from ..popo.ArmMovement import ArmMovement
 from ..popo.ServoMotor import ServoMotor
 from ..util.Config import Config
+from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
 
 @singleton
 class ArmService:
     def __init__(self, node: rclpy.node.Node):
-        self.__logger = node.get_logger()
+        self.__logger = Logger()
 
         self.__lift_motor = LiftMotorDao(node)
         self.__rotate_motor = RotateMotorDao(node)
@@ -47,15 +48,15 @@ class ArmService:
         if distance_from_wall and 0.4 > distance_from_wall > 0.1:
             dis = (distance_from_wall - default_distance_from_wall) * 100
             telescopic += dis
-            self.__logger.info(f"[ArmService] 伸缩距离计算为 {telescopic}")
+            self.__logger.info(f"伸缩距离计算为 {telescopic}")
         else:
-            self.__logger.warn(f"[ArmService] 伸缩距离不可信，使用 {telescopic}")
+            self.__logger.warn(f"伸缩距离不可信，使用 {telescopic}")
 
         # 计算要旋转的角度
         angle = self.__radar.get_angle_from_wall(direction)
 
         if angle == 0:
-            self.__logger.warn("[ArmService] 雷达角度无数据，使用Odom Yaw进行机械臂角度矫正")
+            self.__logger.warn("雷达角度无数据，使用Odom Yaw进行机械臂角度矫正")
             odom_yaw = self.__robot_data.get_robot_data().odom.y
             angle = 90 - (odom_yaw % 90)
             print(angle)
@@ -67,7 +68,7 @@ class ArmService:
         else:
             raise ValueError("不可用的Direction")
 
-        self.__logger.info(f"[ArmService] 旋转角度计算为 {arm_pos}")
+        self.__logger.info(f"旋转角度计算为 {arm_pos}")
 
         # 准备抓
         self.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, nod, telescopic, 22)))
@@ -81,7 +82,7 @@ class ArmService:
         self.control(ArmMovement(MotorMovement(0, 18), ServoMotor(0, 0, 3, 6.5)))
 
     def control(self, movement: ArmMovement, speed=45.0, is_block=True):
-        self.__logger.debug(f"[机械臂] 机械臂控制 {movement}")
+        self.__logger.debug(f"机械臂控制 {movement}")
 
         if movement.motor is not None:
             self.lift(movement.motor.lift, speed, False)
@@ -98,7 +99,7 @@ class ArmService:
             self.__rotate_motor.wait_finish()
 
     def back_origin(self, speed=20):
-        self.__logger.info(f"[机械臂] 回原点")
+        self.__logger.info(f"回原点")
 
         self.__lift_motor.back_origin(speed)
         self.__rotate_motor.back_origin(speed)
@@ -107,7 +108,7 @@ class ArmService:
         self.__lift_motor.wait_finish()
         self.__rotate_motor.wait_finish()
 
-        self.__logger.info(f"[机械臂] 回原点结束")
+        self.__logger.info(f"回原点结束")
 
     def lift(self, target: float, speed: float, is_block):
         self.__lift_motor.ctrl_motor(target, speed)
@@ -195,16 +196,16 @@ class ArmService:
 
         type_name = servo.name.lower()
         if not enable:
-            self.__logger.debug(f'[舵机] 已设置 {type_name} 舵机松使能')
+            self.__logger.debug(f'已设置 {type_name} 舵机松使能')
             self.__robot_ctrl.write_pwm(pin, 0)
             return
 
         # 限位处理
         if value < min_value:
-            self.__logger.warn(f'[舵机] 目标 {type_name}: {value} 超出最小限位: {min_value}')
+            self.__logger.warn(f'舵机 {type_name}: {value} 超出最小限位: {min_value}')
             value = min_value
         elif value > max_value:
-            self.__logger.warn(f'[舵机] 目标 {type_name}: {value} 超出最大限位: {max_value}')
+            self.__logger.warn(f'舵机 {type_name}: {value} 超出最大限位: {max_value}')
             value = max_value
 
         # 转换为PWM duty

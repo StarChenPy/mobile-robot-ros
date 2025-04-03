@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
 
+from .util.Logger import Logger
 from .controller.RobotController import RobotController
 from .controller.BModuleController import BModuleController
 
@@ -8,6 +9,8 @@ from .controller.BModuleController import BModuleController
 class BModule(Node):
     def __init__(self):
         super().__init__('b_module')
+
+        Logger().set_ros_logger(self.get_logger())
 
         b_module = BModuleController(self)
         robot = RobotController(self)

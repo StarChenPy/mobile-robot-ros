@@ -12,13 +12,14 @@ from ..service.RobotService import RobotService
 from ..service.SensorService import SensorService
 from ..service.VisionService import VisionService
 from ..util import Util
+from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
 
 @singleton
 class BModuleController:
     def __init__(self, node: rclpy.node.Node):
-        self.__logger = node.get_logger()
+        self.__logger = Logger()
 
         self.__robot = RobotService(node)
         self.__arm = ArmService(node)
