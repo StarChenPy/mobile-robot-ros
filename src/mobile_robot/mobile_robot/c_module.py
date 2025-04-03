@@ -28,11 +28,11 @@ class CModule(Node):
 
         if s == "y":
             task = [
-                (NavigationPath.START_TO_ORCHARD_1, NavigationPath.ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT),
-                (NavigationPath.WAREHOUSE_TO_ORCHARD_2, NavigationPath.ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT),
-                (NavigationPath.WAREHOUSE_TO_ORCHARD_3, NavigationPath.ORCHARD_CORRIDOR_1_TO_WAREHOUSE_1_POINT),
-                (NavigationPath.WAREHOUSE_TO_ORCHARD_4, NavigationPath.ORCHARD_CORRIDOR_2_TO_WAREHOUSE_1_POINT),
-                (NavigationPath.WAREHOUSE_TO_ORCHARD_5, NavigationPath.ORCHARD_CORRIDOR_2_TO_WAREHOUSE_1_POINT),
+                NavigationPath.START_TO_ORCHARD_1,
+                NavigationPath.ORCHARD_1_TO_ORCHARD_2,
+                NavigationPath.ORCHARD_2_TO_ORCHARD_3,
+                NavigationPath.ORCHARD_3_TO_ORCHARD_4,
+                NavigationPath.ORCHARD_4_TO_ORCHARD_5,
             ]
             self.__grub_fruit.known_fruit_grab_task(task)
         elif s == "w":

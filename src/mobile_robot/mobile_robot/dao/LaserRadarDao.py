@@ -117,6 +117,10 @@ class LaserRadarDao:
             angle_list.append(once_angle)
             time.sleep(0.2)
 
+        if angle_list.count(0) > 2:
+            self.__logger.warn(f"[LaserRadarDao] 过多不可信角度")
+            return 0
+
         self.__logger.debug(f"[LaserRadarDao] 扫描到的雷达角度为 {angle_list}")
 
         return Math.average_without_extremes(angle_list) - RADAR_ERROR
@@ -144,7 +148,7 @@ class LaserRadarDao:
 
         return distance
 
-    def get_distance_from_wall(self, direction: Direction):
+    def get_distance_from_wall(self, direction: Direction) -> float | None:
         if direction == Direction.BACK:
             self.__logger.error("[SensorService] 无法获取距离: 不支持的方向")
             return 0

@@ -8,7 +8,7 @@ from ..service.ArmService import ArmService
 
 # 基础动作
 MOVING = ArmMovement(MotorMovement(0, 18), ServoMotor(0, 0, 3, 6.5))
-TEST = ArmMovement(MotorMovement(0, 10))
+TEST = ArmMovement(servo=ServoMotor(0, 0, 2, 7))
 
 # 识别果仓中的水果动作
 RECOGNITION_WAREHOUSE = ArmMovement(MotorMovement(175, 15), ServoMotor(0, -90, 14, 20))

@@ -64,7 +64,9 @@ class BModuleController:
     def task2(self):
         # 旋转360度
         self.__logger.info("[BModuleController] 任务 2 开始.")
-        self.__move.rotate(361)
+        self.__move.rotate(360)
+        angle_from_wall = self.__sensor.get_angle_from_wall(Direction.RIGHT)
+        self.__move.rotate(angle_from_wall)
         self.__logger.info("[BModuleController] 任务 2 结束.")
 
     def task3(self):

@@ -5,6 +5,7 @@ import rclpy
 from ..dao.LaserRadarDao import LaserRadarDao
 from ..dao.LiftMotorDao import LiftMotorDao
 from ..dao.RobotCtrlDao import RobotCtrlDao
+from ..dao.RobotDataDao import RobotDataDao
 from ..dao.RotateMotorDao import RotateMotorDao
 from ..popo.Direction import Direction
 from ..popo.MotorMovement import MotorMovement
@@ -23,20 +24,21 @@ class ArmService:
         self.__lift_motor = LiftMotorDao(node)
         self.__rotate_motor = RotateMotorDao(node)
         self.__robot_ctrl = RobotCtrlDao(node)
+        self.__robot_data = RobotDataDao(node)
         self.__radar = LaserRadarDao(node)
 
     def grab_fruit(self, height: float, direction: Direction.LEFT or Direction.RIGHT):
         """执行抓取动作"""
         if height >= 38:
-            telescopic = 7
+            telescopic = 5.5
             nod = -40
             height -= 10
         elif height >= 29:
-            telescopic = 5.5
+            telescopic = 4
             nod = -20
             height -= 5
         else:
-            telescopic = 4
+            telescopic = 2.5
             nod = 0
 
         # 计算伸缩要伸出的距离
@@ -45,28 +47,36 @@ class ArmService:
         if distance_from_wall and 0.4 > distance_from_wall > 0.1:
             dis = (distance_from_wall - default_distance_from_wall) * 100
             telescopic += dis
-
-        self.__logger.info(f"[ArmService] 伸缩距离计算为 {telescopic}")
+            self.__logger.info(f"[ArmService] 伸缩距离计算为 {telescopic}")
+        else:
+            self.__logger.warn(f"[ArmService] 伸缩距离不可信，使用 {telescopic}")
 
         # 计算要旋转的角度
-        angle_from_wall = self.__radar.get_angle_from_wall(direction)
+        angle = self.__radar.get_angle_from_wall(direction)
+
+        if angle == 0:
+            self.__logger.warn("[ArmService] 雷达角度无数据，使用Odom Yaw进行机械臂角度矫正")
+            odom_yaw = self.__robot_data.get_robot_data().odom.y
+            angle = 90 - (odom_yaw % 90)
+            print(angle)
+
         if direction == Direction.LEFT:
-            arm_pos = 90 + angle_from_wall
+            arm_pos = 90 + angle
         elif direction == Direction.RIGHT:
-            arm_pos = -90 + angle_from_wall
+            arm_pos = -90 - angle
         else:
             raise ValueError("不可用的Direction")
 
         self.__logger.info(f"[ArmService] 旋转角度计算为 {arm_pos}")
 
         # 准备抓
-        self.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, nod, telescopic, 23)))
-        self.control(ArmMovement(MotorMovement(arm_pos, height), ServoMotor(0, nod, telescopic, 23)))
+        self.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, nod, telescopic, 22)))
+        self.control(ArmMovement(MotorMovement(arm_pos, height), ServoMotor(0, nod, telescopic, 22)))
         # 夹合
         self.control(ArmMovement(MotorMovement(arm_pos, height), ServoMotor(0, nod, telescopic, 6.5)))
         time.sleep(1)
         # 提起
-        self.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, nod, 3, 6.5)))
+        self.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, nod, telescopic, 6.5)))
         # 结束
         self.control(ArmMovement(MotorMovement(0, 18), ServoMotor(0, 0, 3, 6.5)))
 
@@ -205,7 +215,7 @@ class ArmService:
                 duty = config["zero_duty"] + value * coeff
             case Servo.TELESCOPIC:
                 config = servo_config["telescopic"]
-                coeff = (config["max_duty"] - config["min_duty"]) / config["itinerary"]
+                coeff = (config["max_duty"] - config["min_duty"]) / (config["max_value"] - config["min_value"])
                 duty = config["max_duty"] - value * coeff
             case Servo.GRIPPER:
                 config = servo_config["gripper"]

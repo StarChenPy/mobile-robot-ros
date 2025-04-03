@@ -89,7 +89,7 @@ class CModuleController:
         results = self.__vision.get_onnx_identify_result()
         result = None
         for r in results:
-            if r.box.get_area() < 4000:
+            if r.box.get_area() < 2000:
                 self.__logger.warn(f"[GrabFruitController] 识别对象面积 {r.box.get_area()} 过小，跳过")
                 continue
             if 220 > r.box.get_rectangle_center().x > 420:
@@ -120,9 +120,10 @@ class CModuleController:
 
         self.__logger.info("[CModuleController] 正在前往果仓区域")
         self.__move.navigation([NavigationPath.ORCHARD_CORRIDOR_START_2_CORRECTIVE_POINT], 0.4, True)
-        self.__move.navigation(NavigationPath.ORCHARD_CORRIDOR_2_TO_WAREHOUSE_1_POINT, 0.4, True)
+        self.__move.navigation(NavigationPath.ORCHARD_CORRIDOR_2_TO_WAREHOUSE, 0.4, True)
         if 1 in task:
             self.__logger.info("[CModuleController] 放置 果篮1")
+            self.__move.navigation([NavigationPath.WAREHOUSE_CORRECTIVE_POINT, NavigationPath.WAREHOUSE_1_POINT], 0.2, True)
             ArmMovement.grab_basket_to_warehouse(self.__arm, 1)
         if 2 in task:
             self.__move.navigation([NavigationPath.WAREHOUSE_CORRECTIVE_POINT, NavigationPath.WAREHOUSE_2_POINT], 0.2, True)
@@ -138,28 +139,28 @@ class CModuleController:
         self.__move.navigation(NavigationPath.B_MODULE_4, 0.4, True)
 
     def known_fruit_grab_task(self, task):
-        def grab_and_store(orchard_path, warehouse_path):
-            """通用的抓取水果并存储的函数"""
-            self.__logger.info(f"[CModuleController] 正在前往果园")
-            self.__move.navigation(orchard_path, 0.4, True)
+        i = 0
+        for orchard in task:
+            i += 1
+            self.__logger.info(f"[CModuleController] 正在前往采摘点 {i}")
+            self.__move.navigation(orchard, 0.4, True)
 
             self.__logger.info(f"[CModuleController] 正在抓取水果")
+
             self.__arm.grab_fruit(FruitHeight.TALL.value, Direction.RIGHT)
+            if i < 5:
+                ArmMovement.put_fruit_into_basket(self.__arm, 2)
 
-            self.__logger.info(f"[CModuleController] 正在前往果仓")
-            self.__move.navigation(warehouse_path, 0.4, True)
-
-            self.__logger.info(f"[CModuleController] 正在放置水果")
-            self.__arm.control(ArmMovement.READY_PULL_WAREHOUSE)
-            self.__arm.control(ArmMovement.PULL_WAREHOUSE)
             time.sleep(1)
             self.__arm.control(ArmMovement.MOVING)
 
-        i = 1
-        for orchard, warehouse in task:
-            self.__logger.info(f"[CModuleController] 正在执行第 {i} 个任务")
-            i += 1
-            grab_and_store(orchard, warehouse)
+        self.__move.navigation(NavigationPath.ORCHARD_CORRIDOR_2_TO_WAREHOUSE)
+        self.__move.navigation([NavigationPath.WAREHOUSE_1_POINT], 0.2)
+
+        self.__logger.info(f"[CModuleController] 正在放置水果")
+        self.__arm.control(ArmMovement.READY_PULL_WAREHOUSE)
+        self.__arm.control(ArmMovement.PULL_WAREHOUSE)
+        ArmMovement.grab_basket_to_warehouse(self.__arm, 2)
 
         self.__logger.info(f"[CModuleController] 任务完成，正在返程")
         self.__move.navigation(NavigationPath.B_MODULE_4, 0.4, True)

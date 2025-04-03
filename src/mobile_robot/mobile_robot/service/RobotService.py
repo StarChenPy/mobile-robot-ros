@@ -28,4 +28,5 @@ class RobotService:
         self.set_start_led(True)
 
     def set_start_led(self, state: bool):
-        self.__robot_ctrl.write_do(0, state)
+        for _ in range(20):
+            self.__robot_ctrl.write_do(0, state)
