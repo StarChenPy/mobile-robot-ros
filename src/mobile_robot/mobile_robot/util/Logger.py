@@ -2,6 +2,7 @@ import inspect
 from typing import Optional
 
 from rclpy.impl.logging_severity import LoggingSeverity
+from rclpy.impl.rcutils_logger import RcutilsLogger
 
 from .Singleton import singleton
 
@@ -11,7 +12,7 @@ class Logger:
     def __init__(self):
         self.ros_logger = None
 
-    def set_ros_logger(self, logger, level=LoggingSeverity.INFO):
+    def set_ros_logger(self, logger: RcutilsLogger, level=LoggingSeverity.INFO):
         """
         设置ROS2日志管理器
         @param logger: ROS2的Logger对象
@@ -22,25 +23,27 @@ class Logger:
 
     def debug(self, msg: str) -> None:
         """记录DEBUG级别日志"""
-        self._log('debug', msg)
+        context = self._get_caller_context()
+        formatted_msg = f"[{context}] {msg}"
+        self.ros_logger.debug(formatted_msg)
 
     def info(self, msg: str) -> None:
         """记录INFO级别日志"""
-        self._log('info', msg)
+        context = self._get_caller_context()
+        formatted_msg = f"[{context}] {msg}"
+        self.ros_logger.info(formatted_msg)
 
     def warn(self, msg: str) -> None:
         """记录WARN级别日志"""
-        self._log('warning', msg)
+        context = self._get_caller_context()
+        formatted_msg = f"[{context}] {msg}"
+        self.ros_logger.warn(formatted_msg)
 
     def error(self, msg: str) -> None:
         """记录ERROR级别日志"""
-        self._log('error', msg)
-
-    def _log(self, level: str, msg: str) -> None:
-        """统一的日志记录方法"""
         context = self._get_caller_context()
         formatted_msg = f"[{context}] {msg}"
-        getattr(self.ros_logger, level)(formatted_msg)
+        self.ros_logger.error(formatted_msg)
 
     def _get_caller_context(self) -> str:
         """

@@ -119,7 +119,7 @@ class LaserRadarDao:
             angle_list.append(once_angle)
             time.sleep(0.2)
 
-        if angle_list.count(0) > 2:
+        if angle_list.count(0) > 1:
             self.__logger.warn(f"过多不可信角度")
             return 0
 
@@ -171,4 +171,11 @@ class LaserRadarDao:
         self.__logger.debug(f"扫描到的雷达距离为 {distance_list}")
 
         # 返回平均值
-        return Math.average_without_extremes(distance_list)
+        dis = Math.average_without_extremes(distance_list)
+
+        # 左、右墙有大约1cm度误差，加一下
+        if direction == Direction.LEFT:
+            dis += 0.01
+        elif direction == Direction.RIGHT:
+            dis -= 0.01
+        return dis

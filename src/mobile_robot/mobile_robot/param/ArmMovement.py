@@ -60,14 +60,14 @@ def grab_basket_to_warehouse(arm: ArmService, box_number: int) -> None:
 
     # 根据框号确定参数
     if box_number == 1:
-        arm_pos = 28
-        servo_params = (-61, -87, 14.5)
+        arm_pos = 27
+        servo_params = (-62, -90, 15)
     elif box_number == 2:
         arm_pos = 0
-        servo_params = (90, -87, 11.7)
+        servo_params = (90, -90, 12)
     elif box_number == 3:
         arm_pos = -30
-        servo_params = (61, -87, 14.5)
+        servo_params = (61, -90, 15)
     else:
         raise ValueError("篮子编号无效")
 
@@ -75,21 +75,22 @@ def grab_basket_to_warehouse(arm: ArmService, box_number: int) -> None:
 
     # 准备抓
     arm.control(ArmMovement(MotorMovement(0, 10), ServoMotor(0, 0, 3, 6.5)))
-    arm.control(ArmMovement(MotorMovement(arm_pos, 10), ServoMotor(rotary, nod, telescopic, 25)))
-    time.sleep(1)
-    arm.control(ArmMovement(MotorMovement(arm_pos, 16), ServoMotor(rotary, nod, telescopic, 25)))
-    time.sleep(1)
+    arm.control(ArmMovement(MotorMovement(arm_pos, 6), ServoMotor(rotary, nod, telescopic, 25)))
+    time.sleep(0.5)
+    arm.control(ArmMovement(MotorMovement(arm_pos, 16.5), ServoMotor(rotary, nod, telescopic, 25)))
     # 夹合
-    arm.control(ArmMovement(MotorMovement(arm_pos, 16), ServoMotor(rotary, nod, telescopic, 19.5)))
-    time.sleep(1)
+    arm.control(ArmMovement(MotorMovement(arm_pos, 16.5), ServoMotor(rotary, nod, telescopic, 19.5)))
+    time.sleep(0.5)
     # 提起
-    arm.control(ArmMovement(MotorMovement(arm_pos, 10), ServoMotor(rotary, nod, telescopic, 19.5)))
-    arm.control(ArmMovement(MotorMovement(arm_pos, 10), ServoMotor(0, 0, 5, 19.5)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 6), ServoMotor(rotary, nod, telescopic, 19.5)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 6), ServoMotor(0, nod, telescopic, 19.5)))
+    time.sleep(0.5)
+    arm.control(ArmMovement(MotorMovement(arm_pos, 6), ServoMotor(0, 0, 5, 19.5)))
 
     # 放下（公共部分）
     arm.control(ArmMovement(MotorMovement(180, 5), ServoMotor(0, 0, 5, 19.5)))
     arm.control(ArmMovement(MotorMovement(180, 24), ServoMotor(0, 0, 5, 19.5)))
     arm.control(ArmMovement(MotorMovement(180, 24), ServoMotor(0, 0, 5, 25)))
-    time.sleep(2)
+    time.sleep(1)
     # 结束（公共部分）
     arm.control(ArmMovement(MotorMovement(0, 18), ServoMotor(0, 0, 3, 6.5)))

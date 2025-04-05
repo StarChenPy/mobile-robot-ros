@@ -29,7 +29,7 @@ class CModuleController:
         self.__vision = VisionService(node)
 
     def patrol_the_line(self, task: dict[int: FruitType], target_point: NavigationPoint, direction: Direction,
-                        corrective_data: tuple[float, float]=None):
+                        corrective_data: tuple[float, float] = None):
         """
         巡线，给予一个坐标点，以分段的方式步进向前，同时扫描水果进行抓取
         @param task: 要执行的任务，由篮子编号与对应的水果类型组成
@@ -58,7 +58,7 @@ class CModuleController:
             if not result:
                 continue
 
-            self.__logger.info("[CModuleController] 寻找到水果，准备抓取.")
+            self.__logger.info("寻找到水果，准备抓取.")
 
             for key in task:
                 if task[key] == FruitType.get_by_value(result.classId):
@@ -69,15 +69,15 @@ class CModuleController:
 
                     # 再次检测
                     result = None
-                    for i in range(1, 11):
+                    for i in range(1, 6):
                         result = self.get_identify_result()
                         if result:
                             if result.distance != 0:
                                 break
-                        self.__logger.warn(f"[CModuleController] 二次检测未能通过，正在重试第 {i} 次")
+                        self.__logger.warn(f"二次检测未能通过，正在重试第 {i} 次")
 
-                    if not result:
-                        self.__logger.error("[CModuleController] 二次检测失败，跳过该水果")
+                    if not result or result.distance == 0:
+                        self.__logger.error("二次检测失败，跳过该水果")
                         break
 
                     # 获取水果高度并抓取到框子中
@@ -90,52 +90,55 @@ class CModuleController:
         results = self.__vision.get_onnx_identify_result()
         result = None
         for r in results:
-            if r.box.get_area() < 2000:
+            if r.box.get_area() < 3000:
                 self.__logger.warn(f"[GrabFruitController] 识别对象面积 {r.box.get_area()} 过小，跳过")
                 continue
             if 220 > r.box.get_rectangle_center().x > 420:
-                self.__logger.warn(f"[GrabFruitController] 识别对象中心点 {r.box.get_rectangle_center().x} 位于边缘，跳过")
+                self.__logger.warn(
+                    f"[GrabFruitController] 识别对象中心点 {r.box.get_rectangle_center().x} 位于边缘，跳过")
                 continue
             result = r
         return result
 
     def unknown_fruit_grab_task(self, task: dict[int: FruitType]):
-        self.__logger.info("[CModuleController] 正在前往 走廊1")
+        self.__logger.info("正在前往 走廊1")
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_ENTER_1, 0.4, True)
         self.__move.navigation([NavigationPath.ORCHARD_CORRIDOR_START_1_CORRECTIVE_POINT], 0.2, True)
 
-        self.__logger.info("[CModuleController] 开始寻找 走廊1 的水果")
+        self.__logger.info("开始寻找 走廊1 的水果")
         self.patrol_the_line(task, NavigationPath.ORCHARD_CORRIDOR_END_1_POINT, Direction.RIGHT, (0.5, 2))
         self.__arm.control(ArmMovement.MOVING)
 
         # ----------------去2号走廊的分割线----------------
 
-        self.__logger.info("[CModuleController] 正在前往 走廊2")
+        self.__logger.info("正在前往 走廊2")
         self.__move.navigation(NavigationPath.EXIT_1_TO_EXIT_2, 0.4, True)
 
         # ----------------去2号走廊的分割线----------------
 
-        self.__logger.info("[CModuleController] 开始寻找 走廊2 的水果")
-        self.patrol_the_line(task, NavigationPath.ORCHARD_CORRIDOR_START_2_POINT, Direction.LEFT, (0.48, 2.82))
+        self.__logger.info("开始寻找 走廊2 的水果")
+        self.patrol_the_line(task, NavigationPath.ORCHARD_CORRIDOR_START_2_POINT, Direction.LEFT, (0.49, 2.84))
         self.__arm.control(ArmMovement.MOVING)
 
-        self.__logger.info("[CModuleController] 正在前往果仓区域")
+        self.__logger.info("正在前往果仓区域")
         self.__move.navigation([NavigationPath.ORCHARD_CORRIDOR_START_2_CORRECTIVE_POINT], 0.4, True)
         self.__move.navigation(NavigationPath.ORCHARD_CORRIDOR_2_TO_WAREHOUSE, 0.4, True)
         if 1 in task:
-            self.__logger.info("[CModuleController] 放置 果篮1")
-            self.__move.navigation([NavigationPath.WAREHOUSE_CORRECTIVE_POINT, NavigationPath.WAREHOUSE_1_POINT], 0.2, True)
+            self.__logger.info("放置 果篮1")
+            self.__move.navigation([NavigationPath.WAREHOUSE_1_POINT], 0.2, True)
             ArmMovement.grab_basket_to_warehouse(self.__arm, 1)
         if 2 in task:
-            self.__move.navigation([NavigationPath.WAREHOUSE_CORRECTIVE_POINT, NavigationPath.WAREHOUSE_2_POINT], 0.2, True)
-            self.__logger.info("[CModuleController] 放置 果篮2")
+            self.__move.navigation([NavigationPath.WAREHOUSE_CORRECTIVE_POINT, NavigationPath.WAREHOUSE_2_POINT], 0.2,
+                                   True)
+            self.__logger.info("放置 果篮2")
             ArmMovement.grab_basket_to_warehouse(self.__arm, 2)
         if 3 in task:
-            self.__move.navigation([NavigationPath.WAREHOUSE_CORRECTIVE_POINT, NavigationPath.WAREHOUSE_3_POINT], 0.2, True)
-            self.__logger.info("[CModuleController] 放置 果篮3")
+            self.__move.navigation([NavigationPath.WAREHOUSE_CORRECTIVE_POINT, NavigationPath.WAREHOUSE_3_POINT], 0.2,
+                                   True)
+            self.__logger.info("放置 果篮3")
             ArmMovement.grab_basket_to_warehouse(self.__arm, 3)
 
-        self.__logger.info("[CModuleController] 正在前往起始区")
+        self.__logger.info("正在前往起始区")
         self.__move.navigation([NavigationPath.WAREHOUSE_CORRECTIVE_POINT], 0.2, True)
         self.__move.navigation(NavigationPath.B_MODULE_4, 0.4, True)
 
@@ -143,10 +146,10 @@ class CModuleController:
         i = 0
         for orchard in task:
             i += 1
-            self.__logger.info(f"[CModuleController] 正在前往采摘点 {i}")
+            self.__logger.info(f"正在前往采摘点 {i}")
             self.__move.navigation(orchard, 0.4, True)
 
-            self.__logger.info(f"[CModuleController] 正在抓取水果")
+            self.__logger.info(f"正在抓取水果")
 
             self.__arm.grab_fruit(FruitHeight.TALL.value, Direction.RIGHT)
             if i < 5:
@@ -158,11 +161,11 @@ class CModuleController:
         self.__move.navigation(NavigationPath.ORCHARD_CORRIDOR_2_TO_WAREHOUSE)
         self.__move.navigation([NavigationPath.WAREHOUSE_1_POINT], 0.2)
 
-        self.__logger.info(f"[CModuleController] 正在放置水果")
+        self.__logger.info(f"正在放置水果")
         self.__arm.control(ArmMovement.READY_PULL_WAREHOUSE)
         self.__arm.control(ArmMovement.PULL_WAREHOUSE)
         ArmMovement.grab_basket_to_warehouse(self.__arm, 2)
 
-        self.__logger.info(f"[CModuleController] 任务完成，正在返程")
+        self.__logger.info(f"任务完成，正在返程")
         self.__move.navigation(NavigationPath.B_MODULE_4, 0.4, True)
-        self.__logger.info(f"[CModuleController] 已知任务结束")
+        self.__logger.info(f"已知任务结束")

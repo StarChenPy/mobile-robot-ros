@@ -30,20 +30,20 @@ class ArmService:
 
     def grab_fruit(self, height: float, direction: Direction.LEFT or Direction.RIGHT):
         """执行抓取动作"""
-        if height >= 38:
-            telescopic = 5.5
-            nod = -40
-            height -= 10
-        elif height >= 29:
-            telescopic = 4
+        if height > 38:
+            telescopic = 7
+            nod = -60
+            height -= 12
+        elif height > 29:
+            telescopic = 2
             nod = -20
-            height -= 5
+            height -= 4
         else:
-            telescopic = 2.5
+            telescopic = 1
             nod = 0
 
         # 计算伸缩要伸出的距离
-        default_distance_from_wall = 0.34
+        default_distance_from_wall = 0.33
         distance_from_wall = self.__radar.get_distance_from_wall(direction)
         if distance_from_wall and 0.4 > distance_from_wall > 0.1:
             dis = (distance_from_wall - default_distance_from_wall) * 100
@@ -55,14 +55,13 @@ class ArmService:
         # 计算要旋转的角度
         angle = self.__radar.get_angle_from_wall(direction)
 
-        if angle == 0:
-            self.__logger.warn("雷达角度无数据，使用Odom Yaw进行机械臂角度矫正")
+        if angle == 0 or angle > 10:
+            self.__logger.warn("雷达角度不可用，使用Odom Yaw进行机械臂角度矫正")
             odom_yaw = self.__robot_data.get_robot_data().odom.y
             angle = 90 - (odom_yaw % 90)
-            print(angle)
 
         if direction == Direction.LEFT:
-            arm_pos = 90 + angle
+            arm_pos = 90 - angle
         elif direction == Direction.RIGHT:
             arm_pos = -90 - angle
         else:
@@ -75,7 +74,7 @@ class ArmService:
         self.control(ArmMovement(MotorMovement(arm_pos, height), ServoMotor(0, nod, telescopic, 22)))
         # 夹合
         self.control(ArmMovement(MotorMovement(arm_pos, height), ServoMotor(0, nod, telescopic, 6.5)))
-        time.sleep(1)
+        time.sleep(0.5)
         # 提起
         self.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, nod, telescopic, 6.5)))
         # 结束
