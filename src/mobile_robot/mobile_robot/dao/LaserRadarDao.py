@@ -127,7 +127,7 @@ class LaserRadarDao:
 
         return Math.average_without_extremes(angle_list) - RADAR_ERROR
 
-    def get_distance_from_wall_once(self, direction: Direction) -> float:
+    def get_distance_from_wall_once(self, direction: Direction) -> float or None:
         # 返回距离雷达扫描的5个坐标拟合成的直线的垂直距离
         points = self.__get_radar_points(direction)
         distance = Math.fit_polar_line_and_get_distance(points)
@@ -140,7 +140,7 @@ class LaserRadarDao:
             angle_from_wall = self.get_angle_from_wall_once(direction)
             if angle_from_wall == 0:
                 self.__logger.warn("雷达距离数据无效")
-                return 0
+                return None
 
             side = Math.calculate_right_angle_side(0.225, abs(angle_from_wall))
 
@@ -166,9 +166,12 @@ class LaserRadarDao:
             distance_list.append(once_dis)
             time.sleep(0.2)
 
-        if distance_list.count(0) > 1:
+        if distance_list.count(None) > 1:
             self.__logger.warn(f"过多不可信距离")
             return None
+
+        if None in distance_list:
+            distance_list.remove(None)
 
         # 方差过大，说明扫出墙壁
         var = np.var(distance_list)
