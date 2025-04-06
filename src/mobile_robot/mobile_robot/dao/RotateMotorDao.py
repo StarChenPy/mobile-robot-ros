@@ -6,7 +6,7 @@ import position_motor_ros2.srv
 import position_motor_ros2.msg
 
 from ..popo.MotorCmd import MotorCmd
-from ..util.Config import Config
+from ..util.ConfigAndParam import ConfigAndParam
 from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
@@ -29,7 +29,7 @@ class RotateMotorDao:
         @param cmd: 控制命令类型
         @param target: 目标值
         """
-        rotate_motor_config = Config().get_rotate_motor_config()
+        rotate_motor_config = ConfigAndParam().get_rotate_motor_config()
 
         request = position_motor_ros2.srv.CtrlImpl.Request(
             cmd=cmd.value,
@@ -59,7 +59,7 @@ class RotateMotorDao:
         @param target: 目标角度
         @param speed: 速度
         """
-        rotate_motor_config = Config().get_rotate_motor_config()
+        rotate_motor_config = ConfigAndParam().get_rotate_motor_config()
 
         # 获取目标值的范围限制
         min_val = rotate_motor_config["min_value"]

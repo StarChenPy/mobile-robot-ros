@@ -5,13 +5,14 @@ package_name = 'mobile_robot'
 
 setup(
     name=package_name,
-    version='1.5.4',
+    version='1.6.0',
     packages=find_packages(exclude=['test']),
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name + "/config", glob.glob("config/*")),
+        ('share/' + package_name + "/param", glob.glob("param/*")),
         ('share/' + package_name + "/weights", glob.glob("weights/*"))
     ],
     install_requires=['setuptools', 'rclpy', 'python-opencv', 'onnxruntime'],

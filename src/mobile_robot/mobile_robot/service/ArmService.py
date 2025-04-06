@@ -12,7 +12,7 @@ from ..popo.MotorMovement import MotorMovement
 from ..popo.Servo import Servo
 from ..popo.ArmMovement import ArmMovement
 from ..popo.ServoMotor import ServoMotor
-from ..util.Config import Config
+from ..util.ConfigAndParam import ConfigAndParam
 from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
@@ -50,7 +50,18 @@ class ArmService:
             telescopic += dis
             self.__logger.info(f"伸缩距离计算为 {telescopic}")
         else:
-            self.__logger.warn(f"伸缩距离不可信，使用 {telescopic}")
+            self.__logger.warn(f"雷达数据不可信，尝试使用红外测距")
+
+        if direction == Direction.LEFT:
+            distance_from_wall = self.__robot_data.get_ir_left()
+        elif direction == Direction.RIGHT:
+            distance_from_wall = self.__robot_data.get_ir_right()
+        if distance_from_wall and 0.4 > distance_from_wall > 0.1:
+            dis = (distance_from_wall - default_distance_from_wall) * 100
+            telescopic += dis
+            self.__logger.info(f"伸缩距离计算为 {telescopic}")
+        else:
+            self.__logger.warn(f"红外数据不可信，使用默认值 {telescopic}")
 
         # 计算要旋转的角度
         angle = self.__radar.get_angle_from_wall(direction)
@@ -164,7 +175,7 @@ class ArmService:
         @param value 目标值 (角度或距离)
         @param enable 是否使能
         """
-        servo_config = Config().get_servo_config()
+        servo_config = ConfigAndParam().get_servo_config()
 
         pin = 0
         min_value = 0

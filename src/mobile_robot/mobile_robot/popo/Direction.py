@@ -1,11 +1,10 @@
 import enum
 
-
 class Direction(enum.Enum):
-    FRONT = 0
-    BACK = 1
-    LEFT = 2
-    RIGHT = 3
+    FRONT = "front"
+    BACK = "back"
+    LEFT = "left"
+    RIGHT = "right"
 
     def invert(self):
         if self == Direction.FRONT:
@@ -21,3 +20,9 @@ class Direction(enum.Enum):
             return Direction.LEFT
 
         return None
+
+    @classmethod
+    def get_by_value(cls, value) -> 'Direction':
+        for member in cls.__members__.values():
+            if member.value == value:
+                return member

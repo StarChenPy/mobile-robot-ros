@@ -23,24 +23,36 @@ class Logger:
 
     def debug(self, msg: str) -> None:
         """记录DEBUG级别日志"""
+        if self.ros_logger is None:
+            raise RuntimeWarning("日志系统未初始化，无法记录日志")
+
         context = self._get_caller_context()
         formatted_msg = f"[{context}] {msg}"
         self.ros_logger.debug(formatted_msg)
 
     def info(self, msg: str) -> None:
         """记录INFO级别日志"""
+        if self.ros_logger is None:
+            raise RuntimeWarning("日志系统未初始化，无法记录日志")
+
         context = self._get_caller_context()
         formatted_msg = f"[{context}] {msg}"
         self.ros_logger.info(formatted_msg)
 
     def warn(self, msg: str) -> None:
         """记录WARN级别日志"""
+        if self.ros_logger is None:
+            raise RuntimeWarning("日志系统未初始化，无法记录日志")
+
         context = self._get_caller_context()
         formatted_msg = f"[{context}] {msg}"
         self.ros_logger.warn(formatted_msg)
 
     def error(self, msg: str) -> None:
         """记录ERROR级别日志"""
+        if self.ros_logger is None:
+            raise RuntimeWarning("日志系统未初始化，无法记录日志")
+
         context = self._get_caller_context()
         formatted_msg = f"[{context}] {msg}"
         self.ros_logger.error(formatted_msg)

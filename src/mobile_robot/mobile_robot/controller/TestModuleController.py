@@ -1,5 +1,6 @@
 import rclpy.node
 
+from ..param import ArmMovement
 from ..popo.Direction import Direction
 from ..popo.FruitHeight import FruitHeight
 from ..service.ArmService import ArmService
@@ -23,4 +24,9 @@ class TestModuleController:
             left_dis = self.__sensor.get_distance_from_wall(Direction.LEFT)
             right_dis = self.__sensor.get_distance_from_wall(Direction.RIGHT)
 
-            print(f"距离左墙 {left_dis}，距离右墙 {right_dis}")
+            print(f"雷达距离左墙 {left_dis}，距离右墙 {right_dis}")
+
+            left_dis = self.__sensor.get_ir_left()
+            right_dis = self.__sensor.get_ir_right()
+
+            print(f"红外距离左墙 {left_dis}，距离右墙 {right_dis}")

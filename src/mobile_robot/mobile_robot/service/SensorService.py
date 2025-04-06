@@ -41,11 +41,11 @@ class SensorService:
     def get_angle_from_wall(self, direction: Direction) -> float:
         return self.__radar.get_angle_from_wall(direction)
 
-    def get_ir_claws(self) -> float:
-        return self.__robot_data.get_robot_data().ir[0]
+    def get_ir_left(self) -> float:
+        return self.__robot_data.get_ir_left()
 
-    def get_ir_front(self) -> float:
-        return self.__robot_data.get_robot_data().ir[1]
+    def get_ir_right(self) -> float:
+        return self.__robot_data.get_ir_right()
 
     def get_radar_data(self, target_angle: float) -> tuple[float, float]:
         return self.__radar.get_radar_data(target_angle)

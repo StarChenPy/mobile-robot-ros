@@ -12,12 +12,10 @@ class TestModule(Node):
 
         Logger().set_ros_logger(self.get_logger())
 
-        self.__test = TestModuleController(self)
-        self.__robot = RobotController(self)
+        RobotController(self).with_robot_connect()
+        test = TestModuleController(self)
 
-        self.__robot.with_robot_connect()
-
-        self.__test.run()
+        test.run()
 
         self.destroy_node()
         rclpy.shutdown()

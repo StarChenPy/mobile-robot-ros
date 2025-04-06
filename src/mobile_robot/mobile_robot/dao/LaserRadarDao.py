@@ -138,6 +138,10 @@ class LaserRadarDao:
         else:
             # 补偿因倾斜导致的雷达与墙和机器人中心与墙的距离不一致的问题
             angle_from_wall = self.get_angle_from_wall_once(direction)
+            if angle_from_wall == 0:
+                self.__logger.warn("雷达距离数据无效")
+                return 0
+
             side = Math.calculate_right_angle_side(0.225, abs(angle_from_wall))
 
             if direction == Direction.LEFT:
@@ -161,6 +165,10 @@ class LaserRadarDao:
             once_dis = self.get_distance_from_wall_once(direction)
             distance_list.append(once_dis)
             time.sleep(0.2)
+
+        if distance_list.count(0) > 1:
+            self.__logger.warn(f"过多不可信距离")
+            return None
 
         # 方差过大，说明扫出墙壁
         var = np.var(distance_list)

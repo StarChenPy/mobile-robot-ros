@@ -5,6 +5,7 @@ import rclpy
 from ..param import ArmMovement, NavigationPath
 from ..popo.Direction import Direction
 from ..popo.FruitHeight import FruitHeight
+from ..popo.FruitType import FruitType
 from ..popo.NavigationPoint import NavigationPoint
 from ..service.ArmService import ArmService
 from ..service.MoveService import MoveService
@@ -92,7 +93,7 @@ class BModuleController:
     def task6(self):
         # 采摘1到起始区
         self.__logger.info("任务 6 开始.")
-        self.__sensor.init_odom_all(NavigationPath.ORCHARD_1_POINT)
+        self.__sensor.init_odom_all(NavigationPoint(2, -2.59, 90))
         self.__move.navigation(NavigationPath.B_MODULE_6)
         self.__logger.info("任务 6 结束.")
 
@@ -159,7 +160,13 @@ class BModuleController:
 
         self.__arm.control(ArmMovement.RECOGNITION_WAREHOUSE)
         for _ in range(10):
-            print(self.__vision.get_onnx_identify_result())
+            for result in self.__vision.get_onnx_identify_result():
+                if result.classId == FruitType.GREEN_APPLE.value:
+                    print("绿苹果")
+                elif result.classId == FruitType.YELLOW_APPLE.value:
+                    print("黄苹果")
+                elif result.classId == FruitType.RED_APPLE.value:
+                    print("红苹果")
         self.__arm.control(ArmMovement.MOVING)
         self.__logger.info("任务 13 结束.")
 
@@ -171,7 +178,13 @@ class BModuleController:
         ArmMovement.recognition_orchard(self.__arm, Direction.RIGHT)
 
         for _ in range(10):
-            print(self.__vision.get_onnx_identify_result())
+            for result in self.__vision.get_onnx_identify_result():
+                if result.classId == FruitType.GREEN_APPLE.value:
+                    print("绿苹果")
+                elif result.classId == FruitType.YELLOW_APPLE.value:
+                    print("黄苹果")
+                elif result.classId == FruitType.RED_APPLE.value:
+                    print("红苹果")
         self.__arm.control(ArmMovement.MOVING)
         self.__logger.info("任务 14 结束.")
 

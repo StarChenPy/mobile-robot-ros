@@ -6,7 +6,7 @@ import position_motor_ros2.srv
 import position_motor_ros2.msg
 
 from ..popo.MotorCmd import MotorCmd
-from ..util.Config import Config
+from ..util.ConfigAndParam import ConfigAndParam
 from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
@@ -28,7 +28,7 @@ class LiftMotorDao:
         @param cmd: 控制命令类型
         @param target: 目标值
         """
-        lift_motor_config = Config().get_lift_motor_config()
+        lift_motor_config = ConfigAndParam().get_lift_motor_config()
 
         request = position_motor_ros2.srv.CtrlImpl.Request(
             cmd=cmd.value,
@@ -58,7 +58,7 @@ class LiftMotorDao:
         @param target: 目标高度
         @param speed: 速度
         """
-        lift_motor_config = Config().get_lift_motor_config()
+        lift_motor_config = ConfigAndParam().get_lift_motor_config()
 
         # 获取目标值的范围限制
         min_val = lift_motor_config["min_value"]
