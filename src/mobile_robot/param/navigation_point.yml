@@ -3,7 +3,7 @@ orchard_1_point:
     - direction: left
       distance: 0.5
   x: 2
-  y: -2.59
+  y: -2.6
   yaw: 90
 
 orchard_2_point:
@@ -19,7 +19,7 @@ orchard_3_point:
     - direction: left
       distance: 0.5
   x: 2
-  y: -1.09
+  y: -1.04
   yaw: 90
 
 orchard_4_point:

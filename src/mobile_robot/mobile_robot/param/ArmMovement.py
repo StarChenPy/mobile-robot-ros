@@ -40,19 +40,19 @@ def put_fruit_into_basket(arm: ArmService, box_number: int) -> None:
     # 根据框号确定参数
     if box_number == 1:
         arm_pos = 28
-        telescopic = 2.5
+        telescopic = 1.5
     elif box_number == 2:
         arm_pos = 0
-        telescopic = 1
+        telescopic = 0
     elif box_number == 3:
         arm_pos = -30
-        telescopic = 2.5
+        telescopic = 1.5
     else:
         raise ValueError("篮子编号无效")
 
     arm.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, 0, telescopic, 6.5)))
     arm.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, 0, telescopic, 10)))
-    time.sleep(1)
+    time.sleep(0.5)
 
 
 def grab_basket_to_warehouse(arm: ArmService, box_number: int) -> None:

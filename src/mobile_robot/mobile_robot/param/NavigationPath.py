@@ -39,7 +39,7 @@ START_TO_ORCHARD_1 = (param.get_navigation_point("start_corrective_point"),
 
 ORCHARD_1_TO_ORCHARD_2 = (param.get_navigation_point("orchard_2_point"),)
 
-ORCHARD_2_TO_ORCHARD_3 = (param.get_navigation_point("orchard_corridor_exit_1_corrective_point"), param.get_navigation_point("orchard_3_point"))
+ORCHARD_2_TO_ORCHARD_3 = (param.get_navigation_point("orchard_3_point"), )
 
 ORCHARD_3_TO_ORCHARD_4 = (param.get_navigation_point("orchard_corridor_enter_1_point"),
                           param.get_navigation_point("orchard_corridor_enter_2_point"),

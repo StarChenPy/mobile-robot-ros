@@ -14,6 +14,7 @@ from ..service.MoveService import MoveService
 from ..service.SensorService import SensorService
 from ..service.VisionService import VisionService
 from ..util import Math
+from ..util.ConfigAndParam import ConfigAndParam
 from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
@@ -22,6 +23,8 @@ from ..util.Singleton import singleton
 class CModuleController:
     def __init__(self, node: rclpy.node.Node):
         self.__logger = Logger()
+
+        self.__point_param = ConfigAndParam()
 
         self.__arm = ArmService(node)
         self.__move = MoveService(node)
@@ -103,10 +106,10 @@ class CModuleController:
     def unknown_fruit_grab_task(self, task: dict[int: FruitType]):
         self.__logger.info("正在前往 走廊1")
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_ENTER_1, 0.4, True)
-        self.__move.navigation([NavigationPath.ORCHARD_CORRIDOR_START_1_CORRECTIVE_POINT], 0.2, True)
+        self.__move.navigation([self.__point_param.get_navigation_point("orchard_corridor_start_1_corrective_point")], 0.2, True)
 
         self.__logger.info("开始寻找 走廊1 的水果")
-        self.patrol_the_line(task, NavigationPath.ORCHARD_CORRIDOR_END_1_POINT, Direction.RIGHT, (0.5, 2))
+        self.patrol_the_line(task, self.__point_param.get_navigation_point("orchard_corridor_end_1_point"), Direction.RIGHT, (0.5, 2))
         self.__arm.control(ArmMovement.MOVING)
 
         # ----------------去2号走廊的分割线----------------
@@ -117,29 +120,28 @@ class CModuleController:
         # ----------------去2号走廊的分割线----------------
 
         self.__logger.info("开始寻找 走廊2 的水果")
-        self.patrol_the_line(task, NavigationPath.ORCHARD_CORRIDOR_START_2_POINT, Direction.LEFT, (0.49, 2.84))
+        self.patrol_the_line(task, NavigationPath.param.get_navigation_point("orchard_corridor_start_2_point"), Direction.LEFT, (0.49, 2.84))
         self.__arm.control(ArmMovement.MOVING)
 
         self.__logger.info("正在前往果仓区域")
-        self.__move.navigation([NavigationPath.ORCHARD_CORRIDOR_START_2_CORRECTIVE_POINT], 0.4, True)
+        self.__move.navigation([self.__point_param.get_navigation_point("orchard_corridor_start_2_corrective_point")], 0.4, True)
         self.__move.navigation(NavigationPath.ORCHARD_CORRIDOR_2_TO_WAREHOUSE, 0.4, True)
         if 1 in task:
             self.__logger.info("放置 果篮1")
-            self.__move.navigation([NavigationPath.WAREHOUSE_1_POINT], 0.2, True)
+            self.__move.navigation([self.__point_param.get_navigation_point("warehouse_1_point")], 0.2, True)
             ArmMovement.grab_basket_to_warehouse(self.__arm, 1)
         if 2 in task:
-            self.__move.navigation([NavigationPath.WAREHOUSE_CORRECTIVE_POINT, NavigationPath.WAREHOUSE_2_POINT], 0.2,
+            self.__move.navigation([self.__point_param.get_navigation_point("warehouse_corrective_point"), self.__point_param.get_navigation_point("warehouse_2_point")], 0.2,
                                    True)
             self.__logger.info("放置 果篮2")
             ArmMovement.grab_basket_to_warehouse(self.__arm, 2)
         if 3 in task:
-            self.__move.navigation([NavigationPath.WAREHOUSE_CORRECTIVE_POINT, NavigationPath.WAREHOUSE_3_POINT], 0.2,
+            self.__move.navigation([self.__point_param.get_navigation_point("warehouse_corrective_point"), self.__point_param.get_navigation_point("warehouse_3_point")], 0.2,
                                    True)
             self.__logger.info("放置 果篮3")
             ArmMovement.grab_basket_to_warehouse(self.__arm, 3)
 
         self.__logger.info("正在前往起始区")
-        self.__move.navigation([NavigationPath.WAREHOUSE_CORRECTIVE_POINT], 0.2, True)
         self.__move.navigation(NavigationPath.B_MODULE_4, 0.4, True)
 
     def known_fruit_grab_task(self, task):
@@ -159,7 +161,7 @@ class CModuleController:
             self.__arm.control(ArmMovement.MOVING)
 
         self.__move.navigation(NavigationPath.ORCHARD_CORRIDOR_2_TO_WAREHOUSE)
-        self.__move.navigation([NavigationPath.WAREHOUSE_1_POINT], 0.2)
+        self.__move.navigation([self.__point_param.get_navigation_point("warehouse_1_point")], 0.2)
 
         self.__logger.info(f"正在放置水果")
         self.__arm.control(ArmMovement.READY_PULL_WAREHOUSE)
