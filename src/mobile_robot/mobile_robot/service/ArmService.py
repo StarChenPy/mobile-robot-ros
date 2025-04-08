@@ -29,15 +29,12 @@ class ArmService:
         self.__radar = LaserRadarDao(node)
 
     def grab_fruit(self, height: float, direction: Direction.LEFT or Direction.RIGHT):
+        self.__logger.info(f"收到的升降距离为 {height}")
         """执行抓取动作"""
-        if height > 38:
-            telescopic = 7
+        if height > 29:
+            telescopic = 8
             nod = -60
-            height -= 12
-        elif height > 29:
-            telescopic = 2
-            nod = -20
-            height -= 4
+            height -= 10
         else:
             telescopic = 1.5
             nod = 0
@@ -91,7 +88,7 @@ class ArmService:
         # 结束
         self.control(ArmMovement(MotorMovement(0, 18), ServoMotor(0, 0, 3, 6.5)))
 
-    def control(self, movement: ArmMovement, speed=45.0, is_block=True):
+    def control(self, movement: ArmMovement, speed=60.0, is_block=True):
         self.__logger.debug(f"机械臂控制 {movement}")
 
         if movement.motor is not None:

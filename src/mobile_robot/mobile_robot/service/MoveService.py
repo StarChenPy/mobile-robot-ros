@@ -34,7 +34,7 @@ class MoveService:
         if is_block:
             self.__navigation.wait_finish()
 
-    def navigation(self, nav_path: list[NavigationPoint], speed = 0.4, is_block=True):
+    def navigation(self, nav_path: list[NavigationPoint], speed=0.4, is_block=True):
         """
         通过路径进行导航
         @param nav_path 路径列表
@@ -117,17 +117,18 @@ class MoveService:
                 return
             self.__odom.init_yaw(new_yaw)
 
-        if point.yaw == 0:
+        if abs(point.yaw) < 5:
             # 验证可用
             self.__odom.init_location(point.x + x_buffer, point.y + y_buffer)
-        elif point.yaw == 90:
+        elif abs(90 - point.yaw) < 5:
             # 验证可用
             self.__odom.init_location(point.x + y_buffer, point.y + x_buffer)
-        elif point.yaw == 180 or point.yaw == -180:
+        elif abs(180 - point.yaw) < 5 or abs(180 - point.yaw) < 5:
             # 未验证可用
             self.__odom.init_location(point.x - x_buffer, point.y - y_buffer)
-        elif point.yaw == -90:
+        elif abs(-90 - point.yaw) < 5:
             # 验证可用
+            print(y_buffer)
             self.__odom.init_location(point.x + y_buffer, point.y - x_buffer)
 
         rclpy.spin_once(self.__node)

@@ -68,6 +68,7 @@ class BModuleController:
         self.__logger.info("任务 2 开始.")
         self.__move.rotate(360)
         angle_from_wall = self.__sensor.get_angle_from_wall(Direction.RIGHT)
+        time.sleep(1)
         self.__move.rotate(angle_from_wall)
         self.__logger.info("任务 2 结束.")
 
