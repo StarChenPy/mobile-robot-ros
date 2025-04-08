@@ -128,7 +128,6 @@ class MoveService:
             self.__odom.init_location(point.x - x_buffer, point.y - y_buffer)
         elif abs(-90 - point.yaw) < 5:
             # 验证可用
-            print(y_buffer)
             self.__odom.init_location(point.x + y_buffer, point.y - x_buffer)
 
         rclpy.spin_once(self.__node)

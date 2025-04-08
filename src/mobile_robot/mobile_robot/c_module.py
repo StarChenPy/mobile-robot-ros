@@ -36,7 +36,7 @@ class CModule(Node):
             ]
             self.__grub_fruit.known_fruit_grab_task(task)
         elif s == "w":
-            task = {1: FruitType.RED_APPLE, 2: FruitType.GREEN_APPLE, 3: FruitType.YELLOW_APPLE}
+            task = {1: FruitType.YELLOW_APPLE, 2: FruitType.RED_APPLE, 3: FruitType.GREEN_APPLE}
             self.__grub_fruit.unknown_fruit_grab_task(task)
 
         self.__robot.set_start_led(False)

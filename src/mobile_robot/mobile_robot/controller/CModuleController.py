@@ -133,11 +133,11 @@ class CModuleController:
             self.__move.navigation([self.__point_param.get_navigation_point("warehouse_1_point")], 0.2, True)
             ArmMovement.grab_basket_to_warehouse(self.__arm, 1)
         if 2 in task:
-            self.__move.navigation([self.__point_param.get_navigation_point("warehouse_corrective_point"), self.__point_param.get_navigation_point("warehouse_2_point")], 0.2)
+            self.__move.navigation([self.__point_param.get_navigation_point("warehouse_2_point")], 0.2)
             self.__logger.info("放置 果篮2")
             ArmMovement.grab_basket_to_warehouse(self.__arm, 2)
         if 3 in task:
-            self.__move.navigation([self.__point_param.get_navigation_point("warehouse_corrective_point"), self.__point_param.get_navigation_point("warehouse_3_point")], 0.2)
+            self.__move.navigation([self.__point_param.get_navigation_point("warehouse_3_point")], 0.2)
             self.__logger.info("放置 果篮3")
             ArmMovement.grab_basket_to_warehouse(self.__arm, 3)
 
@@ -156,6 +156,8 @@ class CModuleController:
             self.__arm.grab_fruit(FruitHeight.TALL.value, Direction.RIGHT)
             if i < 5:
                 ArmMovement.put_fruit_into_basket(self.__arm, 2)
+            else:
+                self.__arm.control(ArmMovement.MOVING)
 
             time.sleep(1)
             self.__arm.control(ArmMovement.MOVING)

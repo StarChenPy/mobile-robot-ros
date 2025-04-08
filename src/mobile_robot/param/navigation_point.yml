@@ -1,7 +1,7 @@
 orchard_1_point:
   corrective_data:
     - direction: left
-      distance: 0.5
+      distance: 0.49
   x: 2
   y: -2.6
   yaw: 90
@@ -9,7 +9,7 @@ orchard_1_point:
 orchard_2_point:
   corrective_data:
     - direction: left
-      distance: 0.5
+      distance: 0.49
   x: 2
   y: -1.84
   yaw: 90
@@ -17,7 +17,7 @@ orchard_2_point:
 orchard_3_point:
   corrective_data:
     - direction: left
-      distance: 0.5
+      distance: 0.49
   x: 2
   y: -1.04
   yaw: 90

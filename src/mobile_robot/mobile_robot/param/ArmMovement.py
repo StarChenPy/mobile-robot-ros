@@ -28,8 +28,6 @@ def recognition_orchard(arm: ArmService, direction: Direction.LEFT or Direction.
     else:
         raise ValueError("不可用的Direction")
 
-    arm.control(ArmMovement(MotorMovement(arm_pos, 6), ServoMotor(0, 0, 3, 6.5)))
-    arm.control(ArmMovement(MotorMovement(arm_pos, 6), ServoMotor(0, -90, 15, 20)))
     arm.control(ArmMovement(MotorMovement(arm_pos, 6), ServoMotor(0, -90, 15, 20)))
 
 

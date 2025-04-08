@@ -53,7 +53,7 @@ class ArmService:
                 distance_from_wall = self.__robot_data.get_ir_left()
             elif direction == Direction.RIGHT:
                 distance_from_wall = self.__robot_data.get_ir_right()
-            if distance_from_wall and 0.4 > distance_from_wall > 0.1:
+            if distance_from_wall and 0.5 > distance_from_wall > 0.1:
                 dis = (distance_from_wall - default_distance_from_wall) * 100
                 telescopic += dis
                 self.__logger.info(f"伸缩距离计算为 {telescopic}")
@@ -85,8 +85,6 @@ class ArmService:
         time.sleep(0.5)
         # 提起
         self.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, nod, telescopic, 6.5)))
-        # 结束
-        self.control(ArmMovement(MotorMovement(0, 18), ServoMotor(0, 0, 3, 6.5)))
 
     def control(self, movement: ArmMovement, speed=60.0, is_block=True):
         self.__logger.debug(f"机械臂控制 {movement}")

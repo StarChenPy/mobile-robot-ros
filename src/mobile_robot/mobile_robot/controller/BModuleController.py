@@ -76,6 +76,7 @@ class BModuleController:
         # 抓水果
         self.__logger.info("任务 3 开始.")
         self.__arm.grab_fruit(FruitHeight.TALL.value, Direction.RIGHT)
+        self.__arm.control(ArmMovement.MOVING)
         self.__logger.info("任务 3 结束.")
 
     def task4(self):
@@ -110,6 +111,7 @@ class BModuleController:
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
         self.__arm.grab_fruit(FruitHeight.TALL.value, Direction.RIGHT)
+        self.__arm.control(ArmMovement.MOVING)
         self.__logger.info("任务 8 结束.")
 
     def task9(self):
@@ -118,6 +120,7 @@ class BModuleController:
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
         self.__arm.grab_fruit(FruitHeight.MIDDLE.value, Direction.RIGHT)
+        self.__arm.control(ArmMovement.MOVING)
         self.__logger.info("任务 9 结束.")
 
     def task10(self):
@@ -126,6 +129,7 @@ class BModuleController:
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
         self.__arm.grab_fruit(FruitHeight.LOW.value, Direction.RIGHT)
+        self.__arm.control(ArmMovement.MOVING)
         self.__logger.info("任务 10 结束.")
 
     def task11(self):
@@ -145,6 +149,7 @@ class BModuleController:
         self.__move.navigation(NavigationPath.START_TO_ORCHARD_1)
 
         self.__arm.grab_fruit(FruitHeight.TALL.value, Direction.RIGHT)
+        self.__arm.control(ArmMovement.MOVING)
 
         self.__move.navigation(NavigationPath.B_MODULE_12)
 
