@@ -1,5 +1,3 @@
-import threading
-
 import rclpy
 import rclpy.action
 
@@ -19,7 +17,6 @@ class NavigationDao:
         self.__is_navigating = False
 
         self.__action = rclpy.action.ActionClient(node, base_nav2.action.NavCMD, '/nav2_action')
-        self.__mtx = threading.Lock()
 
     def navigation(self, points: list[NavigationPoint], linear_speed: float, rotation_speed: float,
                    rotation_acceleration: float, rotation_deceleration: float, reverse: bool):
@@ -52,8 +49,7 @@ class NavigationDao:
         goal_handle = self.__action.send_goal_async(goal_msg)
         goal_handle.add_done_callback(self.__goal_response_callback)
 
-        with self.__mtx:
-            self.__is_navigating = True
+        self.__is_navigating = True
 
     def __goal_response_callback(self, future) -> None:
         """处理Goal响应"""
@@ -70,16 +66,14 @@ class NavigationDao:
         """处理Goal完成回调"""
         self.__logger.debug(f"导航完成")
 
-        with self.__mtx:
-            self.__is_navigating = False
+        self.__is_navigating = False
 
     def wait_finish(self) -> None:
         """等待导航完成"""
         while rclpy.ok():
             rclpy.spin_once(self.__node)
-            with self.__mtx:
-                if not self.__is_navigating:
-                    break
+            if not self.__is_navigating:
+                break
         self.__logger.debug("导航结束")
 
     def cancel(self) -> None:
@@ -96,10 +90,8 @@ class NavigationDao:
         获取导航状态
         @return True 正在导航
         """
-        self.__mtx.acquire()
         rclpy.spin_once(self.__node)
         rclpy.spin_once(self.__node)
         rclpy.spin_once(self.__node)
         status = self.__is_navigating
-        self.__mtx.release()
         return status

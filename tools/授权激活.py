@@ -24,7 +24,7 @@ def file_copy(ip, local_path, remote_path):
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     success = False
     try:
-        ssh.connect(ip, 22, 'vmx', 'password')
+        ssh.connect(ip, 22, 'vmxpi', 'password')
         sftp = ssh.open_sftp()
         sftp.put(local_path, remote_path)
         sftp.close()

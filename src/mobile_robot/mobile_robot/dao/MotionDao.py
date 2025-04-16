@@ -62,34 +62,32 @@ class MotionDao:
     def line(self, distance: float, speed: float):
         """基础运动: 直线模式"""
         future = self.__call_service(MotionMode.LINE, distance, speed)
-        self.__logger.debug(f'已请求直线运动服务 距离 {distance} 速度 {speed}')
+        self.__logger.debug(f'已请求直线运动服务 距离 {distance} 速度 {speed}.')
 
-        while rclpy.ok():
-            rclpy.spin_once(self.__node)
+        rclpy.spin_until_future_complete(self.__node, future, timeout_sec=10)
 
-            if not future.done():
-                continue
+        if not future.done():
+            self.__logger.warn("请求旋转运动服务超时.")
+            return
 
-            if not future.result().success:
-                self.__logger.error('错误, 无法直线运动!')
-                return
-            break
+        if not future.result().success:
+            self.__logger.error('无法直线运动!')
+            return
 
     def rotate(self, angle: float, speed: float):
         """基础运动: 旋转模式"""
         future = self.__call_service(MotionMode.ROTATE, angle, speed)
-        self.__logger.debug(f'已请求旋转运动服务 角度 {angle} 速度 {speed}')
+        self.__logger.debug(f'已请求旋转运动服务 角度 {angle} 速度 {speed}.')
 
-        while rclpy.ok():
-            rclpy.spin_once(self.__node)
+        rclpy.spin_until_future_complete(self.__node, future, timeout_sec=10)
 
-            if not future.done():
-                continue
+        if not future.done():
+            self.__logger.warn("请求旋转运动服务超时.")
+            return
 
-            if not future.result().success:
-                self.__logger.error('错误, 无法旋转运动!')
-                return
-            break
+        if not future.result().success:
+            self.__logger.error('无法旋转运动!')
+            return
 
     def wait_finish(self):
         """
@@ -102,15 +100,15 @@ class MotionDao:
             future = self.__call_service(MotionMode.QUERY, 0, 0)
 
             # 单层等待循环配超时机制
-            while rclpy.ok() and not future.done():
-                rclpy.spin_once(self.__node, timeout_sec=0.2)
+            rclpy.spin_until_future_complete(self.__node, future, timeout_sec=10)
 
-            if not rclpy.ok():
-                break
+            if not future.done():
+                self.__logger.warn("请求旋转运动服务超时.")
+                continue
 
             feedback = future.result().feedback
             if feedback.motion_mode == 0 and feedback.motion_status == 2:
-                self.__logger.debug("运动服务已结束")
+                self.__logger.debug("运动服务已结束.")
                 return
 
             time.sleep(0.5)
@@ -120,13 +118,13 @@ class MotionDao:
         self.__logger.debug("停止中...")
 
         future = self.__call_service(MotionMode.STOP, 0, 0)
-        while rclpy.ok():
-            rclpy.spin_once(self.__node)
+        rclpy.spin_until_future_complete(self.__node, future, timeout_sec=10)
 
-            if not future.done():
-                continue
+        if not future.done():
+            self.__logger.warn("请求旋转运动服务超时.")
+            return
 
-            if future.result().success:
-                self.__logger.debug('停止完成.')
-            else:
-                self.__logger.error('停止失败.')
+        if future.result().success:
+            self.__logger.debug('停止完成.')
+        else:
+            self.__logger.error('停止失败.')
