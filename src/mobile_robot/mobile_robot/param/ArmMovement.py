@@ -28,10 +28,7 @@ def recognition_orchard(arm: ArmService, direction: Direction.LEFT or Direction.
     else:
         raise ValueError("不可用的Direction")
 
-    arm.control(ArmMovement(MotorMovement(arm_pos, 6), ServoMotor(0, 0, 3, 6.5)))
     arm.control(ArmMovement(MotorMovement(arm_pos, 6), ServoMotor(0, -90, 15, 20)))
-    arm.control(ArmMovement(MotorMovement(arm_pos, 6), ServoMotor(0, -90, 15, 20)))
-    time.sleep(2)
 
 
 def put_fruit_into_basket(arm: ArmService, box_number: int) -> None:
@@ -85,12 +82,12 @@ def grab_basket_to_warehouse(arm: ArmService, box_number: int) -> None:
     arm.control(ArmMovement(MotorMovement(arm_pos, 6), ServoMotor(rotary, nod, telescopic, 19.5)))
     arm.control(ArmMovement(MotorMovement(arm_pos, 6), ServoMotor(0, nod, telescopic, 19.5)))
     time.sleep(0.5)
-    arm.control(ArmMovement(MotorMovement(arm_pos, 6), ServoMotor(0, 0, 5, 19.5)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 6), ServoMotor(0, 0, 5, 18.5)))
 
     # 放下（公共部分）
-    arm.control(ArmMovement(MotorMovement(180, 5), ServoMotor(0, 0, 5, 19.5)))
-    arm.control(ArmMovement(MotorMovement(180, 24), ServoMotor(0, 0, 5, 19.5)))
+    arm.control(ArmMovement(MotorMovement(180, 5), ServoMotor(0, 0, 5, 18.5)))
+    arm.control(ArmMovement(MotorMovement(180, 24), ServoMotor(0, 0, 5, 18.5)))
     arm.control(ArmMovement(MotorMovement(180, 24), ServoMotor(0, 0, 5, 25)))
-    time.sleep(1)
+    time.sleep(0.5)
     # 结束（公共部分）
     arm.control(ArmMovement(MotorMovement(0, 18), ServoMotor(0, 0, 3, 6.5)))
