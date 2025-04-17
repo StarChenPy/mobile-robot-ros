@@ -41,24 +41,26 @@ class ArmService:
 
         # 计算伸缩要伸出的距离
         default_distance_from_wall = 0.33
-        distance_from_wall = self.__radar.get_distance_from_wall(direction)
-        if distance_from_wall and 0.4 > distance_from_wall > 0.1:
+        distance_from_wall = 0
+
+        if direction == Direction.LEFT:
+            distance_from_wall = self.__robot_data.get_ir_left()
+        elif direction == Direction.RIGHT:
+            distance_from_wall = self.__robot_data.get_ir_right()
+
+        if distance_from_wall and 0.5 > distance_from_wall > 0.1:
             dis = (distance_from_wall - default_distance_from_wall) * 100
             telescopic += dis
             self.__logger.info(f"伸缩距离计算为 {telescopic}")
         else:
-            self.__logger.warn(f"雷达数据不可信，尝试使用红外测距")
-
-            if direction == Direction.LEFT:
-                distance_from_wall = self.__robot_data.get_ir_left()
-            elif direction == Direction.RIGHT:
-                distance_from_wall = self.__robot_data.get_ir_right()
-            if distance_from_wall and 0.5 > distance_from_wall > 0.1:
+            self.__logger.warn(f"红外数据不可信，尝试使用雷达数据")
+            distance_from_wall = self.__radar.get_distance_from_wall(direction)
+            if distance_from_wall and 0.4 > distance_from_wall > 0.1:
                 dis = (distance_from_wall - default_distance_from_wall) * 100
                 telescopic += dis
                 self.__logger.info(f"伸缩距离计算为 {telescopic}")
             else:
-                self.__logger.warn(f"红外数据不可信，使用默认值 {telescopic}")
+                self.__logger.warn(f"雷达数据不可信，使用默认值")
 
         # 计算要旋转的角度
         angle = self.__radar.get_angle_from_wall(direction)

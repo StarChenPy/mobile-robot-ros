@@ -1,8 +1,8 @@
 import rclpy
+from rclpy.impl.logging_severity import LoggingSeverity
 from rclpy.node import Node
 
 from .util.Logger import Logger
-from .controller.RobotController import RobotController
 from .controller.TestModuleController import TestModuleController
 
 
@@ -10,9 +10,8 @@ class TestModule(Node):
     def __init__(self):
         super().__init__("test_module")
 
-        Logger().set_ros_logger(self.get_logger())
+        Logger().set_ros_logger(self.get_logger(), LoggingSeverity.DEBUG)
 
-        RobotController(self).with_robot_connect()
         test = TestModuleController(self)
 
         test.run()

@@ -16,7 +16,7 @@ class AbstractMotorDao(ABC):
 
         self.__service = node.create_client(position_motor_ros2.srv.CtrlImpl, src_name)
 
-    def __call_service(self, cmd: MotorCmd, target: float, speed: float) -> rclpy.task.Future:
+    def _call_service(self, cmd: MotorCmd, target: float, speed: float) -> rclpy.task.Future:
         """
         呼叫电机服务
         @param cmd: 控制命令类型
@@ -24,7 +24,7 @@ class AbstractMotorDao(ABC):
         """
         self.__service.wait_for_service()
 
-        motor_config = self.get_motor_config()
+        motor_config = self._get_motor_config()
 
         request = position_motor_ros2.srv.CtrlImpl.Request(
             cmd=cmd.value,
@@ -53,16 +53,16 @@ class AbstractMotorDao(ABC):
         pass
 
     @abstractmethod
-    def get_motor_config(self):
+    def _get_motor_config(self):
         pass
 
     def back_origin(self, speed: float):
-        self.__call_service(MotorCmd.BACK_ORIGIN, 0, speed)
+        self._call_service(MotorCmd.BACK_ORIGIN, 0, speed)
         self.__logger.debug(f"已请求回原点服务")
 
     def wait_finish(self):
         while rclpy.ok():
-            future = self.__call_service(MotorCmd.READ_FEEDBACK, 0, 0)
+            future = self._call_service(MotorCmd.READ_FEEDBACK, 0, 0)
 
             # 单层等待循环配超时机制
             while rclpy.ok() and not future.done():

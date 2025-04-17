@@ -4,6 +4,7 @@ from .AbstractMotorDao import AbstractMotorDao
 
 from ..popo.MotorCmd import MotorCmd
 from ..util.ConfigAndParam import ConfigAndParam
+from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
 
@@ -12,13 +13,15 @@ class LiftMotorDao(AbstractMotorDao):
     def __init__(self, node: rclpy.node.Node):
         super().__init__(node, '/position_motor/lift_motor/ctrl')
 
+        self.__logger = Logger()
+
     def ctrl_motor(self, target: float, speed: float):
         """
         电机控制方法，用于升降电机
         @param target: 目标高度
         @param speed: 速度
         """
-        lift_motor_config = self.get_motor_config()
+        lift_motor_config = self._get_motor_config()
 
         # 获取目标值的范围限制
         min_val = lift_motor_config["min_value"]
@@ -34,8 +37,8 @@ class LiftMotorDao(AbstractMotorDao):
         target_pulses = -target * ratio
 
         # 调用电机服务
-        self.__call_service(MotorCmd.SET_POSITION, target_pulses, speed)
+        super()._call_service(MotorCmd.SET_POSITION, target_pulses, speed)
         self.__logger.debug(f"已请求升降电机服务, speed: {speed}")
 
-    def get_motor_config(self):
+    def _get_motor_config(self):
         return ConfigAndParam().get_lift_motor_config()

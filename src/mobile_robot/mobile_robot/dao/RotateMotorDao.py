@@ -3,6 +3,7 @@ import rclpy
 from .AbstractMotorDao import AbstractMotorDao
 from ..popo.MotorCmd import MotorCmd
 from ..util.ConfigAndParam import ConfigAndParam
+from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
 
@@ -11,13 +12,15 @@ class RotateMotorDao(AbstractMotorDao):
     def __init__(self, node: rclpy.node.Node):
         super().__init__(node, '/position_motor/rotate_motor/ctrl')
 
+        self.__logger = Logger()
+
     def ctrl_motor(self, target: float, speed: float):
         """
         电机控制方法，用于旋转电机
         @param target: 目标角度
         @param speed: 速度
         """
-        rotate_motor_config = self.get_motor_config()
+        rotate_motor_config = self._get_motor_config()
 
         # 获取目标值的范围限制
         min_val = rotate_motor_config["min_value"]
@@ -33,8 +36,8 @@ class RotateMotorDao(AbstractMotorDao):
         target_pulses = target * (enc_ppi / 360.0)
 
         # 调用电机服务
-        self.__call_service(MotorCmd.SET_POSITION, target_pulses, speed)
-        self.__logger.debug(f"已请求服务")
+        super()._call_service(MotorCmd.SET_POSITION, target_pulses, speed)
+        self.__logger.debug(f"已请求旋转电机服务")
 
-    def get_motor_config(self):
+    def _get_motor_config(self):
         return ConfigAndParam().get_rotate_motor_config()

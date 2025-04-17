@@ -1,3 +1,5 @@
+import time
+
 import rclpy
 
 from ..dao.LaserRadarDao import LaserRadarDao
@@ -138,12 +140,14 @@ class MoveService:
 
     def line(self, distance: float, speed: float = 0.2, is_block=True):
         self.__motion.line(distance, speed)
+        time.sleep(1)
 
         if is_block:
             self.__motion.wait_finish()
 
     def rotate(self, angle: float, speed: float = 50, is_block=True):
         self.__motion.rotate(angle, speed)
+        time.sleep(1)
 
         if is_block:
             self.__motion.wait_finish()
