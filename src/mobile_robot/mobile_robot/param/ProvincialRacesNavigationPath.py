@@ -1,6 +1,6 @@
-from ..util.ConfigAndParam import ConfigAndParam
+from ..util.Config import Config
 
-param = ConfigAndParam()
+param = Config()
 
 B_MODULE_4 = (param.get_navigation_point("warehouse_enter_3_point"),
               param.get_navigation_point("warehouse_enter_2_point"),

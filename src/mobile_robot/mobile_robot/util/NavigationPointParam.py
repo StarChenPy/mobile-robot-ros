@@ -10,31 +10,18 @@ from ..popo.NavigationPoint import NavigationPoint
 
 
 @singleton
-class ConfigAndParam:
-    def __init__(self):
+class NavigationPointParam:
+    def __init__(self, param_name):
         share_directory = ament_index_python.packages.get_package_share_directory("mobile_robot")
 
-        self.__config_dir = share_directory + "/config"
-        self.__param_dir = share_directory + "/param"
-
-
-    def get_lift_motor_config(self):
-        with open(self.__config_dir + "/lift_motor_config.yml", 'r') as stream:
-            return yaml.safe_load(stream.read())
-
-    def get_rotate_motor_config(self):
-        with open(self.__config_dir + "/rotate_motor_config.yml", 'r') as stream:
-            return yaml.safe_load(stream.read())
-
-    def get_servo_config(self):
-        with open(self.__config_dir + "/servo_config.yml", 'r') as stream:
-            return yaml.safe_load(stream.read())
+        self.__param_name = param_name
+        self.__param_dir = share_directory + "/param/"
 
     def get_navigation_point(self, point_name: str) -> NavigationPoint:
         """
         从参数文件中获取导航点与矫正点
         """
-        with open(self.__param_dir + "/navigation_point.yml", 'r') as stream:
+        with open(self.__param_dir + self.__param_name, 'r') as stream:
             points_for_param = yaml.safe_load(stream.read())
 
             if points_for_param is None:
@@ -67,13 +54,13 @@ class ConfigAndParam:
         """
         将导航点写入到yaml文件中
         """
-        with open(self.__param_dir + "/navigation_point.yaml", 'r') as stream:
+        with open(self.__param_dir + self.__param_name, 'r') as stream:
             data_for_file = yaml.safe_load(stream.read())
 
         if not isinstance(data_for_file, dict):
             data_for_file = {}
 
-        with open(self.__param_dir + "/navigation_point.yaml", 'w') as stream:
+        with open(self.__param_dir + self.__param_name, 'w') as stream:
             point = {"x": navigation_point.x, "y": navigation_point.y, "yaw": navigation_point.yaw}
 
             if isinstance(navigation_point, CorrectivePoint):

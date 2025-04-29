@@ -1,9 +1,9 @@
 import cv2
-import rclpy
 import cv_bridge
+import rclpy
 
-import mnn_detector.srv
 import mnn_detector.msg
+import mnn_detector.srv
 from ..popo.IdentifyResult import IdentifyResult
 from ..popo.MnnCmd import MnnCmd
 from ..popo.Rectangle import Rectangle

@@ -2,7 +2,7 @@ import time
 
 import rclpy
 
-from ..param import ArmMovement, NavigationPath
+from ..param import ArmMovement
 from ..popo.Corrective import Corrective
 from ..popo.CorrectivePoint import CorrectivePoint
 from ..popo.Direction import Direction
@@ -14,7 +14,7 @@ from ..service.MoveService import MoveService
 from ..service.SensorService import SensorService
 from ..service.VisionService import VisionService
 from ..util import Math
-from ..util.ConfigAndParam import ConfigAndParam
+from ..util.Config import Config
 from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
@@ -24,7 +24,7 @@ class CModuleController:
     def __init__(self, node: rclpy.node.Node):
         self.__logger = Logger()
 
-        self.__point_param = ConfigAndParam()
+        self.__point_param = Config()
 
         self.__arm = ArmService(node)
         self.__move = MoveService(node)
@@ -68,7 +68,7 @@ class CModuleController:
                 if task[key] == FruitType.get_by_value(result.classId):
                     # 平移到水果前
                     center = result.box.get_rectangle_center()
-                    travel_distance = Math.pixel_to_horizontal_distance(320 - center.x, result.distance)
+                    travel_distance = Math.pixel_to_horizontal_distance_x(320 - center.x, result.distance)
                     self.__move.line(travel_distance if direction == Direction.RIGHT else -travel_distance)
 
                     # 再次检测

@@ -1,5 +1,6 @@
-from setuptools import find_packages, setup
 import glob
+
+from setuptools import find_packages, setup
 
 package_name = 'mobile_robot'
 
@@ -27,6 +28,7 @@ setup(
             'b_module = mobile_robot.b_module:main',
             'c_module = mobile_robot.c_module:main',
             'test_module = mobile_robot.test_module:main',
+            'trials = mobile_robot.shandong_trials_module:main'
         ],
     },
 )

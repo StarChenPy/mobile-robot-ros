@@ -1,7 +1,7 @@
 rotary:
   pin: 4
-  min_value: -80
-  max_value: 90
+  min_value: -190
+  max_value: 100
   zero_duty: 23.45
   deg90_duty: 11.3
 

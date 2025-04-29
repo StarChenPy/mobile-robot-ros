@@ -1,0 +1,87 @@
+orchard_enter_a_1:
+  corrective_data:
+    - direction: back
+      distance: 0.454
+    - direction: right
+      distance: 0.353
+  x: 0.35
+  y: 0.35
+  yaw: 0
+
+orchard_enter_a_2:
+  x: 2.85
+  y: 0.4
+  yaw: null
+
+orchard_enter_a_3:
+  corrective_data:
+    - direction: back
+      distance: 0.428
+    - direction: right
+      distance: 0.355
+  x: 2.85
+  y: 1.26
+  yaw: 180
+
+orchard_enter_a_fruit_tree_1:
+  x: 1.8
+  y: 1.26
+  yaw: 180
+
+orchard_enter_a_fruit_tree_2:
+  x: 1.86
+  y: 1.22
+  yaw: 90
+
+orchard_enter_b_1:
+  x: 0.35
+  y: 2.64
+  yaw: null
+
+orchard_enter_b_2:
+  x: 3.65
+  y: 2.67
+  yaw: null
+
+orchard_enter_b_3:
+  x: 3.65
+  y: 1.98
+  yaw: null
+
+orchard_enter_b_4:
+  corrective_data:
+    - direction: back
+      distance: 0.724
+    - direction: right
+      distance: 0.345
+  x: 3.29
+  y: 1.97
+  yaw: 180
+
+orchard_enter_b_fruit_tree_2:
+  x: 2.74
+  y: 1.98
+  yaw: 180
+
+orchard_enter_b_fruit_tree_3:
+  x: 3.65
+  y: 1.1
+  yaw: -90
+
+orchard_enter_b_fruit_tree_4:
+  x: 3.65
+  y: 2.9
+  yaw: 90
+
+start_corrective_point:
+  corrective_data:
+    - direction: back
+      distance: 0.43
+  x: 1.2
+  y: 1.95
+  yaw: 180
+
+start_enter_point:
+  x: 0.35
+  y: 1.95
+  yaw: null

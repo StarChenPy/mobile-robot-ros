@@ -4,7 +4,6 @@ import rclpy
 
 import camera_orbbec2.srv
 from ..util.Logger import Logger
-
 from ..util.Singleton import singleton
 
 

@@ -3,6 +3,7 @@ import math
 import numpy as np
 
 from ..popo.NavigationPoint import NavigationPoint
+from ..popo.Point import Point
 
 
 def calculate_right_angle_side(adjacent_length, angle_degrees):
@@ -19,6 +20,35 @@ def calculate_right_angle_side(adjacent_length, angle_degrees):
     # 计算另一条直角边（对边）的长度
     opposite_length = adjacent_length * math.tan(angle_radians)
     return opposite_length
+
+def calculate_right_triangle_angle(a: float, b: float) -> float:
+    """
+    计算直角三角形中斜边与边 b 的夹角（单位：度）
+    参数:
+        a (float): 一条直角边，与角相对
+        b (float): 另一条直角边，作为角的邻边
+    返回:
+        float: 斜边与 b 的夹角，单位为度
+    """
+    if b == 0:
+        raise ValueError("b 不能为 0，因为不能除以 0")
+
+    radians = math.atan2(a, b)  # atan2 自动处理正负情况
+    degrees = math.degrees(radians)
+    return degrees
+
+def calculate_hypotenuse(a: float, b: float) -> float:
+    """
+    计算直角三角形的斜边长度。
+
+    参数：
+    a -- 第一条直角边长度
+    b -- 第二条直角边长度
+
+    返回：
+    斜边的长度
+    """
+    return math.sqrt(a**2 + b**2)
 
 
 def get_target_coordinate(point: NavigationPoint, dis) -> NavigationPoint:
@@ -57,7 +87,7 @@ def fit_polar_line_and_get_distance(polar_points: list[tuple[float, float]]):
     a, b = np.linalg.lstsq(A, y, rcond=None)[0]
 
     # 计算原点 (0,0) 到直线的垂直距离：d = |b| / sqrt(a^2 + 1) 并返回
-    return np.abs(b) / np.sqrt(a ** 2 + 1)
+    return (np.abs(b) / np.sqrt(a ** 2 + 1)).item()
 
 
 def fit_polar_line_and_get_angle(polar_points: list[tuple[float, float]]) -> float:
@@ -78,7 +108,7 @@ def fit_polar_line_and_get_angle(polar_points: list[tuple[float, float]]) -> flo
     a, b = np.linalg.lstsq(A, y, rcond=None)[0]
 
     # 计算直线与x轴正方向的夹角，然后转换为角度并返回
-    return np.degrees(np.arctan(a))
+    return np.degrees(np.arctan(a)).item()
 
 
 def is_behind(point1: NavigationPoint, point2: NavigationPoint, angle_threshold: float) -> bool:
@@ -188,7 +218,7 @@ def distance_from_origin(x1, y1, x2, y2):
     return numerator / denominator
 
 
-def pixel_to_horizontal_distance(x_pixel: float, camera_height: float) -> float:
+def pixel_to_horizontal_distance_x(x_pixel: float, camera_height: float) -> float:
     """
     计算苹果的横向现实距离（米）。
     相机垂直向下，固定参数：
@@ -203,3 +233,60 @@ def pixel_to_horizontal_distance(x_pixel: float, camera_height: float) -> float:
     image_width = 640  # 图像宽度
     focal_length = image_width / (1.3 * math.tan(math.radians(fov_deg) / 2))
     return (camera_height * x_pixel) / focal_length
+
+def pixel_to_horizontal_distance_y(y_pixel: float, camera_height: float) -> float:
+    """
+    计算苹果的纵向现实距离（米）。
+    相机垂直向下，固定参数：
+    - 图像宽度 480px
+    - 垂直 FOV 55°
+
+    @param y_pixel: 苹果的垂直像素坐标（图像底部为0，向上为正）
+    @param camera_height: 相机高度（米）
+    """
+
+    fov_deg = 55  # 垂直视场角
+    image_width = 480  # 图像宽度
+    focal_length = image_width / (2.8 * math.tan(math.radians(fov_deg) / 2))
+    return (camera_height * y_pixel) / focal_length
+
+def pixel_to_world(point: Point, dis):
+    """
+    将图像像素坐标转换为相对于图像底部中心 (320, 480) 的地面平面坐标。
+    参数：
+        point: tuple(int, int)，图像像素坐标 (x, y)
+        dis: float，相机到地面的垂直高度（单位：米）
+        img_width: 图像宽度（默认 640）
+        img_height: 图像高度（默认 480）
+        h_fov_deg: 水平视角（默认 110°）
+        v_fov_deg: 垂直视角（默认 55°）
+    返回：
+        (x_m, y_m): 地面坐标（单位：米），以图像底部中心为原点，x 向右为正，y 向下为正
+    """
+
+    img_width=640
+    img_height=480
+    h_fov_deg=110
+    v_fov_deg=55
+
+    # 图像底部中心点
+    cx = img_width / 2
+    cy = img_height  # 底部为 y=480
+
+    # 像素偏移
+    dx = point.x - cx
+    dy = cy - point.y  # 注意是向上的为正角度，因此底部为0，向上为负
+
+    # 每像素对应的视角（弧度）
+    angle_per_pixel_x = math.radians(h_fov_deg) / img_width
+    angle_per_pixel_y = math.radians(v_fov_deg) / img_height
+
+    # 像素偏移角度
+    angle_x = dx * angle_per_pixel_x
+    angle_y = dy * angle_per_pixel_y
+
+    # 地面坐标偏移（单位：米）
+    x_m = math.tan(angle_x) * dis
+    y_m = math.tan(angle_y) * dis
+
+    return Point(x_m, y_m)

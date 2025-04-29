@@ -1,9 +1,9 @@
 import rclpy
 from rclpy.node import Node
 
-from .util.Logger import Logger
-from .controller.RobotController import RobotController
 from .controller.BModuleController import BModuleController
+from .controller.RobotController import RobotController
+from .util.Logger import Logger
 
 
 class BModule(Node):

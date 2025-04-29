@@ -1,9 +1,8 @@
+import geometry_msgs.msg
 import rclpy
 import rclpy.action
 
-import geometry_msgs.msg
 import base_nav2.action
-
 from ..popo.NavigationPoint import NavigationPoint
 from ..util.Logger import Logger
 from ..util.Singleton import singleton

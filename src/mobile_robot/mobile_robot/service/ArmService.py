@@ -7,12 +7,12 @@ from ..dao.LiftMotorDao import LiftMotorDao
 from ..dao.RobotCtrlDao import RobotCtrlDao
 from ..dao.RobotDataDao import RobotDataDao
 from ..dao.RotateMotorDao import RotateMotorDao
+from ..popo.ArmMovement import ArmMovement
 from ..popo.Direction import Direction
 from ..popo.MotorMovement import MotorMovement
 from ..popo.Servo import Servo
-from ..popo.ArmMovement import ArmMovement
 from ..popo.ServoMotor import ServoMotor
-from ..util.ConfigAndParam import ConfigAndParam
+from ..util.Config import Config
 from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
@@ -29,8 +29,8 @@ class ArmService:
         self.__radar = LaserRadarDao(node)
 
     def grab_fruit(self, height: float, direction: Direction.LEFT or Direction.RIGHT):
+        """抓墙上水果"""
         self.__logger.info(f"收到的升降距离为 {height}")
-        """执行抓取动作"""
         if height > 29:
             telescopic = 8
             nod = -60
@@ -172,7 +172,7 @@ class ArmService:
         @param value 目标值 (角度或距离)
         @param enable 是否使能
         """
-        servo_config = ConfigAndParam().get_servo_config()
+        servo_config = Config().get_servo_config()
 
         pin = 0
         min_value = 0

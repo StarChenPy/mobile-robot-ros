@@ -6,8 +6,8 @@ from ..dao.MnnDao import MnnDao
 from ..popo.IdentifyResult import IdentifyResult
 from ..popo.Point import Point
 from ..util.Logger import Logger
-from ..util.Singleton import singleton
 from ..util.Onnx import infer_onnx_model
+from ..util.Singleton import singleton
 
 
 @singleton

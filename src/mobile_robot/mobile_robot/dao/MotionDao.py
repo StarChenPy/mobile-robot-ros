@@ -3,8 +3,7 @@ import time
 import rclpy
 
 import base_motion_ros2.srv
-
-from ..popo.MotionMode import MotionMode
+from ..model.MotionMode import MotionMode
 from ..util.Logger import Logger
 from ..util.Singleton import singleton
 

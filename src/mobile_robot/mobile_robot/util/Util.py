@@ -1,4 +1,6 @@
+from ..popo.FruitLocationOnTree import FruitLocationOnTree
 from ..popo.FruitHeight import FruitHeight
+from ..popo.FruitType import FruitType
 
 
 def get_fruit_height(height: float) -> FruitHeight:
@@ -8,6 +10,43 @@ def get_fruit_height(height: float) -> FruitHeight:
         return FruitHeight.MIDDLE
     else:
         return FruitHeight.TALL
+
+def get_fruit_location_on_tree(vision_service, fruit: FruitType) -> FruitLocationOnTree:
+    """
+    @param vision_service: Vision服务
+    @param fruit: 水果类型
+    @return 水果在树上的类型
+    """
+    result = vision_service.get_onnx_identify_result()
+
+    while not result:
+        result = vision_service.get_onnx_identify_result()
+
+    for i in result:
+        if i.classId != fruit.value:
+            continue
+
+        center = i.box.get_rectangle_center()
+
+        y_threshold = 200
+        if i.distance < 0.35:
+            if center.y < y_threshold:
+                return FruitLocationOnTree.TOP_CENTER
+            else:
+                return FruitLocationOnTree.BOTTOM_CENTER
+        else:
+            if center.x < 300:
+                if center.y < y_threshold:
+                    return FruitLocationOnTree.TOP_LEFT
+                else:
+                    return FruitLocationOnTree.BOTTOM_LEFT
+            elif center.x > 340:
+                if center.y < y_threshold:
+                    return FruitLocationOnTree.TOP_RIGHT
+                else:
+                    return FruitLocationOnTree.BOTTOM_RIGHT
+            else:
+                return FruitLocationOnTree.TOP_CENTER
 
 
 def add_blank_lines_between_top_level_blocks(yaml_content: str) -> str:

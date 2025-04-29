@@ -1,9 +1,8 @@
 import rclpy
 
 from .AbstractMotorDao import AbstractMotorDao
-
 from ..popo.MotorCmd import MotorCmd
-from ..util.ConfigAndParam import ConfigAndParam
+from ..util.Config import Config
 from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
@@ -41,4 +40,4 @@ class LiftMotorDao(AbstractMotorDao):
         self.__logger.debug(f"已请求升降电机服务, speed: {speed}")
 
     def _get_motor_config(self):
-        return ConfigAndParam().get_lift_motor_config()
+        return Config().get_lift_motor_config()

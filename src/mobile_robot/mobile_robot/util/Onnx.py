@@ -5,7 +5,6 @@ import onnxruntime as ort
 from ..popo.IdentifyResult import IdentifyResult
 from ..popo.Rectangle import Rectangle
 
-
 names = ["red_apple", "green_apple", "yellow_apple"]
 
 

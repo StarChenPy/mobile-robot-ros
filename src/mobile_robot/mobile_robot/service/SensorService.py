@@ -47,6 +47,9 @@ class SensorService:
     def get_ir_right(self) -> float:
         return self.__robot_data.get_ir_right()
 
+    def get_sonar(self) -> tuple[float, float]:
+        return self.__robot_data.get_sonar()
+
     def get_radar_data(self, target_angle: float) -> tuple[float, float]:
         return self.__radar.get_radar_data(target_angle)
 

@@ -3,7 +3,6 @@ import math
 import rclpy
 
 import chassis_msgs.srv
-
 from ..popo.NavigationPoint import NavigationPoint
 from ..popo.ResetOdomMode import ResetOdomMode
 from ..util.Logger import Logger

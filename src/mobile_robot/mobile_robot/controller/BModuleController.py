@@ -2,7 +2,7 @@ import time
 
 import rclpy
 
-from ..param import ArmMovement, NavigationPath
+from ..param import ArmMovement
 from ..popo.Direction import Direction
 from ..popo.FruitHeight import FruitHeight
 from ..popo.FruitType import FruitType

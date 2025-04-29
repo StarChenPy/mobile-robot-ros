@@ -1,5 +1,6 @@
 import time
 
+from ..popo.FruitLocationOnTree import FruitLocationOnTree
 from ..popo.ArmMovement import ArmMovement
 from ..popo.Direction import Direction
 from ..popo.MotorMovement import MotorMovement
@@ -16,6 +17,14 @@ RECOGNITION_WAREHOUSE = ArmMovement(MotorMovement(175, 15), ServoMotor(0, -90, 1
 # 放水果到果仓
 READY_PULL_WAREHOUSE = ArmMovement(MotorMovement(180, 16), ServoMotor(0, 0, 8, 6.5))
 PULL_WAREHOUSE = ArmMovement(servo=ServoMotor(0, 0, 8, 16))
+
+
+def recognition_orchard_tree(arm: ArmService):
+    """
+    调整为识别姿态（看树）
+    """
+    arm.control(ArmMovement(MotorMovement(180, 18), ServoMotor(0, 0, 0, 15)))
+    arm.control(ArmMovement(MotorMovement(180, 22), ServoMotor(-170, 0, 0, 15)))
 
 
 def recognition_orchard(arm: ArmService, direction: Direction.LEFT or Direction.RIGHT):
@@ -91,3 +100,38 @@ def grab_basket_to_warehouse(arm: ArmService, box_number: int) -> None:
     time.sleep(0.5)
     # 结束（公共部分）
     arm.control(ArmMovement(MotorMovement(0, 18), ServoMotor(0, 0, 3, 6.5)))
+
+def grab_fruit_on_tree(arm_service, move_service, location_on_tree: FruitLocationOnTree):
+    CONFIGS = {
+        FruitLocationOnTree.TOP_LEFT:    (185, 27, 15, 0.34, 0, 10, 12),
+        FruitLocationOnTree.TOP_CENTER:  (180, 25, 0, 0.2, 0, 0, 2),
+        FruitLocationOnTree.TOP_RIGHT:   (175, 27, -15, 0.34, 0, 10, 12),
+        FruitLocationOnTree.BOTTOM_LEFT: (200, 32, 15, 0.34, -10, 0, 11),
+        FruitLocationOnTree.BOTTOM_CENTER:(180, 32, 0, 0.2, 0, 0, 9),
+        FruitLocationOnTree.BOTTOM_RIGHT: (160, 32, -15, 0.34, 10, 0, 11)
+    }
+
+    match location_on_tree:
+        case loc if loc in CONFIGS:
+            arm_pos, arm_lift, rotate, line, rotary, nod, telescopic = CONFIGS[loc]
+        case _:
+            raise RuntimeError("不支持的水果位置")
+
+    # 左上水果
+    # 准备抓
+    arm_service.control(ArmMovement(MotorMovement(arm_pos, arm_lift), ServoMotor(0, 0, 0, 12)))
+    move_service.rotate(rotate)
+    move_service.line(line)
+    arm_service.control(ArmMovement(MotorMovement(arm_pos, arm_lift), ServoMotor(-170 - rotary, 0, telescopic, 12)))
+    # 抓取
+    arm_service.control(ArmMovement(MotorMovement(arm_pos, arm_lift), ServoMotor(-170 - rotary, nod, telescopic, 12)))
+    time.sleep(0.5)
+    arm_service.control(ArmMovement(MotorMovement(arm_pos, arm_lift), ServoMotor(-170 - rotary, nod, telescopic, 6.5)))
+    time.sleep(0.5)
+    arm_service.control(ArmMovement(MotorMovement(arm_pos, arm_lift), ServoMotor(-170 - rotary, 0, telescopic, 6.5)))
+    time.sleep(1)
+    # 抓离
+    arm_service.control(ArmMovement(MotorMovement(arm_pos, arm_lift), ServoMotor(-170 - rotary, 0, 0, 6.5)))
+    move_service.line(-line)
+    move_service.rotate(-rotate)
+    arm_service.control(ArmMovement(MotorMovement(180, 18), ServoMotor(0, 0, 0, 6.5)))

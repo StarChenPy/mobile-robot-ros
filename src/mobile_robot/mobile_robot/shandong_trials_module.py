@@ -2,17 +2,17 @@ import rclpy
 from rclpy.impl.logging_severity import LoggingSeverity
 from rclpy.node import Node
 
-from .controller.GrabFruitOnTreeController import GrabFruitOnTreeController
+from .controller.ShandongTrialsController import ShandongTrialsController
 from .util.Logger import Logger
 
 
-class TestModule(Node):
+class ShandongTrialsModule(Node):
     def __init__(self):
-        super().__init__("test_module")
+        super().__init__("shandong_trials_module")
 
         Logger().set_ros_logger(self.get_logger(), LoggingSeverity.DEBUG)
 
-        test = GrabFruitOnTreeController(self)
+        test = ShandongTrialsController(self)
 
         test.run()
 
@@ -24,7 +24,7 @@ class TestModule(Node):
 def main():
     rclpy.init()
 
-    node = TestModule()
+    node = ShandongTrialsModule()
 
     rclpy.spin(node)
 

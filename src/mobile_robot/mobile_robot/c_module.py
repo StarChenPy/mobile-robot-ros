@@ -1,11 +1,9 @@
 import rclpy
 from rclpy.node import Node
 
-from .util.Logger import Logger
-from .controller.RobotController import RobotController
-from .param import NavigationPath
-from .popo.FruitType import FruitType
 from .controller.CModuleController import CModuleController
+from .popo.FruitType import FruitType
+from .util.Logger import Logger
 
 
 class CModule(Node):
