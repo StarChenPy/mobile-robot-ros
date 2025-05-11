@@ -8,7 +8,7 @@ from ..popo.ServoMotor import ServoMotor
 from ..service.ArmService import ArmService
 
 # 基础动作
-MOVING = ArmMovement(MotorMovement(0, 18), ServoMotor(0, 0, 3, 6.5))
+MOVING = ArmMovement(MotorMovement(0, 16), ServoMotor(0, 0, 3, 6.5))
 TEST = ArmMovement(servo=ServoMotor(0, 0, 0, 7))
 
 # 识别果仓中的水果动作
@@ -23,8 +23,9 @@ def recognition_orchard_tree(arm: ArmService):
     """
     调整为识别姿态（看树）
     """
-    arm.control(ArmMovement(MotorMovement(180, 18), ServoMotor(0, 0, 0, 15)))
-    arm.control(ArmMovement(MotorMovement(180, 22), ServoMotor(-170, 0, 0, 15)))
+    arm.control(ArmMovement(MotorMovement(180, 16), ServoMotor(0, 0, 0, 15)))
+    arm.control(ArmMovement(MotorMovement(180, 24), ServoMotor(-175, 0, 0, 20)))
+    time.sleep(1)
 
 
 def recognition_orchard(arm: ArmService, direction: Direction.LEFT or Direction.RIGHT):
@@ -56,8 +57,8 @@ def put_fruit_into_basket(arm: ArmService, box_number: int) -> None:
     else:
         raise ValueError("篮子编号无效")
 
-    arm.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, 0, telescopic, 6.5)))
-    arm.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, 0, telescopic, 10)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 16), ServoMotor(0, 0, telescopic, 6.5)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 16), ServoMotor(0, 0, telescopic, 10)))
     time.sleep(0.5)
 
 
@@ -83,23 +84,23 @@ def grab_basket_to_warehouse(arm: ArmService, box_number: int) -> None:
     arm.control(ArmMovement(MotorMovement(0, 10), ServoMotor(0, 0, 3, 6.5)))
     arm.control(ArmMovement(MotorMovement(arm_pos, 6), ServoMotor(rotary, nod, telescopic, 25)))
     time.sleep(0.5)
-    arm.control(ArmMovement(MotorMovement(arm_pos, 16.5), ServoMotor(rotary, nod, telescopic, 25)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 11.5), ServoMotor(rotary, nod, telescopic, 25)))
     # 夹合
-    arm.control(ArmMovement(MotorMovement(arm_pos, 16.5), ServoMotor(rotary, nod, telescopic, 19.5)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 11.5), ServoMotor(rotary, nod, telescopic, 19.5)))
     time.sleep(0.5)
     # 提起
-    arm.control(ArmMovement(MotorMovement(arm_pos, 6), ServoMotor(rotary, nod, telescopic, 19.5)))
-    arm.control(ArmMovement(MotorMovement(arm_pos, 6), ServoMotor(0, nod, telescopic, 19.5)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 2), ServoMotor(rotary, nod, telescopic, 19.5)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 2), ServoMotor(0, nod, telescopic, 19.5)))
     time.sleep(0.5)
-    arm.control(ArmMovement(MotorMovement(arm_pos, 6), ServoMotor(0, 0, 5, 18.5)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 2), ServoMotor(0, 0, 5, 18.5)))
 
     # 放下（公共部分）
-    arm.control(ArmMovement(MotorMovement(180, 5), ServoMotor(0, 0, 5, 18.5)))
-    arm.control(ArmMovement(MotorMovement(180, 24), ServoMotor(0, 0, 5, 18.5)))
-    arm.control(ArmMovement(MotorMovement(180, 24), ServoMotor(0, 0, 5, 25)))
+    arm.control(ArmMovement(MotorMovement(180, 2), ServoMotor(0, 0, 5, 18.5)))
+    arm.control(ArmMovement(MotorMovement(180, 26), ServoMotor(0, 0, 5, 18.5)))
+    arm.control(ArmMovement(MotorMovement(180, 26), ServoMotor(0, 0, 5, 25)))
     time.sleep(0.5)
     # 结束（公共部分）
-    arm.control(ArmMovement(MotorMovement(0, 18), ServoMotor(0, 0, 3, 6.5)))
+    arm.control(ArmMovement(MotorMovement(0, 16), ServoMotor(0, 0, 3, 6.5)))
 
 def grab_fruit_on_tree(arm_service, move_service, location_on_tree: FruitLocationOnTree):
     CONFIGS = {

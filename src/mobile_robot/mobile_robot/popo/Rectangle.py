@@ -5,10 +5,10 @@ from ..popo.Point import Point
 
 @dataclass
 class Rectangle:
-    x1: float
-    y1: float
-    x2: float
-    y2: float
+    x1: int
+    y1: int
+    x2: int
+    y2: int
 
     def get_area(self) -> float:
         """

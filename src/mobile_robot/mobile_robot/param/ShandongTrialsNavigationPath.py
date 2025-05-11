@@ -28,4 +28,4 @@ TREE_3_TO_TREE_4 = (param.get_navigation_point("orchard_enter_b_fruit_tree_4"), 
 TREE_4_TO_TREE_START = (param.get_navigation_point("orchard_enter_b_2"),
                         param.get_navigation_point("orchard_enter_b_1"),
                         param.get_navigation_point("start_enter_point"),
-                        param.get_navigation_point("start_corrective_point"),)
+                        param.get_navigation_point("start_point"),)

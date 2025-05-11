@@ -93,6 +93,8 @@ class LaserRadarDao:
 
         if direction == Direction.FRONT:
             pass
+        if direction == Direction.LEFT:
+            pass
         else:
             if angle < 0:
                 angle += 90

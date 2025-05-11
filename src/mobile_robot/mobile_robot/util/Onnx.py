@@ -5,6 +5,7 @@ import onnxruntime as ort
 from ..popo.IdentifyResult import IdentifyResult
 from ..popo.Rectangle import Rectangle
 
+
 names = ["red_apple", "green_apple", "yellow_apple"]
 
 
@@ -121,6 +122,6 @@ def infer_onnx_model(onnx_path: str, image: np.ndarray, confidence_threshold: fl
         results.append(
             IdentifyResult(names[int(cls_id)],
                            float(score),
-                           Rectangle(float(x1), float(y1), float(x2), float(y2))))
+                           Rectangle(int(x1), int(y1), int(x2), int(y2))))
 
     return results

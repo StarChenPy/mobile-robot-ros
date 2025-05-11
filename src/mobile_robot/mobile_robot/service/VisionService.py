@@ -1,4 +1,5 @@
 import ament_index_python
+import cv2
 import rclpy
 
 from ..dao.CameraDao import CameraDao
@@ -19,7 +20,7 @@ class VisionService:
         self.__camera = CameraDao(node)
 
         share_directory = ament_index_python.packages.get_package_share_directory("mobile_robot")
-        self.__weight_path = share_directory + "/weights/best-sim.onnx"
+        self.__weight_path = share_directory + "/weights/best.onnx"
         self.__names_path = share_directory + "/weights/fruit.names"
 
     def get_mnn_identify_result(self) -> list[IdentifyResult]:
@@ -30,12 +31,24 @@ class VisionService:
         self.__mnn.stop()
         return result
 
-    def get_onnx_identify_result(self) -> list[IdentifyResult]:
+    def show_photo(self, photo) -> None:
+        result = infer_onnx_model(self.__weight_path, photo)
+        for r in result:
+            cv2.rectangle(photo, (r.box.x1, r.box.y1), (r.box.x2, r.box.y2), (0, 255, 0), 2)
+            cv2.putText(photo, '{} {:.3f}'.format(r.classId, r.confidence), (r.box.x1, r.box.y1), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
+        cv2.imshow("123", photo)
+        cv2.waitKey(0)
+
+    def get_onnx_identify_result(self, inverted=False) -> list[IdentifyResult]:
         photo, depth = self.__camera.photograph_all(True)
+        if inverted:
+            photo = cv2.rotate(photo, cv2.ROTATE_180)
+            depth = cv2.rotate(depth, cv2.ROTATE_180)
         result = infer_onnx_model(self.__weight_path, photo)
         for r in result:
             point = r.box.get_rectangle_center()
             r.distance = depth[int(point.y), int(point.x)] / 1000
+
         return result
 
     def get_depth_data(self, point: Point) -> float:

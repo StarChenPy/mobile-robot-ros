@@ -1,6 +1,7 @@
 from ..popo.FruitLocationOnTree import FruitLocationOnTree
 from ..popo.FruitHeight import FruitHeight
 from ..popo.FruitType import FruitType
+from ..popo.IdentifyResult import IdentifyResult
 
 
 def get_fruit_height(height: float) -> FruitHeight:
@@ -10,6 +11,40 @@ def get_fruit_height(height: float) -> FruitHeight:
         return FruitHeight.MIDDLE
     else:
         return FruitHeight.TALL
+
+
+def get_fruit_location(data: list[IdentifyResult], fruits: list[FruitType]) -> dict[FruitLocationOnTree: FruitType]:
+    locations = {}
+
+    for i in data:
+        fruit_type = FruitType.get_by_value(i.classId)
+        if fruit_type not in fruits:
+            continue
+
+        center = i.box.get_rectangle_center()
+
+        y_threshold = 160
+        if i.distance < 0.35:
+            if center.y < y_threshold:
+                locations[FruitLocationOnTree.TOP_CENTER] = fruit_type
+            else:
+                locations[FruitLocationOnTree.BOTTOM_CENTER] = fruit_type
+        else:
+            if center.x < 270:
+                if center.y < y_threshold:
+                    locations[FruitLocationOnTree.TOP_LEFT] = fruit_type
+                else:
+                    locations[FruitLocationOnTree.BOTTOM_LEFT] = fruit_type
+            elif center.x > 330:
+                if center.y < y_threshold:
+                    locations[FruitLocationOnTree.TOP_RIGHT] = fruit_type
+                else:
+                    locations[FruitLocationOnTree.BOTTOM_RIGHT] = fruit_type
+            else:
+                locations[FruitLocationOnTree.BOTTOM_CENTER] = fruit_type
+
+    return locations
+
 
 def get_fruit_location_on_tree(vision_service, fruit: FruitType) -> FruitLocationOnTree:
     """

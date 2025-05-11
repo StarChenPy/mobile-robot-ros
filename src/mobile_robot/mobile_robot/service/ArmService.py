@@ -100,6 +100,7 @@ class ArmService:
             self.telescopic_servo(movement.servo.telescopic)
             self.gripper_servo(movement.servo.gripper)
             self.rotary_servo(movement.servo.rotary)
+            time.sleep(1)
 
         if is_block:
             self.__lift_motor.wait_finish()
