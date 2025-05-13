@@ -32,10 +32,21 @@ class TestController:
 
         self.__param = NavigationPointParam("shandong_trials_navigation_point.yml")
 
-    def run(self):
-        while True:
-            self.create_point()
+    def rotation_correction(self):
+        angle_by_front = self.__sensor.get_angle_from_wall(Direction.FRONT)
+        angle_by_right = self.__sensor.get_angle_from_wall(Direction.RIGHT)
+        angle_by_left = self.__sensor.get_angle_from_wall(Direction.LEFT)
+        angles = [angle_by_front, angle_by_right, angle_by_left]
+        angles = [x for x in angles if x != 0]
 
+        print(angles)
+
+        min_angle = min(angles, key=lambda x: (abs(x), -x))
+        if abs(min_angle) > 2:
+            self.__move.rotate(min_angle)
+
+    def run(self):
+        self.rotation_correction()
 
     def create_point(self):
         s = input("是否已有点？y/n: ")

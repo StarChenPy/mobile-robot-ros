@@ -8,6 +8,7 @@ from ..service.RobotService import RobotService
 from ..service.SensorService import SensorService
 from ..service.VisionService import VisionService
 from ..util import Util
+from ..util.FruitGrabber import FruitGrabber
 from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
@@ -29,17 +30,13 @@ class GrabFruitOnTreeController:
 
     def run(self):
         self.__robot.with_robot_connect()
-        self.__arm.back_origin()
+        # self.__arm.back_origin()
 
-        Movement.grab_basket_to_warehouse(self.__arm, 1)
-        Movement.grab_basket_to_warehouse(self.__arm, 2)
-        Movement.grab_basket_to_warehouse(self.__arm, 3)
+        Movement.recognition_orchard_tree(self.__arm)
 
-        # Movement.recognition_orchard_tree(self.__arm)
-        #
-        # result = self.__vision.get_onnx_identify_result(True)
-        # grabber = FruitGrabber(self.__robot, self.__arm, self.__move)
-        # grabber.run(result, {FruitType.GREEN_APPLE: 1, FruitType.YELLOW_APPLE: 2, FruitType.RED_APPLE: 3})
+        result = self.__vision.get_onnx_identify_result(True)
+        grabber = FruitGrabber(self.__robot, self.__arm, self.__move)
+        grabber.run(result, {FruitType.GREEN_APPLE: 1, FruitType.YELLOW_APPLE: 2, FruitType.RED_APPLE: 3})
 
     # def move_to_grab(self):
     #     self.__arm.control(ArmMovement(MotorMovement(0, 3), ServoMotor(0, 0, 0, 10)))

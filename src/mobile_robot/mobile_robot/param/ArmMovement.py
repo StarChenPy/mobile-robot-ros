@@ -9,7 +9,7 @@ from ..service.ArmService import ArmService
 
 # 基础动作
 MOVING = ArmMovement(MotorMovement(0, 16), ServoMotor(0, 0, 3, 6.5))
-TEST = ArmMovement(servo=ServoMotor(0, 0, 0, 7))
+TEST = ArmMovement(MotorMovement(0, 15), ServoMotor(0, 0, 15, 20))
 
 # 识别果仓中的水果动作
 RECOGNITION_WAREHOUSE = ArmMovement(MotorMovement(175, 15), ServoMotor(0, -90, 14, 20))
@@ -25,6 +25,7 @@ def recognition_orchard_tree(arm: ArmService):
     """
     arm.control(ArmMovement(MotorMovement(180, 16), ServoMotor(0, 0, 0, 15)))
     arm.control(ArmMovement(MotorMovement(180, 24), ServoMotor(-175, 0, 0, 20)))
+    arm.control(ArmMovement(servo=ServoMotor(-175, 0, 0, 20)))
     time.sleep(1)
 
 

@@ -16,7 +16,7 @@ orchard_enter_a_2:
 orchard_enter_a_3:
   corrective_data:
     - direction: back
-      distance: 0.353
+      distance: 0.345
     - direction: right
       distance: 0.4
   x: 2.831
@@ -24,13 +24,13 @@ orchard_enter_a_3:
   yaw: 180
 
 orchard_enter_a_fruit_tree_1:
-  x: 1.869
-  y: 1.099
+  x: 1.82
+  y: 1.11
   yaw: 180
 
 orchard_enter_a_fruit_tree_2:
-  x: 2.009
-  y: 1.158
+  x: 1.93
+  y: 1.14
   yaw: 90
 
 orchard_enter_b_1:

@@ -1,3 +1,4 @@
+from . import Math
 from ..param import ArmMovement as Movement
 from ..popo.ArmMovement import ArmMovement
 from ..popo.FruitLocationOnTree import FruitLocationOnTree
@@ -100,28 +101,36 @@ class FruitGrabber:
         self._previous_location = None
 
         # 移动到初始抓取位置
-        self.move_to_grab()
+        self.move_to_grab(data)
 
-        # 优化抓取顺序
-        optimized_locations = self._optimize_grab_sequence(fruit_locations)
+        # # 优化抓取顺序
+        # optimized_locations = self._optimize_grab_sequence(fruit_locations)
+        #
+        # # 执行抓取
+        # end_local = None
+        # for location in optimized_locations:
+        #     self._grab_fruit(location)
+        #     # 放入篮子
+        #     Movement.put_fruit_into_basket(self.__arm, fruit_basket[result[location]])
+        #     end_local = location
+        #
+        # if end_local is not None:
+        #     # 完成后返回初始位置
+        #     self._return_to_initial_position(self._get_region_for_location(end_local))
 
-        # 执行抓取
-        end_local = None
-        for location in optimized_locations:
-            self._grab_fruit(location)
-            # 放入篮子
-            Movement.put_fruit_into_basket(self.__arm, fruit_basket[result[location]])
-            end_local = location
 
-        if end_local is not None:
-            # 完成后返回初始位置
-            self._return_to_initial_position(self._get_region_for_location(end_local))
-
-
-    def move_to_grab(self):
+    def move_to_grab(self, data: list[IdentifyResult]):
         """移动到初始抓取位置"""
         self.__arm.control(ArmMovement(MotorMovement(0, 3), ServoMotor(0, 0, 0, 10)))
+
+        # 获取深度数据最小的水果
+        min_depth_fruit = min(data, key=lambda x: x.distance)
+        center = min_depth_fruit.box.get_rectangle_center()
+        offset_distance = Math.pixel_to_horizontal_distance_x((320 - center.x), min_depth_fruit.distance)
+        rotate_yaw = Math.calculate_right_triangle_angle(offset_distance, min_depth_fruit.distance + 0.24)
+        self.__move.rotate(rotate_yaw)
         self.__move.line(0.37)
+        self.__move.rotate(-rotate_yaw)
 
     def _optimize_grab_sequence(self, fruit_locations):
         """

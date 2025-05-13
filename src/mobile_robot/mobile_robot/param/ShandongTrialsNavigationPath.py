@@ -9,9 +9,10 @@ START_TO_TREE_1 = (param.get_navigation_point("start_corrective_point"),
                    param.get_navigation_point("orchard_enter_a_3"),
                    param.get_navigation_point("orchard_enter_a_fruit_tree_1"))
 
-TREE_1_TO_TREE_2 = (param.get_navigation_point("orchard_enter_a_fruit_tree_2"), )
+TREE_1_TO_TREE_2 = (param.get_navigation_point("orchard_enter_a_3"), param.get_navigation_point("orchard_enter_a_fruit_tree_2"))
 
-TREE_2_TO_TREE_2 = (param.get_navigation_point("orchard_enter_a_3"),
+TREE_2_TO_TREE_2 = (param.get_navigation_point("orchard_enter_a_fruit_tree_2"),
+                    param.get_navigation_point("orchard_enter_a_3"),
                     param.get_navigation_point("orchard_enter_a_2"),
                     param.get_navigation_point("orchard_enter_a_1"),
                     param.get_navigation_point("orchard_enter_b_1"),

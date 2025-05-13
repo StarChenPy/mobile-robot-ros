@@ -40,14 +40,30 @@ class VisionService:
         cv2.waitKey(0)
 
     def get_onnx_identify_result(self, inverted=False) -> list[IdentifyResult]:
-        photo, depth = self.__camera.photograph_all(True)
-        if inverted:
-            photo = cv2.rotate(photo, cv2.ROTATE_180)
-            depth = cv2.rotate(depth, cv2.ROTATE_180)
-        result = infer_onnx_model(self.__weight_path, photo)
-        for r in result:
-            point = r.box.get_rectangle_center()
-            r.distance = depth[int(point.y), int(point.x)] / 1000
+        count = 0
+        while True:
+            photo, depth = self.__camera.photograph_all(True)
+            if inverted:
+                photo = cv2.rotate(photo, cv2.ROTATE_180)
+                depth = cv2.rotate(depth, cv2.ROTATE_180)
+            result = infer_onnx_model(self.__weight_path, photo)
+
+            flag = False
+            for r in result:
+                point = r.box.get_rectangle_center()
+                r.distance = depth[int(point.y), int(point.x)] / 1000
+                if r.distance != 0:
+                    flag = True
+
+            if flag:
+                break
+            else:
+                self.__logger.warn(f"没有检测到深度，重试第{count}次")
+                count += 1
+
+            if count > 15:
+                self.__logger.error("深度检测失败，无深度信息")
+                break
 
         return result
 

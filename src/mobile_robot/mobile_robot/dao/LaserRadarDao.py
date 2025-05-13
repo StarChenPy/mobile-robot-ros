@@ -93,17 +93,11 @@ class LaserRadarDao:
 
         if direction == Direction.FRONT:
             pass
-        if direction == Direction.LEFT:
-            pass
         else:
             if angle < 0:
                 angle += 90
             else:
                 angle -= 90
-
-        if abs(angle) > 30:
-            self.__logger.warn(f"异常角度 {angle}, 不可信")
-            return 0
 
         return angle
 
