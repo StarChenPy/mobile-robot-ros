@@ -2,13 +2,15 @@
 
 本项目为移动机器人的上位机项目
 
-使用 ros2 框架开发
+为使用 ros2 框架开发
+
+
 
 ## 代码结构
 
 本项目使用个人魔改的MVC架构，由Dao、Service、Controller、Module组成
 
-相同层之间不会互相调用，只能由上层调用下层（Module -> Controller -> Service -> Dao）
+相同层之间不会互相调用，只能由上层调用下层或是同层调用（Module -> Controller -> Service -> Dao）
 
 越上层越抽象（大致流程），越下层越具体（如何操作）
 
@@ -28,6 +30,8 @@
 
 就是一个 ROS 节点，通过调用Controller层来执行某一任务，相当于前端
 
+
+
 ## 如何部署
 
 ### 先决条件
@@ -38,15 +42,14 @@
 
 ### 部署步骤
 
-1. 首先需要 `Ubuntu 22` 系统环境, 也可以是虚拟机或 `wsl` 或 `docker` .
+1. 首先需要 `Ubuntu 22` 系统环境, 也可以是虚拟机或 `WSL2` 或 `docker` .
+2. 在 `Ubuntu` 中安装 `ros humble` .
+3. 如果安装的不是完整版的 `ros humble` , 需要安装 `sudo apt install ros-humble-cv-bridge`.
+4. 使用 `pip install opencv-python onnxruntime numpy==1.26.0` 安装所需环境
+5. 使用 `git clone https://github.com/StarChenPy/mobile-robot-ros.git` 获取项目
+6. 进入项目目录, 运行 `colcon build` 编译项目, 并在终端中 `source install/setup.bash`.
 
-2. 在 `Ubuntu` 中安装 `ros2 humble` .
 
-3. 使用 `pip install opencv-python ros-humble-cv-bridge onnxruntime numpy==1.26.0` 安装所需环境
-
-4. 使用 `git clone https://github.com/StarChenPy/mobile-robot-ros.git` 获取项目
-
-5. 进入项目目录, 运行 `colcon build` 编译项目, 并在终端中 `source install/setup.bash`.
 
 ## 如何运行
 
@@ -56,8 +59,10 @@
 
 以及 `test_module`、`trials`、`puchi` 模块，分别用于测试、省选拔赛与展示任务
 
+
+
 ## 注意事项
 
-使用wsl时, 注意使用桥接模式网络, 否则无法与机器人通信
+使用 Windows WSL 时, 注意使用桥接模式网络（需Windows专业版）, 否则无法与机器人通信
 
 如果出现未找到命令, 请将项目的环境变量添加到终端
