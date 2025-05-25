@@ -103,7 +103,7 @@ class ArmService:
             if movement.motor is None:
                 time.sleep(1)
 
-        if is_block:
+        if is_block and movement.motor is not None:
             self.__lift_motor.wait_finish()
             self.__rotate_motor.wait_finish()
 

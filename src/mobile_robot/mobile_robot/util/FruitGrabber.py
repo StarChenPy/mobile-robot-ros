@@ -1,6 +1,8 @@
 from . import Math
+from .Logger import Logger
 from ..param import ArmMovement as Movement
 from ..popo.ArmMovement import ArmMovement
+from ..popo.Direction import Direction
 from ..popo.FruitLocationOnTree import FruitLocationOnTree
 from ..popo.FruitType import FruitType
 from ..popo.IdentifyResult import IdentifyResult
@@ -10,12 +12,15 @@ from ..util import Util
 
 
 class FruitGrabber:
-    def __init__(self, robot, arm, move):
+    def __init__(self, robot, arm, move, sensor, vision):
+        self.logger = Logger()
         self._previous_location = None
         self._current_direction = None
         self.__robot = robot
         self.__arm = arm
         self.__move = move
+        self.sensor = sensor
+        self.vision = vision
         # 定义区域和它们的基础参数
         self.__location_params = {
             FruitLocationOnTree.TOP_LEFT: {
@@ -24,8 +29,8 @@ class FruitGrabber:
                 'arm_height': 26,  # 较高位置
                 'servo_angle': 0,  # 水平
                 'gripper_size': 14,  # 夹爪打开距离
-                'telescopic': 15,  # 伸缩距离
-                'offset': 0.05  # 靠近树的偏移量
+                'telescopic': 18,  # 伸缩距离
+                'offset': 0.04  # 靠近树的偏移量
             },
             FruitLocationOnTree.BOTTOM_LEFT: {
                 'direction': -90,
@@ -33,8 +38,8 @@ class FruitGrabber:
                 'arm_height': 32,  # 较低位置
                 'servo_angle': -20,  # 略向内
                 'gripper_size': 10,
-                'telescopic': 14,
-                'offset': 0.05
+                'telescopic': 18,
+                'offset': 0.04
             },
             FruitLocationOnTree.TOP_CENTER: {
                 'direction': -90,
@@ -44,7 +49,7 @@ class FruitGrabber:
                 'gripper_size': 14,
                 'telescopic': 8,
                 'is_center': True,  # 中央特殊标记
-                'center_offset': -0.12  # 中央位置的特殊偏移
+                'center_offset': -0.13  # 中央位置的特殊偏移
             },
             FruitLocationOnTree.BOTTOM_CENTER: {
                 'direction': -90,
@@ -52,9 +57,9 @@ class FruitGrabber:
                 'arm_height': 32,
                 'servo_angle': -175,  # 中央底部特殊角度
                 'gripper_size': 14,
-                'telescopic': 15,
+                'telescopic': 18,
                 'is_center': True,
-                'center_offset': -0.12
+                'center_offset': -0.13
             },
             FruitLocationOnTree.TOP_RIGHT: {
                 'direction': 90,    # 右侧
@@ -62,8 +67,8 @@ class FruitGrabber:
                 'arm_height': 26,
                 'servo_angle': 0,
                 'gripper_size': 14,
-                'telescopic': 15,
-                'offset': 0.05
+                'telescopic': 18,
+                'offset': 0.06
             },
             FruitLocationOnTree.BOTTOM_RIGHT: {
                 'direction': 90,
@@ -71,8 +76,8 @@ class FruitGrabber:
                 'arm_height': 32,
                 'servo_angle': 40,  # 右下角特殊角度
                 'gripper_size': 10,
-                'telescopic': 15,
-                'offset': 0.05
+                'telescopic': 18,
+                'offset': 0.06
             }
         }
         # 定义区域组，用于优化路径
@@ -82,16 +87,42 @@ class FruitGrabber:
             'right': [FruitLocationOnTree.TOP_RIGHT, FruitLocationOnTree.BOTTOM_RIGHT]
         }
 
-    def run(self, data: list[IdentifyResult], fruit_basket: dict[FruitType: int]):
+    def rotation_correction(self):
+        angle_by_front = self.sensor.get_angle_from_wall(Direction.FRONT)
+        angle_by_right = self.sensor.get_angle_from_wall(Direction.RIGHT)
+        angle_by_left = self.sensor.get_angle_from_wall(Direction.LEFT)
+        angles = [angle_by_front, angle_by_right, angle_by_left]
+        angles = [x for x in angles if x != 0]
+
+        self.logger.info(f"直角矫正角度: {angles}")
+
+        min_angle = min(angles, key=lambda x: (abs(x), -x))
+        if abs(min_angle) < 10:
+            self.__move.rotate(min_angle)
+
+    def run(self, fruit_basket: dict[FruitType: int]):
         """
         根据水果位置列表执行抓取操作
 
         Args:
-            data: 列表，表示识别到的的水果
             fruit_basket: 字典，表示水果放到几号篮子
         """
-        result = Util.get_fruit_location(data, [FruitType.RED_APPLE, FruitType.YELLOW_APPLE, FruitType.GREEN_APPLE])
-        fruit_locations = result.keys()
+        self.rotation_correction()
+        Movement.recognition_orchard_tree(self.__arm)
+
+        while True:
+            result1 = self.vision.get_onnx_identify_result(True)
+            result2 = self.vision.get_onnx_identify_result(True)
+
+            if len(result1) == len(result2):
+                result = result2
+                break
+
+        self.logger.info(f"识别到的水果数量{len(result)}")
+
+        location_result = Util.get_fruit_location(result, [FruitType.RED_APPLE, FruitType.YELLOW_APPLE, FruitType.GREEN_APPLE])
+        fruit_locations = location_result.keys()
+        self.logger.info(f"识别到的水果位置: {fruit_locations}")
 
         if not fruit_locations:
             return
@@ -101,22 +132,24 @@ class FruitGrabber:
         self._previous_location = None
 
         # 移动到初始抓取位置
-        self.move_to_grab(data)
+        self.move_to_grab(result)
 
-        # # 优化抓取顺序
-        # optimized_locations = self._optimize_grab_sequence(fruit_locations)
-        #
-        # # 执行抓取
-        # end_local = None
-        # for location in optimized_locations:
-        #     self._grab_fruit(location)
-        #     # 放入篮子
-        #     Movement.put_fruit_into_basket(self.__arm, fruit_basket[result[location]])
-        #     end_local = location
-        #
-        # if end_local is not None:
-        #     # 完成后返回初始位置
-        #     self._return_to_initial_position(self._get_region_for_location(end_local))
+        # 优化抓取顺序
+        optimized_locations = self._optimize_grab_sequence(fruit_locations)
+
+        self.logger.info(f"优化的抓取顺序: {optimized_locations}")
+
+        # 执行抓取
+        end_local = None
+        for location in optimized_locations:
+            self._grab_fruit(location)
+            # 放入篮子
+            Movement.put_fruit_into_basket(self.__arm, fruit_basket[location_result[location]])
+            end_local = location
+
+        if end_local is not None:
+            # 完成后返回初始位置
+            self._return_to_initial_position(self._get_region_for_location(end_local))
 
 
     def move_to_grab(self, data: list[IdentifyResult]):
@@ -125,12 +158,27 @@ class FruitGrabber:
 
         # 获取深度数据最小的水果
         min_depth_fruit = min(data, key=lambda x: x.distance)
+        fruit_distance = min_depth_fruit.distance
         center = min_depth_fruit.box.get_rectangle_center()
-        offset_distance = Math.pixel_to_horizontal_distance_x((320 - center.x), min_depth_fruit.distance)
-        rotate_yaw = Math.calculate_right_triangle_angle(offset_distance, min_depth_fruit.distance + 0.24)
-        self.__move.rotate(rotate_yaw)
-        self.__move.line(0.37)
-        self.__move.rotate(-rotate_yaw)
+
+        self.logger.info(f"最近的水果为: {min_depth_fruit.classId}, 中心点: {min_depth_fruit.box.get_rectangle_center()}, 深度: {fruit_distance}")
+
+        if center.x < 270 or center.x > 330:
+            fruit_distance = 0.38
+            self.logger.info(f"需要前往抓取的前进距离: {fruit_distance}")
+            self.__move.line(fruit_distance)
+        else:
+            if fruit_distance == 0:
+                fruit_distance = 0.38
+            else:
+                fruit_distance += 0.1
+            offset_distance = Math.pixel_to_horizontal_distance_x((320 - center.x), fruit_distance)
+            rotate_yaw = Math.calculate_right_triangle_angle(offset_distance, fruit_distance + 0.24)
+            self.logger.info(f"需要前往抓取的旋转角度: {rotate_yaw}")
+            self.logger.info(f"需要前往抓取的前进距离: {fruit_distance}")
+            self.__move.rotate(rotate_yaw)
+            self.__move.line(fruit_distance)
+            self.__move.rotate(-rotate_yaw)
 
     def _optimize_grab_sequence(self, fruit_locations):
         """
@@ -185,17 +233,17 @@ class FruitGrabber:
         # 如果机械臂不在水平位置，先平移
         if self._current_direction is not None and self._current_direction != 0:
             # 先收回手臂到安全高度
-            self.__arm.control(ArmMovement(MotorMovement(self._current_direction, 3), ServoMotor(0, 0, 0, 10)))
+            # self.__arm.control(ArmMovement(MotorMovement(self._current_direction, 10), ServoMotor(0, 0, 0, 10)))
             # 回正手臂方向
-            self.__arm.control(ArmMovement(MotorMovement(0, 3), ServoMotor(0, 0, 0, 10)))
+            self.__arm.control(ArmMovement(MotorMovement(0, 10), ServoMotor(0, 0, 0, 10)))
         if location == "center":
             # 如果当前区域是中央，先回到初始位置
-            self.__move.line(0.12)
+            self.__move.line(-self.__location_params[FruitLocationOnTree.TOP_CENTER]["center_offset"])
             self.__move.rotate(-90)
             self.__move.line(0.1)
         else:
             # 返回抓取起始位置
-            self.__move.line(-0.05)  # 适当调整移动距离
+            self.__move.line(-0.03)  # 适当调整移动距离
             # 旋转机器人回到初始朝向
             self.__move.rotate(self._current_direction)
 
@@ -228,12 +276,14 @@ class FruitGrabber:
             # 中央位置的特殊处理
             if is_center:
                 self.__move.line(-0.1)
-                self.__arm.control(ArmMovement(MotorMovement(direction, 3), ServoMotor(0, 0, 0, params['gripper_size'])), is_block=False)
+                self.__arm.control(ArmMovement(MotorMovement(direction, 10), ServoMotor(0, 0, 0, params['gripper_size'])), is_block=False)
                 self.__move.rotate(90)
+                self.rotation_correction()
                 self.__move.line(params['center_offset'])
             else:
-                self.__arm.control(ArmMovement(MotorMovement(direction, 3), ServoMotor(0, 0, 0, 10)), is_block=False)
+                self.__arm.control(ArmMovement(MotorMovement(direction, 10), ServoMotor(0, 0, 0, 10)), is_block=False)
                 self.__move.rotate(-direction)  # 旋转角度与方向相反
+                self.rotation_correction()
                 # 移动到适当位置
                 self.__move.line(params['offset'])
                 # 保存当前方向
@@ -244,11 +294,15 @@ class FruitGrabber:
         # 初始抬起手臂
         exact_direction = params.get('exact_direction', direction)
 
-        self.__arm.control(ArmMovement(MotorMovement(direction, 3), ServoMotor(0, 0, 0, params['gripper_size'])))
+        self.__arm.control(ArmMovement(MotorMovement(direction, 10), ServoMotor(0, 0, 4, params['gripper_size'])))
+
+        if location == FruitLocationOnTree.BOTTOM_CENTER:
+            # 底部中央特殊处理
+            self.__arm.control(ArmMovement(MotorMovement(direction, 10), ServoMotor(params['servo_angle'], 0, 4, params['gripper_size'])))
 
         # 调整手臂高度到抓取位置
         self.__arm.control(ArmMovement(MotorMovement(exact_direction, params['arm_height']),
-                                       ServoMotor(params['servo_angle'], 0, 0, params['gripper_size'])))
+                                       ServoMotor(params['servo_angle'], 0, 4, params['gripper_size'])))
 
         # 开爪准备抓取
         self.__arm.control(ArmMovement(servo=ServoMotor(params['servo_angle'], 0, params["telescopic"], params['gripper_size'])))
@@ -260,12 +314,11 @@ class FruitGrabber:
         if location == FruitLocationOnTree.BOTTOM_CENTER:
             # 底部中央特殊处理
             self.__arm.control(ArmMovement(servo=ServoMotor(params['servo_angle'], 0, 0, 6.5)))
-            self.__arm.control(ArmMovement(MotorMovement(-110, 32), ServoMotor(params['servo_angle'], 0, 0, 6.5)))
-            self.__arm.control(ArmMovement(MotorMovement(-110, 3), ServoMotor(0, 0, 0, 6.5)))
+            self.__arm.control(ArmMovement(MotorMovement(-105, 32), ServoMotor(params['servo_angle'], 0, 0, 6.5)))
+            self.__arm.control(ArmMovement(MotorMovement(-105, 10), ServoMotor(0, 0, 0, 6.5)))
         else:
             # 一般情况
             self.__arm.control(ArmMovement(servo=ServoMotor(params['servo_angle'], 0, 0, 6.5)))
 
         # 恢复手臂位置
-        self.__arm.control(ArmMovement(MotorMovement(direction, 3), ServoMotor(0, 0, 0, 6.5)))
-        self.__arm.control(ArmMovement(MotorMovement(0, 3), ServoMotor(0, 0, 0, 6.5)))
+        self.__arm.control(ArmMovement(MotorMovement(direction, 10), ServoMotor(0, 0, 0, 6.5)))

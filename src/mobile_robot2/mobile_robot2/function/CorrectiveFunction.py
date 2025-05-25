@@ -1,25 +1,26 @@
 import math
 
 from py_trees.blackboard import Blackboard
-from py_trees.common import Status
-from py_trees.composites import Sequence
+from py_trees.common import Status, ParallelPolicy
+from py_trees.composites import Sequence, Parallel
 
 from chassis_msgs.srv import ResetOdom
 from web_message_transform_ros2.msg import RobotData
-from ..function.InitOdomFunction import InitAllFunction
 from ..function.LidarFunction import GetDistanceFunction
 from ..model.CorrectivePoint import CorrectivePoint
 from ..model.Direction import Direction
-from ..ros_client.TopicSubscriber import robot_data_sub
+from ..ros_client.OdomService import OdomService
+from ..ros_client.RobotDataSubscriber import RobotDataSubscriber
 from ..util import Math
 
 
-class GetSensorDataFunction(Sequence):
+class GetSensorDataFunction(Parallel):
     def __init__(self, point: CorrectivePoint):
-        super().__init__("Get Corrective Data Service", True)
-        self.add_child(robot_data_sub)
-        for corrective in point.corrective_data:
-            self.add_child(GetDistanceFunction(corrective.direction))
+        super().__init__("Get Corrective Data Service", ParallelPolicy.SuccessOnAll())
+        self.add_children([RobotDataSubscriber(),
+                           GetDistanceFunction(Direction.RIGHT),
+                           GetDistanceFunction(Direction.FRONT),
+                           GetDistanceFunction(Direction.LEFT)])
         self.point = point
 
     def update(self) -> Status:
@@ -43,7 +44,11 @@ class GetSensorDataFunction(Sequence):
             elif direction == Direction.BACK:
                 distance_from_wall = Math.distance_from_origin(-5, robot_data.sonar[0], 5, robot_data.sonar[1]) + 0.222
                 x_buffer = distance_from_wall - corrective.distance
-            elif direction == Direction.LEFT or direction == Direction.RIGHT:
+            elif direction == Direction.LEFT:
+                distance_from_wall = Blackboard.get(f"lidar_data/by_direction/{direction.value}/distance")
+                angle_from_wall = Blackboard.get(f"lidar_data/by_direction/{direction.value}/angle")
+                y_buffer = corrective.distance - distance_from_wall
+            elif direction == Direction.RIGHT:
                 distance_from_wall = Blackboard.get(f"lidar_data/by_direction/{direction.value}/distance")
                 angle_from_wall = Blackboard.get(f"lidar_data/by_direction/{direction.value}/angle")
                 y_buffer = distance_from_wall - corrective.distance
@@ -79,7 +84,7 @@ class GetSensorDataFunction(Sequence):
         radian = math.radians(yaw)
         req.theta = float(radian)
 
-        Blackboard.set("odom/request", req)
+        Blackboard.set("/odom/request", req)
 
         return Status.SUCCESS
 
@@ -89,5 +94,5 @@ class CorrectiveOdomFunction(Sequence):
         super().__init__("Corrective Odom Service", False)
         self.add_children([
             GetSensorDataFunction(point),
-            InitAllFunction
+            OdomService()
         ])

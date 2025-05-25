@@ -6,7 +6,7 @@ from py_trees.blackboard import Blackboard
 from chassis_msgs.srv import ResetOdom
 
 from ..model.NavigationPoint import NavigationPoint
-from ..ros_client.ServiceClient import odom_service
+from ..ros_client.OdomService import OdomService
 
 
 class InitAllFunction(Decorator):
@@ -18,19 +18,19 @@ class InitAllFunction(Decorator):
         radian = math.radians(pose.yaw)
         req.theta = float(radian)
 
-        Blackboard.set("odom/request", req)
+        Blackboard.set("/odom/request", req)
 
-        super().__init__("Init Odom All Function", odom_service)
+        super().__init__("Init Odom All Function", OdomService())
 
     def update(self) -> Status:
         status = self.decorated.status
 
         if status == Status.SUCCESS:
-            result = Blackboard.get("odom/response")
+            result = Blackboard.get("/odom/response")
 
             if result.success:
                 self.logger.debug("重置成功")
-                Blackboard.set("odom/init", True)
+                Blackboard.set("/odom/init", True)
                 return Status.SUCCESS
             else:
                 self.logger.error("重置失败")

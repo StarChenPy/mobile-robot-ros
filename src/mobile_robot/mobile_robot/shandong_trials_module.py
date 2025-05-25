@@ -10,7 +10,7 @@ class ShandongTrialsModule(Node):
     def __init__(self):
         super().__init__("shandong_trials_module")
 
-        Logger().set_ros_logger(self.get_logger(), LoggingSeverity.DEBUG)
+        Logger().set_ros_logger(self.get_logger(), LoggingSeverity.INFO)
 
         test = ShandongTrialsController(self)
 

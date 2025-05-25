@@ -7,7 +7,7 @@ from py_trees.blackboard import Blackboard
 from sensor_msgs.msg import LaserScan
 
 from ..model.Direction import Direction
-from ..ros_client.TopicSubscriber import lidar_data_sub
+from ..ros_client.LidarSubscriber import LidarSubscriber
 from ..util import Math
 
 
@@ -29,7 +29,7 @@ def get_start_angle(direction):
 
 class GetLidarPointFunction(Decorator):
     def __init__(self, angle: float):
-        super().__init__("Lidar Function", lidar_data_sub)
+        super().__init__("Lidar Function", LidarSubscriber())
         self.angle = angle
 
     def update(self) -> Status:

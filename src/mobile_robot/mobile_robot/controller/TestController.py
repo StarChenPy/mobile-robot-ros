@@ -37,16 +37,18 @@ class TestController:
         angle_by_right = self.__sensor.get_angle_from_wall(Direction.RIGHT)
         angle_by_left = self.__sensor.get_angle_from_wall(Direction.LEFT)
         angles = [angle_by_front, angle_by_right, angle_by_left]
-        angles = [x for x in angles if x != 0]
 
         print(angles)
 
-        min_angle = min(angles, key=lambda x: (abs(x), -x))
-        if abs(min_angle) > 2:
-            self.__move.rotate(min_angle)
+        # min_angle = min(angles, key=lambda x: (abs(x), -x))
+        # if abs(min_angle) > 2:
+        #     self.__move.rotate(min_angle)
 
     def run(self):
-        self.rotation_correction()
+        self.__arm.back_origin()
+        Movement.recognition_orchard_tree(self.__arm)
+        self.__vision.get_onnx_identify_result(True)
+
 
     def create_point(self):
         s = input("是否已有点？y/n: ")

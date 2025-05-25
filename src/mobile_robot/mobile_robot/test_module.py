@@ -11,7 +11,7 @@ class TestModule(Node):
     def __init__(self):
         super().__init__("test_module")
 
-        Logger().set_ros_logger(self.get_logger(), LoggingSeverity.DEBUG)
+        Logger().set_ros_logger(self.get_logger(), LoggingSeverity.INFO)
 
         test = TestController(self)
 

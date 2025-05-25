@@ -6,7 +6,7 @@ package_name = 'mobile_robot'
 
 setup(
     name=package_name,
-    version='1.6.1',
+    version='1.7.0',
     packages=find_packages(exclude=['test']),
     data_files=[
         ('share/ament_index/resource_index/packages',
@@ -28,7 +28,8 @@ setup(
             'b_module = mobile_robot.b_module:main',
             'c_module = mobile_robot.c_module:main',
             'test_module = mobile_robot.test_module:main',
-            'trials = mobile_robot.shandong_trials_module:main'
+            'trials = mobile_robot.shandong_trials_module:main',
+            'puchi = mobile_robot.puchipuchi_module:main'
         ],
     },
 )

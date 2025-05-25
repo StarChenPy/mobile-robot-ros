@@ -30,106 +30,10 @@ class GrabFruitOnTreeController:
 
     def run(self):
         self.__robot.with_robot_connect()
-        # self.__arm.back_origin()
+        self.__arm.back_origin()
 
-        Movement.recognition_orchard_tree(self.__arm)
-
-        result = self.__vision.get_onnx_identify_result(True)
-        grabber = FruitGrabber(self.__robot, self.__arm, self.__move)
-        grabber.run(result, {FruitType.GREEN_APPLE: 1, FruitType.YELLOW_APPLE: 2, FruitType.RED_APPLE: 3})
-
-    # def move_to_grab(self):
-    #     self.__arm.control(ArmMovement(MotorMovement(0, 3), ServoMotor(0, 0, 0, 10)))
-    #     self.__move.line(0.37)
-    #
-    # def grab_fruit_on_tree_bottom_left(self):
-    #     self.__arm.control(ArmMovement(MotorMovement(-90, 3), ServoMotor(0, 0, 0, 10)), is_block=False)
-    #     self.__move.rotate(90)
-    #     self.__move.line(0.05)
-    #     self.__arm.control(ArmMovement(MotorMovement(-83, 3), ServoMotor(0, 0, 0, 10)))
-    #     self.__arm.control(ArmMovement(MotorMovement(-83, 32), ServoMotor(0, 0, 0, 10)))
-    #     self.__arm.control(ArmMovement(servo=ServoMotor(-20, 0, 15, 10)))
-    #     self.__arm.control(ArmMovement(servo=ServoMotor(-20, 0, 15, 6.5)))
-    #     self.__arm.control(ArmMovement(servo=ServoMotor(-20, 0, 0, 6.5)))
-    #     self.__arm.control(ArmMovement(MotorMovement(-90, 3), ServoMotor(0, 0, 0, 6.5)))
-    #     self.__arm.control(ArmMovement(MotorMovement(0, 3), ServoMotor(0, 0, 0, 6.5)))
-    #
-    #     Movement.put_fruit_into_basket(self.__arm, 1)
-    #
-    # def grab_fruit_on_tree_top_left(self):
-    #     self.__arm.control(ArmMovement(MotorMovement(-90, 3), ServoMotor(0, 0, 0, 10)), is_block=False)
-    #     self.__move.rotate(90)
-    #     self.__move.line(0.05)
-    #     self.__arm.control(ArmMovement(MotorMovement(-95, 3), ServoMotor(0, 0, 0, 10)))
-    #     self.__arm.control(ArmMovement(MotorMovement(-95, 26), ServoMotor(0, 0, 0, 10)))
-    #     self.__arm.control(ArmMovement(servo=ServoMotor(0, 0, 15, 14)))
-    #     self.__arm.control(ArmMovement(servo=ServoMotor(0, 0, 15, 6.5)))
-    #     self.__arm.control(ArmMovement(servo=ServoMotor(0, 0, 0, 6.5)))
-    #     self.__arm.control(ArmMovement(MotorMovement(-90, 3), ServoMotor(0, 0, 0, 6.5)))
-    #     self.__arm.control(ArmMovement(MotorMovement(0, 3), ServoMotor(0, 0, 0, 6.5)))
-    #
-    #     Movement.put_fruit_into_basket(self.__arm, 1)
-    #
-    #
-    # def grab_fruit_on_tree_bottom_right(self):
-    #     self.__arm.control(ArmMovement(MotorMovement(90, 3), ServoMotor(0, 0, 0, 10)), is_block=False)
-    #     self.__move.rotate(-90)
-    #     self.__move.line(0.05)
-    #     self.__arm.control(ArmMovement(MotorMovement(81, 3), ServoMotor(0, 0, 0, 10)))
-    #     self.__arm.control(ArmMovement(MotorMovement(81, 32), ServoMotor(0, 0, 0, 10)))
-    #     self.__arm.control(ArmMovement(servo=ServoMotor(40, 0, 15, 10)))
-    #     self.__arm.control(ArmMovement(servo=ServoMotor(40, 0, 15, 6.5)))
-    #     self.__arm.control(ArmMovement(servo=ServoMotor(20, 0, 0, 6.5)))
-    #     self.__arm.control(ArmMovement(MotorMovement(90, 3), ServoMotor(0, 0, 0, 6.5)))
-    #     self.__arm.control(ArmMovement(MotorMovement(0, 3), ServoMotor(0, 0, 0, 6.5)))
-    #
-    #     Movement.put_fruit_into_basket(self.__arm, 1)
-    #
-    # def grab_fruit_on_tree_top_right(self):
-    #     self.__arm.control(ArmMovement(MotorMovement(90, 3), ServoMotor(0, 0, 0, 10)), is_block=False)
-    #     self.__move.rotate(-90)
-    #     self.__move.line(0.05)
-    #     self.__arm.control(ArmMovement(MotorMovement(95, 3), ServoMotor(0, 0, 0, 10)))
-    #     self.__arm.control(ArmMovement(MotorMovement(95, 26), ServoMotor(0, 0, 0, 10)))
-    #     self.__arm.control(ArmMovement(servo=ServoMotor(0, 0, 15, 14)))
-    #     self.__arm.control(ArmMovement(servo=ServoMotor(0, 0, 15, 6.5)))
-    #     self.__arm.control(ArmMovement(servo=ServoMotor(0, 0, 0, 6.5)))
-    #     self.__arm.control(ArmMovement(MotorMovement(90, 3), ServoMotor(0, 0, 0, 6.5)))
-    #     self.__arm.control(ArmMovement(MotorMovement(0, 3), ServoMotor(0, 0, 0, 6.5)))
-    #
-    #     Movement.put_fruit_into_basket(self.__arm, 1)
-    #
-    #
-    # def grab_fruit_on_tree_bottom_center(self):
-    #     self.__move.line(-0.1)
-    #     self.__arm.control(ArmMovement(MotorMovement(-90, 3), ServoMotor(0, 0, 0, 14)), is_block=False)
-    #     self.__move.rotate(89)
-    #     self.__move.line(-0.12)
-    #     self.__arm.control(ArmMovement(MotorMovement(-90, 3), ServoMotor(0, 0, 0, 14)))
-    #     self.__arm.control(ArmMovement(MotorMovement(-90, 32), ServoMotor(-175, 0, 0, 14)))
-    #     self.__arm.control(ArmMovement(servo=ServoMotor(-175, 0, 15, 14)))
-    #     self.__arm.control(ArmMovement(servo=ServoMotor(-175, 0, 15, 6.5)))
-    #     self.__arm.control(ArmMovement(MotorMovement(-110, 32), ServoMotor(-175, 0, 0, 6.5)))
-    #     self.__arm.control(ArmMovement(MotorMovement(-110, 3), ServoMotor(0, 0, 0, 6.5)))
-    #     self.__arm.control(ArmMovement(MotorMovement(0, 3), ServoMotor(0, 0, 0, 6.5)))
-    #
-    #     Movement.put_fruit_into_basket(self.__arm, 1)
-    #
-    # def grab_fruit_on_tree_top_center(self):
-    #     self.__move.line(-0.1)
-    #     self.__arm.control(ArmMovement(MotorMovement(-90, 3), ServoMotor(0, 0, 0, 14)), is_block=False)
-    #     self.__move.rotate(90)
-    #     self.__move.line(-0.12)
-    #     self.__arm.control(ArmMovement(MotorMovement(-90, 3), ServoMotor(0, 0, 0, 14)))
-    #     self.__arm.control(ArmMovement(MotorMovement(-90, 26), ServoMotor(0, 0, 0, 14)))
-    #     self.__arm.control(ArmMovement(servo=ServoMotor(0, 0, 8, 14)))
-    #     self.__arm.control(ArmMovement(servo=ServoMotor(0, 0, 8, 6.5)))
-    #     self.__arm.control(ArmMovement(servo=ServoMotor(0, 0, 0, 6.5)))
-    #     self.__arm.control(ArmMovement(MotorMovement(-90, 3), ServoMotor(0, 0, 0, 6.5)))
-    #     self.__arm.control(ArmMovement(MotorMovement(0, 3), ServoMotor(0, 0, 0, 6.5)))
-    #
-    #     Movement.put_fruit_into_basket(self.__arm, 1)
-
+        grabber = FruitGrabber(self.__robot, self.__arm, self.__move, self.__sensor, self.__vision)
+        grabber.run({FruitType.GREEN_APPLE: 1, FruitType.YELLOW_APPLE: 2, FruitType.RED_APPLE: 3})
 
     def identify_and_grab(self):
         """

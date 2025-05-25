@@ -4,12 +4,11 @@ from py_trees.common import Status
 from py_trees.blackboard import Blackboard
 from camera_orbbec2.srv import ReqImage
 
-from ..ros_client.ServiceClient import take_image_service
-
+from ..ros_client.TakeImageService import TakeImageService
 
 class TakeImageFunction(Decorator):
     def __init__(self):
-        super().__init__("Take Image Function", take_image_service)
+        super().__init__("Take Image Function", TakeImageService())
 
         self.cv_bridge = cv_bridge.CvBridge()
 

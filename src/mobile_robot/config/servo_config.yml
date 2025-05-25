@@ -15,9 +15,9 @@ nod:
 telescopic:
   pin: 2
   min_value: 0
-  max_value: 15
-  min_duty: 17
-  max_duty: 49
+  max_value: 19
+  min_duty: 10
+  max_duty: 50
 
 gripper:
   pin: 3

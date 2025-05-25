@@ -38,6 +38,7 @@ class VisionService:
             cv2.putText(photo, '{} {:.3f}'.format(r.classId, r.confidence), (r.box.x1, r.box.y1), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
         cv2.imshow("123", photo)
         cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
     def get_onnx_identify_result(self, inverted=False) -> list[IdentifyResult]:
         count = 0
@@ -47,6 +48,8 @@ class VisionService:
                 photo = cv2.rotate(photo, cv2.ROTATE_180)
                 depth = cv2.rotate(depth, cv2.ROTATE_180)
             result = infer_onnx_model(self.__weight_path, photo)
+
+            self.show_photo(photo)
 
             flag = False
             for r in result:

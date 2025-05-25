@@ -100,7 +100,7 @@ class MoveService:
                     distance_from_wall = self.__radar.get_distance_from_wall(corrective.direction)
                     if distance_from_wall:
                         angle_from_wall = self.__radar.get_angle_from_wall(corrective.direction)
-                        y_buffer = distance_from_wall - corrective.distance
+                        y_buffer = corrective.distance - distance_from_wall
                 case Direction.RIGHT:
                     distance_from_wall = self.__radar.get_distance_from_wall(corrective.direction)
                     if distance_from_wall:
@@ -120,16 +120,12 @@ class MoveService:
             self.__odom.init_yaw(new_yaw)
 
         if abs(point.yaw) < 5:
-            # 验证可用
             self.__odom.init_location(point.x + x_buffer, point.y + y_buffer)
         elif abs(90 - point.yaw) < 5:
-            # 验证可用
             self.__odom.init_location(point.x + y_buffer, point.y + x_buffer)
         elif abs(180 - point.yaw) < 5 or abs(180 - point.yaw) < 5:
-            # 未验证可用
             self.__odom.init_location(point.x - x_buffer, point.y - y_buffer)
         elif abs(-90 - point.yaw) < 5:
-            # 验证可用
             self.__odom.init_location(point.x + y_buffer, point.y - x_buffer)
 
         rclpy.spin_once(self.__node)

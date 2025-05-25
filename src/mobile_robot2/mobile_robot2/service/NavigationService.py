@@ -1,3 +1,5 @@
+import typing
+
 from py_trees.behaviour import Behaviour
 from py_trees.common import Status
 from py_trees.composites import Sequence
@@ -9,8 +11,8 @@ from ..function.CorrectiveFunction import CorrectiveOdomFunction
 from ..function.InitOdomFunction import InitYawFunction
 from ..model.CorrectivePoint import CorrectivePoint
 from ..model.NavigationPoint import NavigationPoint
-from ..ros_client.NavigationActionClient import NavigationActionClient
-from ..ros_client.TopicSubscriber import robot_data_sub
+from ..ros_client.NavigationAction import NavigationAction
+from ..ros_client.RobotDataSubscriber import RobotDataSubscriber
 from ..util import Math
 
 
@@ -20,13 +22,13 @@ ROTATION_DECELERATION = 3
 
 class GenerateNavigationPathsService(Decorator):
     def __init__(self, points: list[NavigationPoint], speed):
-        super().__init__("Generate Navigation Paths Service", robot_data_sub)
+        super().__init__("Generate Navigation Paths Service", RobotDataSubscriber())
         self.points = points
         self.speed = speed
         self.step = Sequence("Navigation Sequence", True)
 
     def __navigation_handle(self, path: list, reverse=False):
-        self.step.add_child(NavigationActionClient(path, self.speed, self.speed * 5, ROTATION_ACCELERATION, ROTATION_DECELERATION, reverse))
+        self.step.add_child(NavigationAction(path, self.speed, self.speed * 5, ROTATION_ACCELERATION, ROTATION_DECELERATION, reverse))
 
     def initialise(self) -> None:
         self.step.children.clear()
@@ -42,7 +44,7 @@ class GenerateNavigationPathsService(Decorator):
                     if path:
                         path.append(point)
                         self.__navigation_handle(path)
-                    elif Blackboard.get("odom/init"):
+                    elif Blackboard.exists("/odom/init") and Blackboard.get("/odom/init"):
                         self.__navigation_handle([point])
                     else:
                         self.step.add_child(InitYawFunction(point.yaw))
@@ -52,7 +54,7 @@ class GenerateNavigationPathsService(Decorator):
                     continue
 
                 if previous_point is None:
-                    robot_data: RobotData = Blackboard.get("robot_data/raw").odom
+                    robot_data: RobotData = Blackboard.get("/robot_data/raw")
                     odom = robot_data.odom
                     previous_point = NavigationPoint(odom.x, odom.y, odom.w)
 
@@ -72,7 +74,7 @@ class GenerateNavigationPathsService(Decorator):
             if path:
                 self.__navigation_handle(path)
 
-            Blackboard.set("navigation/sequence", self.step)
+            Blackboard.set("/navigation/sequence", self.step)
 
         return self.decorated.status
 
@@ -80,11 +82,16 @@ class GenerateNavigationPathsService(Decorator):
 class RunNavigationPathsService(Behaviour):
     def __init__(self):
         super().__init__("Run Navigation Paths Service")
+        self.node = None
+
+    def setup(self, **kwargs: typing.Any) -> None:
+        self.node = kwargs["node"]
 
     def update(self) -> Status:
-        seq: Sequence = Blackboard.get("navigation/sequence")
+        seq: Sequence = Blackboard.get("/navigation/sequence")
 
         if seq is not None:
+            seq.setup(node=self.node)
             seq.tick_once()
             return seq.status
 

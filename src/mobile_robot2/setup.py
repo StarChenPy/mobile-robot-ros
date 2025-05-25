@@ -25,8 +25,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'debug = mobile_robot.debug:main',
-            'trials = mobile_robot.shandong_trials_module:main'
+            'debug = mobile_robot2.debug:main',
+            'trials = mobile_robot2.shandong_trials_module:main'
         ],
     },
 )

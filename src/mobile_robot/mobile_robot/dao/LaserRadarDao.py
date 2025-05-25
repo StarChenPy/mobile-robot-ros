@@ -11,7 +11,7 @@ from ..util import Math
 from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
-RADAR_ERROR = 2.4
+RADAR_ERROR = 3.1
 
 
 @singleton
@@ -93,13 +93,16 @@ class LaserRadarDao:
 
         if direction == Direction.FRONT:
             pass
+        elif direction == Direction.LEFT:
+            if angle < 0:
+                angle += 90
         else:
             if angle < 0:
                 angle += 90
             else:
                 angle -= 90
 
-        return angle
+        return angle - RADAR_ERROR
 
     def get_angle_from_wall(self, direction: Direction) -> float:
         if direction == Direction.BACK:
@@ -113,13 +116,9 @@ class LaserRadarDao:
             angle_list.append(once_angle)
             time.sleep(0.2)
 
-        if angle_list.count(0) > 1:
-            self.__logger.warn(f"过多不可信角度")
-            return 0
-
         self.__logger.debug(f"扫描到的雷达角度为 {angle_list}")
 
-        return Math.average_without_extremes(angle_list) - RADAR_ERROR
+        return Math.average_without_extremes(angle_list)
 
     def get_distance_from_wall_once(self, direction: Direction) -> float or None:
         # 返回距离雷达扫描的5个坐标拟合成的直线的垂直距离

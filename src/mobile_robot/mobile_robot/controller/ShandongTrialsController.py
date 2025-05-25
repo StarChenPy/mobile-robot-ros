@@ -28,9 +28,7 @@ class ShandongTrialsController:
 
     def grab(self, grabber):
         task = {FruitType.RED_APPLE: 1, FruitType.YELLOW_APPLE: 2, FruitType.GREEN_APPLE: 3}
-        Movement.recognition_orchard_tree(self.__arm)
-        result = self.__vision.get_onnx_identify_result(True)
-        grabber.run(result, task)
+        grabber.run(task)
 
     def run(self):
         self.__robot.with_robot_connect()
@@ -38,7 +36,7 @@ class ShandongTrialsController:
         self.__arm.control(Movement.MOVING)
         self.__robot.with_start_button()
 
-        grabber = FruitGrabber(self.__robot, self.__arm, self.__move)
+        grabber = FruitGrabber(self.__robot, self.__arm, self.__move, self.__sensor, self.__vision)
 
         self.__move.navigation(ShandongTrialsNavigationPath.START_TO_TREE_1)
         self.grab(grabber)
