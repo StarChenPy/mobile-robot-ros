@@ -16,7 +16,7 @@ class SowerServoService:
         self.servo_sower_flag = False
 
     def disable_all_servo(self):
-        self.servo_exit_toggle(0, enable=False)
+        self.servo_exit_toggle(True, enable=False)
         self.telescopic_servo(0, enable=False)
         self.servo_sower(enable=False)
         self.servo_knob_rotate(False, enable=False)
@@ -34,7 +34,7 @@ class SowerServoService:
         播种舵机 种子播种控制
         原 gripper_ry
         """
-        i = 32 if self.servo_sower_flag else 10
+        i = 37 if self.servo_sower_flag else 13
         self.servo_sower_flag = not self.servo_sower_flag
         self.__ctrl_servo(Servo.NOD, i, enable)
 

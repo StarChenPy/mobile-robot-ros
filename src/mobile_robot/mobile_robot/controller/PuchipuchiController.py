@@ -35,10 +35,10 @@ class PuchipuchiController:
 
     def run(self):
         self.robot.with_robot_connect()
-        # self.arm.back_origin()
+        self.arm.back_origin()
 
         while True:
-            print("请输入指令")
+            print("请输入指令，抓取演示请使用2-3，播种请使用4-2")
             print("1. 抓果-基本控制")
             print("2. 抓果-功能演示")
             print("3. 播种-基本控制")
@@ -132,7 +132,7 @@ class PuchipuchiController:
             print("请输入指令")
             print("1. 抓取水果")
             print("2. 抓取果篮")
-            print("3. 从车上抓取果篮并放置到地上")
+            print("3. 抓三个篮子然后抓水果放到框子中")
             print("q. 退出")
 
             choice = input()
@@ -141,7 +141,7 @@ class PuchipuchiController:
             if choice == "2":
                 self.grab_basket()
             if choice == "3":
-                self.grab_basket_to_warehouse()
+                self.grab_basket_and_fruit()
             elif choice == "q":
                 break
 
@@ -154,14 +154,35 @@ class PuchipuchiController:
 
     def grab_basket(self):
         self.arm.control(ArmMovement(MotorMovement(180, 8), ServoMotor(0, -90, 12, 25)))
-        self.arm.control(ArmMovement(MotorMovement(180, 22)))
+        self.arm.control(ArmMovement(MotorMovement(180, 21)))
         self.arm.control(ArmMovement(servo=ServoMotor(0, -90, 12, 19)))
         self.arm.control(ArmMovement(MotorMovement(180, 8), ServoMotor(0, 0, 12, 19)))
         self.arm.control(ArmMovement(MotorMovement(0, 8)))
 
-    def grab_basket_to_warehouse(self):
+    def grab_basket_and_fruit(self):
+        # 抓取三个篮子
         for i in range(1, 4):
-            Movement.grab_basket_to_warehouse(self.arm, i)
+            self.arm.control(ArmMovement(MotorMovement(180, 8), ServoMotor(0, -90, 12, 25)))
+            self.arm.control(ArmMovement(MotorMovement(180, 21)))
+            self.arm.control(ArmMovement(servo=ServoMotor(0, -90, 12, 19)))
+            self.arm.control(ArmMovement(MotorMovement(180, 8), ServoMotor(0, 0, 12, 19)))
+            self.arm.control(ArmMovement(MotorMovement(0, 8)))
+
+            Movement.grab_basket_to_robot(self.arm, 4 - i)
+
+        # 抓取三个水果
+        for i in range(1, 4):
+            self.arm.control(ArmMovement(MotorMovement(180, 2), ServoMotor(0, -90, 12, 20)))
+            self.arm.control(ArmMovement(MotorMovement(180, 32)))
+            time.sleep(0.5)
+            self.arm.control(ArmMovement(servo=ServoMotor(0, -90, 12, 7)))
+            self.arm.control(ArmMovement(MotorMovement(180, 14), ServoMotor(0, 0, 12, 7)))
+            self.arm.control(ArmMovement(MotorMovement(0, 14), ServoMotor(0, 0, 0, 7)))
+
+            Movement.put_fruit_into_basket(self.arm, i)
+
+        self.arm.control(Movement.MOVING)
+
 
     def sower_basic_control(self):
         while True:
@@ -251,11 +272,78 @@ class PuchipuchiController:
     def sower_func_control(self):
         while True:
             print("请输入指令")
-            print("1. 夹爪旋转控制")
+            print("1. 装填种子")
+            print("2. 边吃边拉")
             print("q. 退出")
 
             choice = input()
             if choice == "1":
-                self.servo_rotary()
+                self.fill_the_seeds()
+            elif choice == "2":
+                self.pull_while_eating()
             elif choice == "q":
-                exit(0)
+                break
+
+    def fill_the_seeds(self):
+        while True:
+            i = input("输入 a 或 b 选择将种子放入哪个通道，或输入q退出: ")
+            if i == "q":
+                break
+            elif i == "a":
+                if self.rising_edge_count != 0:
+                    self.sower.servo_exit_toggle(False)
+
+                    while True:
+                        current_state = self.robot_data.get_robot_data().titan_limit_sw[2].lim_h
+                        # 检测上升沿
+                        if not self.prev_state and current_state:
+                            self.rising_edge_count -= 1
+                        self.prev_state = current_state
+
+                        if self.rising_edge_count == 0:
+                            self.sower.servo_exit_toggle(True, False)
+                            break
+            elif i == "b":
+                if self.rising_edge_count != 5:
+                    self.sower.servo_exit_toggle(True)
+
+                    while True:
+                        current_state = self.robot_data.get_robot_data().titan_limit_sw[2].lim_h
+                        # 检测上升沿
+                        if not self.prev_state and current_state:
+                            self.rising_edge_count += 1
+                        self.prev_state = current_state
+
+                        if self.rising_edge_count == 5:
+                            self.sower.servo_exit_toggle(False, False)
+                            break
+
+            self.sower.servo_knob_rotate(True)
+            time.sleep(5)
+            self.sower.servo_knob_rotate(False)
+
+    def pull_while_eating(self):
+        flag = True
+
+        while True:
+            self.robot.with_start_button()
+
+            self.sower.servo_sower()
+            self.sower.servo_knob_rotate(True)
+            time.sleep(5)
+            self.sower.servo_knob_rotate(False)
+
+            self.sower.servo_exit_toggle(False)
+
+            while True:
+                current_state = self.robot_data.get_robot_data().titan_limit_sw[2].lim_h
+                # 检测上升沿
+                if not self.prev_state and current_state:
+                    self.rising_edge_count += 1
+                self.prev_state = current_state
+                flag_num = 16 if flag else 15
+                if self.rising_edge_count == flag_num:
+                    flag = not flag
+                    self.sower.servo_exit_toggle(True, False)
+                    self.rising_edge_count = 0
+                    break

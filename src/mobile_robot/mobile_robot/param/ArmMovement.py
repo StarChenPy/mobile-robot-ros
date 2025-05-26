@@ -59,9 +59,40 @@ def put_fruit_into_basket(arm: ArmService, box_number: int) -> None:
     else:
         raise ValueError("篮子编号无效")
 
-    arm.control(ArmMovement(MotorMovement(arm_pos, 16), ServoMotor(0, 0, telescopic, 6.5)))
-    arm.control(ArmMovement(MotorMovement(arm_pos, 16), ServoMotor(0, 0, telescopic, 10)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 14), ServoMotor(0, 0, telescopic, 6.5)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 14), ServoMotor(0, 0, telescopic, 10)))
     time.sleep(0.5)
+
+
+def grab_basket_to_robot(arm: ArmService, box_number: int) -> None:
+    """将框子放到机器人中"""
+
+    # 根据框号确定参数
+    if box_number == 1:
+        arm_pos = 30
+        servo_params = (-56, -90, 15)
+    elif box_number == 2:
+        arm_pos = 0
+        servo_params = (90, -90, 12)
+    elif box_number == 3:
+        arm_pos = -30
+        servo_params = (60, -90, 15)
+    else:
+        raise ValueError("篮子编号无效")
+
+    rotary, nod, telescopic = servo_params
+
+
+    arm.control(ArmMovement(MotorMovement(arm_pos, 2), ServoMotor(rotary, 0, telescopic, 19.5)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 2), ServoMotor(rotary, nod, telescopic, 18.5)))
+    time.sleep(0.5)
+    arm.control(ArmMovement(MotorMovement(arm_pos, 12), ServoMotor(rotary, nod, telescopic, 18.5)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 12), ServoMotor(rotary, nod, telescopic, 25)))
+    time.sleep(0.5)
+    arm.control(ArmMovement(MotorMovement(arm_pos, 2), ServoMotor(rotary, nod, telescopic, 25)))
+    arm.control(ArmMovement(MotorMovement(0, 2), ServoMotor(0, 0, 3, 6.5)))
+
+
 
 
 def grab_basket_to_warehouse(arm: ArmService, box_number: int) -> None:
@@ -73,7 +104,7 @@ def grab_basket_to_warehouse(arm: ArmService, box_number: int) -> None:
         servo_params = (-56, -90, 15)
     elif box_number == 2:
         arm_pos = 0
-        servo_params = (90, -92, 12)
+        servo_params = (90, -90, 12)
     elif box_number == 3:
         arm_pos = -30
         servo_params = (60, -90, 15)
