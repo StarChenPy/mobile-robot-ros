@@ -30,15 +30,12 @@ class PuchipuchiController:
         self.sower = SowerServoService(node)
         self.robot_data = RobotDataDao(node)
 
-        self.arm_movement = ArmMovement(MotorMovement(0, 3), ServoMotor(0, 0, 3, 5))
-
         self.prev_state = False
         self.rising_edge_count = 0
 
     def run(self):
         self.robot.with_robot_connect()
         # self.arm.back_origin()
-        # self.arm.control(self.arm_movement)
 
         while True:
             print("请输入指令")
@@ -92,48 +89,42 @@ class PuchipuchiController:
             i = input("输入夹爪旋转角度，或输入q退出: ")
             if i == "q":
                 break
-            self.arm_movement.servo.rotary = int(i)
-            self.arm.control(self.arm_movement)
+            self.arm.rotary_servo(int(i))
 
     def servo_nod(self):
         while True:
             i = input("输入夹爪抬头角度，或输入q退出: ")
             if i == "q":
                 break
-            self.arm_movement.servo.nod = int(i)
-            self.arm.control(self.arm_movement)
+            self.arm.nod_servo(int(i))
 
     def servo_telescopic(self):
         while True:
             i = input("输入夹爪伸缩距离，或输入q退出: ")
             if i == "q":
                 break
-            self.arm_movement.servo.telescopic = int(i)
-            self.arm.control(self.arm_movement)
+            self.arm.telescopic_servo(int(i))
 
     def servo_gripper(self):
         while True:
             i = input("输入夹爪张开距离，或输入q退出: ")
             if i == "q":
                 break
-            self.arm_movement.servo.gripper = int(i)
-            self.arm.control(self.arm_movement)
+            self.arm.gripper_servo(int(i))
 
     def arm_lift(self):
         while True:
             i = input("输入升降高度，或输入q退出: ")
             if i == "q":
                 break
-            self.arm_movement.motor.lift = int(i)
-            self.arm.control(self.arm_movement)
+            self.arm.lift(int(i), 40, True)
 
     def arm_rotate(self):
         while True:
             i = input("输入旋转角度，或输入q退出: ")
             if i == "q":
                 break
-            self.arm_movement.motor.rotate = int(i)
-            self.arm.control(self.arm_movement)
+            self.arm.rotate(int(i), 40, True)
 
 
     def grab_func_control(self):
