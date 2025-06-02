@@ -49,8 +49,6 @@ class VisionService:
                 depth = cv2.rotate(depth, cv2.ROTATE_180)
             result = infer_onnx_model(self.__weight_path, photo)
 
-            self.show_photo(photo)
-
             flag = False
             for r in result:
                 point = r.box.get_rectangle_center()

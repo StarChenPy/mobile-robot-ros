@@ -8,6 +8,7 @@ from ..popo.FruitType import FruitType
 from ..popo.IdentifyResult import IdentifyResult
 from ..popo.MotorMovement import MotorMovement
 from ..popo.ServoMotor import ServoMotor
+from ..popo.NavigationPoint import NavigationPoint
 from ..util import Util
 
 
@@ -26,7 +27,7 @@ class FruitGrabber:
             FruitLocationOnTree.TOP_LEFT: {
                 'direction': -90,  # 左侧
                 'exact_direction': -95,  # 左侧
-                'arm_height': 26,  # 较高位置
+                'arm_height': 24,  # 较高位置
                 'servo_angle': 0,  # 水平
                 'gripper_size': 14,  # 夹爪打开距离
                 'telescopic': 18,  # 伸缩距离
@@ -37,14 +38,14 @@ class FruitGrabber:
                 'exact_direction': -83,
                 'arm_height': 32,  # 较低位置
                 'servo_angle': -20,  # 略向内
-                'gripper_size': 10,
+                'gripper_size': 12,
                 'telescopic': 18,
                 'offset': 0.04
             },
             FruitLocationOnTree.TOP_CENTER: {
                 'direction': -90,
                 'exact_direction': -90,
-                'arm_height': 26,
+                'arm_height': 24,
                 'servo_angle': 0,
                 'gripper_size': 14,
                 'telescopic': 8,
@@ -64,7 +65,7 @@ class FruitGrabber:
             FruitLocationOnTree.TOP_RIGHT: {
                 'direction': 90,    # 右侧
                 'exact_direction': 95,
-                'arm_height': 26,
+                'arm_height': 24,
                 'servo_angle': 0,
                 'gripper_size': 14,
                 'telescopic': 18,
@@ -72,10 +73,10 @@ class FruitGrabber:
             },
             FruitLocationOnTree.BOTTOM_RIGHT: {
                 'direction': 90,
-                'exact_direction': 81,
+                'exact_direction': 82,
                 'arm_height': 32,
-                'servo_angle': 40,  # 右下角特殊角度
-                'gripper_size': 10,
+                'servo_angle': 30,  # 右下角特殊角度
+                'gripper_size': 12,
                 'telescopic': 18,
                 'offset': 0.06
             }
@@ -97,7 +98,7 @@ class FruitGrabber:
         self.logger.info(f"直角矫正角度: {angles}")
 
         min_angle = min(angles, key=lambda x: (abs(x), -x))
-        if abs(min_angle) < 10:
+        if abs(min_angle) < 15:
             self.__move.rotate(min_angle)
 
     def run(self, fruit_basket: dict[FruitType: int]):
@@ -163,22 +164,24 @@ class FruitGrabber:
 
         self.logger.info(f"最近的水果为: {min_depth_fruit.classId}, 中心点: {min_depth_fruit.box.get_rectangle_center()}, 深度: {fruit_distance}")
 
-        if center.x < 270 or center.x > 330:
-            fruit_distance = 0.38
+        if center.x < 240 or center.x > 360:
+            fruit_distance = 0.36
             self.logger.info(f"需要前往抓取的前进距离: {fruit_distance}")
             self.__move.line(fruit_distance)
         else:
             if fruit_distance == 0:
-                fruit_distance = 0.38
+                fruit_distance = 0.36
             else:
-                fruit_distance += 0.1
+                fruit_distance += 0.11
             offset_distance = Math.pixel_to_horizontal_distance_x((320 - center.x), fruit_distance)
             rotate_yaw = Math.calculate_right_triangle_angle(offset_distance, fruit_distance + 0.24)
             self.logger.info(f"需要前往抓取的旋转角度: {rotate_yaw}")
             self.logger.info(f"需要前往抓取的前进距离: {fruit_distance}")
-            self.__move.rotate(rotate_yaw)
-            self.__move.line(fruit_distance)
-            self.__move.rotate(-rotate_yaw)
+            # self.__move.rotate(rotate_yaw)
+            # self.__move.line(fruit_distance)
+            # self.__move.rotate(-rotate_yaw)
+            odom_data = self.sensor.get_odom_data()
+            self.__move.navigation([Math.get_target_coordinate(NavigationPoint(odom_data.x, odom_data.y, odom_data.w + rotate_yaw), fruit_distance)], 0.2)
 
     def _optimize_grab_sequence(self, fruit_locations):
         """

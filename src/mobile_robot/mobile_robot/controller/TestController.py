@@ -45,9 +45,8 @@ class TestController:
         #     self.__move.rotate(min_angle)
 
     def run(self):
-        self.__arm.back_origin()
-        Movement.recognition_orchard_tree(self.__arm)
-        self.__vision.get_onnx_identify_result(True)
+        while True:
+            self.create_point()
 
 
     def create_point(self):
@@ -58,7 +57,7 @@ class TestController:
             point = self.__param.get_navigation_point(point_name)
         else:
             x, y, yaw = input("输入当前坐标(x y yaw): ").split(" ")
-            point = NavigationPoint(x, y, yaw)
+            point = NavigationPoint(float(x), float(y), float(yaw))
 
         dirs = input("输入要矫正的方向 f:前 b:后 l:左 r:右 :").split(" ")
 

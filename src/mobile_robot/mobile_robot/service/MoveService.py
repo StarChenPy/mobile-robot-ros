@@ -64,7 +64,8 @@ class MoveService:
                 odom = self.__robot_data.get_robot_data().odom
                 previous_point = NavigationPoint(odom.x, odom.y, odom.w)
 
-            if previous_point.yaw is not None and Math.is_behind(previous_point, point, 45):
+            if previous_point.yaw is not None and Math.is_behind(previous_point, point, 30):
+                print(f"当前点: {point}, 上个点: {previous_point}, 倒车回去")
                 # 如果这个点位在上个点位的后面，就倒车回去
                 if path:
                     self.__navigation_handle(path, speed, True)
@@ -74,6 +75,7 @@ class MoveService:
                 self.__navigation.navigation([point], speed, speed * 5, 3, 3, True)
                 self.__navigation.wait_finish()
             else:
+                print(f"当前点: {point}, 上个点: {previous_point}, 直接开")
                 path.append(point)
 
             previous_point = point

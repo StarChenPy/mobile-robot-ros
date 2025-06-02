@@ -2,6 +2,7 @@ import time
 
 import rclpy
 
+from web_message_transform_ros2.msg import Pose
 from ..dao.LaserRadarDao import LaserRadarDao
 from ..dao.OdomDao import OdomDao
 from ..dao.RobotDataDao import RobotDataDao
@@ -53,7 +54,7 @@ class SensorService:
     def get_radar_data(self, target_angle: float) -> tuple[float, float]:
         return self.__radar.get_radar_data(target_angle)
 
-    def get_odom_data(self):
+    def get_odom_data(self) -> Pose:
         rclpy.spin_once(self.__node)
         return self.__robot_data.get_robot_data().odom
 

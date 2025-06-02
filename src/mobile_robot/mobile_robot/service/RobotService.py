@@ -4,12 +4,14 @@ import rclpy.node
 
 from ..dao.RobotCtrlDao import RobotCtrlDao
 from ..dao.RobotDataDao import RobotDataDao
+from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
 
 @singleton
 class RobotService:
     def __init__(self, node: rclpy.node.Node):
+        self.logger = Logger()
         self.__node = node
 
         self.__robot_data = RobotDataDao(node)
@@ -21,6 +23,7 @@ class RobotService:
         return
 
     def with_start_button(self):
+        self.logger.info("正在等待开始按钮按下...")
         while self.__robot_data.get_robot_data().di[1]:
             rclpy.spin_once(self.__node)
             time.sleep(0.1)

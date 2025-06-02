@@ -38,6 +38,16 @@ orchard_enter_b_1:
   y: 2.75
   yaw: null
 
+orchard_enter_b_1_corrective:
+  corrective_data:
+    - direction: back
+      distance: 0.693
+    - direction: right
+      distance: 0.308
+  x: 0.7
+  y: 3.67
+  yaw: 0.0
+
 orchard_enter_b_2:
   x: 3.65
   y: 2.75
@@ -47,6 +57,16 @@ orchard_enter_b_3:
   x: 3.65
   y: 2.0
   yaw: null
+
+orchard_enter_b_2_corrective:
+  corrective_data:
+    - direction: back
+      distance: 0.659
+    - direction: left
+      distance: 0.374
+  x: 3.35
+  y: 2.75
+  yaw: 180.0
 
 orchard_enter_b_4:
   corrective_data:
