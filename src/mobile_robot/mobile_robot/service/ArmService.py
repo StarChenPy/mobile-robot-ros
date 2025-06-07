@@ -1,5 +1,6 @@
 import time
 
+import numpy as np
 import rclpy
 
 from ..dao.LaserRadarDao import LaserRadarDao
@@ -100,8 +101,6 @@ class ArmService:
             self.telescopic_servo(movement.servo.telescopic)
             self.gripper_servo(movement.servo.gripper)
             self.rotary_servo(movement.servo.rotary)
-            if movement.motor is None:
-                time.sleep(1)
 
         if is_block and movement.motor is not None:
             self.__lift_motor.wait_finish()
@@ -141,7 +140,6 @@ class ArmService:
         原 gripper_rz
         """
         self.__ctrl_servo(Servo.ROTARY, angle, enable)
-        self.__ctrl_servo(Servo.ROTARY, angle, enable)
 
     def nod_servo(self, angle: float, enable=True):
         """
@@ -149,25 +147,22 @@ class ArmService:
         原 gripper_ry
         """
         self.__ctrl_servo(Servo.NOD, angle, enable)
-        self.__ctrl_servo(Servo.NOD, angle, enable)
 
     def telescopic_servo(self, distance: float, enable=True):
         """
         卡爪舵机 伸缩 ( cm )
         原 telescopic
         """
-        self.__ctrl_servo(Servo.TELESCOPIC, distance, enable)
-        self.__ctrl_servo(Servo.TELESCOPIC, distance, enable)
+        self.__ctrl_servo(Servo.TELESCOPIC, distance, enable, 3)
 
     def gripper_servo(self, distance: float, enable=True):
         """
         卡爪舵机 夹合 ( cm )
         原 gripper
         """
-        self.__ctrl_servo(Servo.GRIPPER, distance, enable)
-        self.__ctrl_servo(Servo.GRIPPER, distance, enable)
+        self.__ctrl_servo(Servo.GRIPPER, distance, enable, 1)
 
-    def __ctrl_servo(self, servo: Servo, value: float, enable: bool):
+    def __ctrl_servo(self, servo: Servo, value: float, enable: bool, decelerate=2):
         """
         通用舵机控制方法
         @param servo 舵机类型
@@ -176,9 +171,6 @@ class ArmService:
         """
         servo_config = Config().get_servo_config()
 
-        pin = 0
-        min_value = 0
-        max_value = 0
         duty = 0
 
         match servo:
@@ -202,6 +194,9 @@ class ArmService:
                 pin = config["pin"]
                 min_value = config["min_value"]
                 max_value = config["max_value"]
+            case _:
+                self.__logger.error(f"未知舵机类型: {servo}")
+                return
 
         type_name = servo.name.lower()
         if not enable:
@@ -236,6 +231,17 @@ class ArmService:
                 coeff = (config["deg90_duty"] - config["zero_duty"]) / 90.0
                 duty = config["zero_duty"] + value * coeff
 
-        self.__robot_ctrl.write_pwm(pin, duty)
-        self.__robot_ctrl.write_pwm(pin, duty)
-        self.__robot_ctrl.write_pwm(pin, duty)
+        prev_duty = self.__robot_ctrl.read_pwm(pin)
+        if prev_duty != duty:
+            self.__logger.info(f'设置 {type_name} 舵机: {value} (duty: {duty})')
+
+            if decelerate > 0 and prev_duty != 0:
+                difference = abs(prev_duty - duty)
+                duty_array = np.linspace(prev_duty, duty, int(decelerate * 30))
+                for d in duty_array:
+                    self.__robot_ctrl.write_pwm(pin, d.item())
+                    time.sleep(difference / (decelerate * 1000))
+            else:
+                self.__robot_ctrl.write_pwm(pin, duty)
+        else:
+            self.__logger.debug(f'舵机 {type_name} 已经在目标位置，无需调整')

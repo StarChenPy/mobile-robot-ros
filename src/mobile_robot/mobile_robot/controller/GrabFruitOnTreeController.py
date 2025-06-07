@@ -41,10 +41,10 @@ class GrabFruitOnTreeController:
         """
         Movement.recognition_orchard_tree(self.__arm)
         while True:
-            result = self.__vision.get_onnx_identify_result()
+            result = self.__vision.get_onnx_identify_depth()
             if not result:
                 break
-            result = self.__vision.get_onnx_identify_result()
+            result = self.__vision.get_onnx_identify_depth()
             if not result:
                 break
 

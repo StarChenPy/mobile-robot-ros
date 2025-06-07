@@ -67,3 +67,24 @@ class RobotCtrlDao(object):
         self.__topic.publish(self.__robot_ctrl)
         self.__topic.publish(self.__robot_ctrl)
         rclpy.spin_once(self.__node)
+
+    def read_pwm(self, port):
+        """
+        读取指定PWM端口的占空比
+        @param port: PWM端口 (0-4)
+        @return: 占空比 (0-100)
+        """
+        match port:
+            case 0:
+                return self.__robot_ctrl.pwm0
+            case 1:
+                return self.__robot_ctrl.pwm1
+            case 2:
+                return self.__robot_ctrl.pwm2
+            case 3:
+                return self.__robot_ctrl.pwm3
+            case 4:
+                return self.__robot_ctrl.pwm4
+            case _:
+                self.__logger.error(f"未知PWM端口: {port}")
+                return 0

@@ -4,6 +4,7 @@ import numpy as np
 
 from ..popo.NavigationPoint import NavigationPoint
 from ..popo.Point import Point
+from ..popo.Rectangle import Rectangle
 
 
 def calculate_right_angle_side(adjacent_length, angle_degrees):
@@ -21,6 +22,7 @@ def calculate_right_angle_side(adjacent_length, angle_degrees):
     opposite_length = adjacent_length * math.tan(angle_radians)
     return opposite_length
 
+
 def calculate_right_triangle_angle(a: float, b: float) -> float:
     """
     计算直角三角形中斜边与边 b 的夹角（单位：度）
@@ -37,6 +39,7 @@ def calculate_right_triangle_angle(a: float, b: float) -> float:
     degrees = math.degrees(radians)
     return degrees
 
+
 def calculate_hypotenuse(a: float, b: float) -> float:
     """
     计算直角三角形的斜边长度。
@@ -48,7 +51,7 @@ def calculate_hypotenuse(a: float, b: float) -> float:
     返回：
     斜边的长度
     """
-    return math.sqrt(a**2 + b**2)
+    return math.sqrt(a ** 2 + b ** 2)
 
 
 def get_target_coordinate(point: NavigationPoint, dis) -> NavigationPoint:
@@ -234,6 +237,7 @@ def pixel_to_horizontal_distance_x(x_pixel: float, camera_height: float) -> floa
     focal_length = image_width / (1.3 * math.tan(math.radians(fov_deg) / 2))
     return (camera_height * x_pixel) / focal_length
 
+
 def pixel_to_horizontal_distance_y(y_pixel: float, camera_height: float) -> float:
     """
     计算苹果的纵向现实距离（米）。
@@ -250,6 +254,7 @@ def pixel_to_horizontal_distance_y(y_pixel: float, camera_height: float) -> floa
     focal_length = image_width / (2.8 * math.tan(math.radians(fov_deg) / 2))
     return (camera_height * y_pixel) / focal_length
 
+
 def pixel_to_world(point: Point, dis):
     """
     将图像像素坐标转换为相对于图像底部中心 (320, 480) 的地面平面坐标。
@@ -264,10 +269,10 @@ def pixel_to_world(point: Point, dis):
         (x_m, y_m): 地面坐标（单位：米），以图像底部中心为原点，x 向右为正，y 向下为正
     """
 
-    img_width=640
-    img_height=480
-    h_fov_deg=110
-    v_fov_deg=55
+    img_width = 640
+    img_height = 480
+    h_fov_deg = 110
+    v_fov_deg = 55
 
     # 图像底部中心点
     cx = img_width / 2
@@ -290,3 +295,36 @@ def pixel_to_world(point: Point, dis):
     y_m = math.tan(angle_y) * dis
 
     return Point(x_m, y_m)
+
+
+def split_rectangle(x1, y1, x2, y2, cols=6, rows=3) -> dict[int: list[Rectangle]]:
+    # 生成横向和纵向的分割点
+    x_edges = np.linspace(x1, x2, cols + 1)
+    y_edges = np.linspace(y1, y2, rows + 1)
+
+    rectangles = {}
+
+    # 遍历每一个小矩形区域
+    for i in range(rows):
+        rectangles[i] = []
+        for j in range(cols):
+            rect = Rectangle(x_edges[j].item(), y_edges[i].item(), x_edges[j + 1].item(), y_edges[i + 1].item())
+            rectangles[i].append(rect)
+
+    return rectangles
+
+
+def find_points_in_squares(points: list[Point], squares: list[Rectangle]):
+    """
+    找出每个正方形中包含的坐标点
+    :param points: 坐标点列表，格式 [(x1, y1), (x2, y2), ...]
+    :param squares: 正方形列表，每个正方形用左上角和右下角表示，格式 [((x_min1, y_min1), (x_max1, y_max1)), ...]
+    :return: 字典，键为正方形索引，值为该正方形包含的点列表
+    """
+    results = []
+    for idx, square in enumerate(squares):
+        for point in points:
+            if square.x1 <= point.x <= square.x2 and square.y1 <= point.y <= square.y2:
+                results.append(point)
+                points.remove(point)  # 确保每个点只被计入一次
+    return results

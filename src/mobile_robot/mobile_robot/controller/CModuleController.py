@@ -91,7 +91,7 @@ class CModuleController:
                     break
 
     def get_identify_result(self):
-        results = self.__vision.get_onnx_identify_result()
+        results = self.__vision.get_onnx_identify_depth()
         result = None
         for r in results:
             if r.box.get_area() < 3000:

@@ -37,7 +37,7 @@ class GrabFruitOnGroundController:
             if q == "q":
                 break
 
-            for e in self.__vision.get_onnx_identify_result():
+            for e in self.__vision.get_onnx_identify_depth():
                 center = e.box.get_rectangle_center()
                 print(e.classId, center, e.distance)
 

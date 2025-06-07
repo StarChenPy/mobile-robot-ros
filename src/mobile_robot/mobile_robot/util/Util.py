@@ -111,10 +111,10 @@ def get_fruit_location_on_tree(vision_service, fruit: FruitType) -> FruitLocatio
     @param fruit: 水果类型
     @return 水果在树上的类型
     """
-    result = vision_service.get_onnx_identify_result()
+    result = vision_service.get_onnx_identify_depth()
 
     while not result:
-        result = vision_service.get_onnx_identify_result()
+        result = vision_service.get_onnx_identify_depth()
 
     for i in result:
         if i.classId != fruit.value:

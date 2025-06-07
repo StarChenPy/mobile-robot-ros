@@ -166,7 +166,7 @@ class BModuleController:
 
         self.__arm.control(ArmMovement.RECOGNITION_WAREHOUSE)
         for _ in range(10):
-            for result in self.__vision.get_onnx_identify_result():
+            for result in self.__vision.get_onnx_identify_depth():
                 if result.classId == FruitType.GREEN_APPLE.value:
                     print("绿苹果")
                 elif result.classId == FruitType.YELLOW_APPLE.value:
@@ -184,7 +184,7 @@ class BModuleController:
         ArmMovement.recognition_orchard(self.__arm, Direction.RIGHT)
 
         for _ in range(10):
-            for result in self.__vision.get_onnx_identify_result():
+            for result in self.__vision.get_onnx_identify_depth():
                 if result.classId == FruitType.GREEN_APPLE.value:
                     print("绿苹果")
                 elif result.classId == FruitType.YELLOW_APPLE.value:
@@ -202,7 +202,7 @@ class BModuleController:
         ArmMovement.recognition_orchard(self.__arm, Direction.RIGHT)
 
         for _ in range(10):
-            result = self.__vision.get_onnx_identify_result()
+            result = self.__vision.get_onnx_identify_depth()
             for e in result:
                 match Util.get_fruit_height(e.distance):
                     case FruitHeight.TALL:

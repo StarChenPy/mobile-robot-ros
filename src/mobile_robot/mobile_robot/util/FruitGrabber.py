@@ -112,8 +112,8 @@ class FruitGrabber:
         Movement.recognition_orchard_tree(self.__arm)
 
         while True:
-            result1 = self.vision.get_onnx_identify_result(True)
-            result2 = self.vision.get_onnx_identify_result(True)
+            result1 = self.vision.get_onnx_identify_depth(True)
+            result2 = self.vision.get_onnx_identify_depth(True)
 
             if len(result1) == len(result2):
                 result = result2
