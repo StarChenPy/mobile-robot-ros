@@ -1,0 +1,12 @@
+# 旋转角度与前进距离
+float32 distance
+float32 angle
+float32 speed
+
+---
+
+# 响应是否成功以及消息
+bool success
+string message
+
+---
