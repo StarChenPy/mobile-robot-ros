@@ -1,0 +1,16 @@
+amcl:
+  ros__parameters:
+    use_sim_time: false
+    base_frame_id: "base_link"
+    min_particles: 500
+    max_particles: 5000
+    kld_err: 0.01
+    kld_z: 0.99
+    update_min_d: 0.05
+    update_min_a: 0.05
+    resample_interval: 1
+    transform_tolerance: 1.0
+    recovery_alpha_slow: 0.0
+    recovery_alpha_fast: 0.0
+    laser_max_range: 6.0    # 按雷达参数调整
+    laser_min_range: 0.05

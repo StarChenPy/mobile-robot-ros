@@ -6,9 +6,11 @@ RPI_IP = '10.12.34.2'
 RPI_USER = 'vmx'
 RPI_PASS = 'password'
 
+
 def get_local_time():
-    now = datetime.datetime.now()
+    now = datetime.datetime.now() + datetime.timedelta(seconds=2)
     return now.strftime('%Y-%m-%d %H:%M:%S')
+
 
 def run_sudo_command_interactive(ssh, password, command):
     shell = ssh.invoke_shell()
@@ -33,13 +35,14 @@ def run_sudo_command_interactive(ssh, password, command):
 
     return output
 
-def sync_time_to_rpi():
-    local_time = get_local_time()
-    print(f"本地时间: {local_time}")
 
+def sync_time_to_rpi():
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     ssh.connect(RPI_IP, username=RPI_USER, password=RPI_PASS, timeout=10)
+
+    local_time = get_local_time()
+    print(f"本地时间: {local_time}")
 
     try:
         output = run_sudo_command_interactive(ssh, RPI_PASS, f'date -s "{local_time}"')
@@ -53,6 +56,7 @@ def sync_time_to_rpi():
         print("时间同步完成")
     finally:
         ssh.close()
+
 
 if __name__ == '__main__':
     sync_time_to_rpi()

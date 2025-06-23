@@ -1,0 +1,15 @@
+# Request
+string waypoint_name                    # 路径点名
+---
+# Result
+bool success                            # 是否成功
+int32 error_code                        # 失败代码，为失败的路径点的编号
+string message                          # 消息反馈
+float64 total_time                      # 总共用时
+geometry_msgs/PoseStamped final_pose    # 最终实际到达的位姿
+---
+# Feedback
+string current_waypoint_name            # 到达的点
+geometry_msgs/PoseStamped pose          # 实际到达的位姿
+float64 time_spent                      # 到达这个点用的时间
+int32 index                             # 这是第几个路径点

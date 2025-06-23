@@ -16,7 +16,7 @@ from ..util import Math
 from ..util.Logger import Logger
 from ..util.NavigationPointParam import NavigationPointParam
 from ..util.Singleton import singleton
-from ..param import ArmMovement as Movement
+from ..param import ArmMovement as Movement, ShandongTrialsNavigationPath
 
 
 @singleton
@@ -40,14 +40,8 @@ class TestController:
 
         print(angles)
 
-        # min_angle = min(angles, key=lambda x: (abs(x), -x))
-        # if abs(min_angle) > 2:
-        #     self.__move.rotate(min_angle)
-
     def run(self):
-        while True:
-            self.create_point()
-
+        self.__move.navigation(ShandongTrialsNavigationPath.START_TO_TREE_1)
 
     def create_point(self):
         s = input("是否已有点？y/n: ")
