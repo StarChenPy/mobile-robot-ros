@@ -23,6 +23,7 @@ def generate_launch_description():
         package='slam_toolbox',
         executable='async_slam_toolbox_node',
         name='slam_toolbox',
+        emulate_tty=True,
         output='screen')
 
     child_launch = launch.actions.IncludeLaunchDescription(

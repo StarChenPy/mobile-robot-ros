@@ -8,7 +8,7 @@ from ..popo.ServoMotor import ServoMotor
 from ..service.ArmService import ArmService
 
 # 基础动作
-MOVING = ArmMovement(MotorMovement(0, 16), ServoMotor(0, 0, 3, 6.5))
+MOVING = ArmMovement(MotorMovement(0, 17), ServoMotor(0, 0, 0, 6.5))
 TEST = ArmMovement(MotorMovement(90, 15))
 ZERO = ArmMovement(MotorMovement(0, 15))
 
@@ -64,35 +64,82 @@ def put_fruit_into_basket(arm: ArmService, box_number: int) -> None:
     time.sleep(0.5)
 
 
-def grab_basket_to_robot(arm: ArmService, box_number: int) -> None:
+def put_basket_to_robot(arm: ArmService, box_number: int) -> None:
     """将框子放到机器人中"""
 
     # 根据框号确定参数
     if box_number == 1:
-        arm_pos = 30
-        servo_params = (-56, -90, 15)
+        arm_pos = 22
+        servo_params = (-72, 5)
     elif box_number == 2:
-        arm_pos = 0
-        servo_params = (90, -90, 12)
+        arm_pos = 10
+        servo_params = (100, 3.5)
     elif box_number == 3:
-        arm_pos = -30
-        servo_params = (60, -90, 15)
+        arm_pos = -20
+        servo_params = (68, 5)
     else:
         raise ValueError("篮子编号无效")
 
-    rotary, nod, telescopic = servo_params
+    rotary, telescopic = servo_params
 
-
-    arm.control(ArmMovement(MotorMovement(arm_pos, 2), ServoMotor(rotary, 0, telescopic, 19.5)))
-    arm.control(ArmMovement(MotorMovement(arm_pos, 2), ServoMotor(rotary, nod, telescopic, 18.5)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 1), ServoMotor(rotary, 0, telescopic, 15)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 1), ServoMotor(rotary, 90, telescopic, 15)))
     time.sleep(0.5)
-    arm.control(ArmMovement(MotorMovement(arm_pos, 12), ServoMotor(rotary, nod, telescopic, 18.5)))
-    arm.control(ArmMovement(MotorMovement(arm_pos, 12), ServoMotor(rotary, nod, telescopic, 25)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 15)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 15), ServoMotor(rotary, 90, telescopic, 24)))
     time.sleep(0.5)
-    arm.control(ArmMovement(MotorMovement(arm_pos, 2), ServoMotor(rotary, nod, telescopic, 25)))
-    arm.control(ArmMovement(MotorMovement(0, 2), ServoMotor(0, 0, 3, 6.5)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 1)))
+    arm.control(ArmMovement(MotorMovement(0, 1), ServoMotor(0, 0, 3, 6.5)))
 
 
+def grab_basket_from_station(arm: ArmService) -> None:
+    arm.control(ArmMovement(MotorMovement(180, 1), ServoMotor(0, 0, 6, 24)))
+    arm.control(ArmMovement(MotorMovement(180, 16), ServoMotor(0, 0, 6, 24)))
+    arm.control(ArmMovement(MotorMovement(180, 16), ServoMotor(0, 0, 6, 15)))
+    arm.control(ArmMovement(MotorMovement(180, 1), ServoMotor(0, 0, 0, 15)))
+    arm.control(ArmMovement(MotorMovement(0, 3), ServoMotor(0, 0, 0, 15)))
+
+
+def grab_basket_to_station(arm: ArmService, box_number: int) -> None:
+    """将指定框子放到面前的站台上"""
+
+    # 根据框号确定参数
+    if box_number == 1:
+        arm_pos = 22
+        servo_params = (-72, 5)
+    elif box_number == 2:
+        arm_pos = 10
+        servo_params = (100, 3.5)
+    elif box_number == 3:
+        arm_pos = -20
+        servo_params = (68, 5)
+    else:
+        raise ValueError("篮子编号无效")
+
+    rotary, telescopic = servo_params
+
+    # 准备抓
+    arm.control(ArmMovement(MotorMovement(0, 1), ServoMotor(0, 0, 3, 6.5)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 1), ServoMotor(rotary, 90, telescopic, 24)))
+    time.sleep(0.5)
+    arm.control(ArmMovement(MotorMovement(arm_pos, 15), ServoMotor(rotary, 90, telescopic, 24)))
+    # 夹合
+    arm.control(ArmMovement(MotorMovement(arm_pos, 15), ServoMotor(rotary, 90, telescopic, 15)))
+    time.sleep(0.5)
+    # 提起
+    arm.control(ArmMovement(MotorMovement(arm_pos, 1), ServoMotor(rotary, 90, telescopic, 15)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 1), ServoMotor(0, 90, telescopic, 15)))
+    time.sleep(0.5)
+    arm.control(ArmMovement(MotorMovement(arm_pos, 1), ServoMotor(0, 0, 5, 15)))
+
+    # 放下（公共部分）
+    arm.control(ArmMovement(MotorMovement(180, 1), ServoMotor(0, 0, 10, 15)))
+    arm.control(ArmMovement(MotorMovement(180, 1), ServoMotor(0, 0, 10, 24)))
+    arm.control(ArmMovement(MotorMovement(180, 1), ServoMotor(0, 90, 0, 24)))
+    time.sleep(0.5)
+    # 结束（公共部分）
+    arm.control(ArmMovement(MotorMovement(0, 1)))
+    arm.control(ArmMovement(MotorMovement(0, 1), ServoMotor(0, 0, 0, 6.5)))
 
 
 def grab_basket_to_warehouse(arm: ArmService, box_number: int) -> None:
@@ -135,13 +182,14 @@ def grab_basket_to_warehouse(arm: ArmService, box_number: int) -> None:
     # 结束（公共部分）
     arm.control(ArmMovement(MotorMovement(0, 16), ServoMotor(0, 0, 3, 6.5)))
 
+
 def grab_fruit_on_tree(arm_service, move_service, location_on_tree: FruitLocationOnTree):
     CONFIGS = {
-        FruitLocationOnTree.TOP_LEFT:    (185, 27, 15, 0.34, 0, 10, 12),
-        FruitLocationOnTree.TOP_CENTER:  (180, 25, 0, 0.2, 0, 0, 2),
-        FruitLocationOnTree.TOP_RIGHT:   (175, 27, -15, 0.34, 0, 10, 12),
+        FruitLocationOnTree.TOP_LEFT: (185, 27, 15, 0.34, 0, 10, 12),
+        FruitLocationOnTree.TOP_CENTER: (180, 25, 0, 0.2, 0, 0, 2),
+        FruitLocationOnTree.TOP_RIGHT: (175, 27, -15, 0.34, 0, 10, 12),
         FruitLocationOnTree.BOTTOM_LEFT: (200, 32, 15, 0.34, -10, 0, 11),
-        FruitLocationOnTree.BOTTOM_CENTER:(180, 32, 0, 0.2, 0, 0, 9),
+        FruitLocationOnTree.BOTTOM_CENTER: (180, 32, 0, 0.2, 0, 0, 9),
         FruitLocationOnTree.BOTTOM_RIGHT: (160, 32, -15, 0.34, 10, 0, 11)
     }
 

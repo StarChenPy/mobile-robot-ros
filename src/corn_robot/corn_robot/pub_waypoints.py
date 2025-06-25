@@ -5,6 +5,8 @@ import yaml
 from ament_index_python import get_package_share_directory
 from geometry_msgs.msg import Point
 from rcl_interfaces.msg import ParameterDescriptor
+from std_srvs.srv import Empty
+
 from corn_robot_interfaces.msg import Waypoint, WaypointArray
 from tf_transformations import quaternion_from_euler
 
@@ -31,11 +33,19 @@ class PubWaypointsNode(rclpy.node.Node):
         # 创建发布者
         waypoints_topic = self.get_parameter("waypoints_topic").value
         self.publisher = self.create_publisher(WaypointArray, waypoints_topic, 10)
+        self.server = self.create_service(Empty, 'reload_waypoints', self.reload_waypoints_callback)
 
         # 定时器，定期发布消息
         self.read_yaml()
         self.publish_waypoints()
         self.timer = self.create_timer(10, self.publish_waypoints)
+
+    def reload_waypoints_callback(self, _, response):
+        self.get_logger().info("重新加载路径点...")
+        self.read_yaml()
+        self.publish_waypoints()
+        self.get_logger().info("路径点重新加载完成.")
+        return response
 
     def read_yaml(self):
         try:

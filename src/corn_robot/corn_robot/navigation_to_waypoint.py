@@ -17,6 +17,11 @@ from corn_robot_interfaces.msg import WaypointArray, Waypoint
 from corn_robot_interfaces.srv import GeneratePath
 
 
+def normalize_angle(angle: float) -> float:
+    """将角度标准化到 [-π, π]"""
+    return (angle + math.pi) % (2 * math.pi) - math.pi
+
+
 def create_result(success: bool, message: str, error_code: int, start_time: float, pose=None) -> NavigationToWaypoint.Result:
     result = NavigationToWaypoint.Result()
     result.success = success
@@ -56,9 +61,10 @@ def compute_delta_theta(pose_stamped: PoseStamped, waypoint: Waypoint) -> float:
 
 class NavigationToPoseNode(rclpy.node.Node):
     def __init__(self):
-        super().__init__('navigation_node')
+        super().__init__('navigation_to_waypoint')
         self.get_logger().info('路径点导航节点 已启动.')
 
+        self.goal_handle = None
         self.waypoints = WaypointArray()
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
@@ -81,7 +87,9 @@ class NavigationToPoseNode(rclpy.node.Node):
         self.distance_threshold = self.get_parameter('distance_threshold').value
 
         # 通信接口
-        self.action_server = ActionServer(self, NavigationToWaypoint, nav2wp_action, execute_callback=self.execute_callback, cancel_callback=self.cancel_callback)
+        self.action_server = ActionServer(self, NavigationToWaypoint, nav2wp_action,
+                                          execute_callback=self.execute_callback,
+                                          cancel_callback=self.cancel_callback)
         self.generate_path_client = self.create_client(GeneratePath, generate_path_service)
         self.motion_action_client = ActionClient(self, RobotMotion, robot_motion_action)
         self.waypoints_sub = self.create_subscription(WaypointArray, waypoints_topic, self.waypoints_callback, 10)
@@ -89,15 +97,19 @@ class NavigationToPoseNode(rclpy.node.Node):
     def waypoints_callback(self, msg: WaypointArray):
         self.waypoints = msg
 
-    def cancel_callback(self, _):
+    async def cancel_callback(self, _):
         self.get_logger().info('接收到取消导航到路径点请求.')
+        if self.goal_handle is not None:
+            await self.goal_handle.cancel_goal_async()
+            self.goal_handle = None
         return rclpy.action.CancelResponse.ACCEPT
 
     async def execute_callback(self, goal_handle: ServerGoalHandle) -> NavigationToWaypoint.Result:
-        goal = goal_handle.request
+        goal: NavigationToWaypoint.Goal = goal_handle.request
         self.get_logger().info(f'接收到导航到路径点请求: {goal.waypoint_name}')
         T1 = time.process_time()
 
+        self.speed = goal.speed if goal.speed > 0 else self.get_parameter('speed').value
         pose_stamped = self.get_pose_stamped()
         if pose_stamped is None:
             goal_handle.abort()
@@ -124,20 +136,14 @@ class NavigationToPoseNode(rclpy.node.Node):
             # 计算应转动角度
             delta_theta = compute_delta_theta(pose_stamped, waypoint)
 
+            # 倒车逻辑
             if waypoint.is_reverse:
-                # 倒车逻辑：
-                # ➤ 先转过来，面向“倒车反方向”
-                delta_theta = (delta_theta + math.pi) % (2 * math.pi) - math.pi  # 保持 [-π, π]
-                result = await self.move_robot(math.degrees(delta_theta), 0.0)
-                if result is None or not result.success:
-                    goal_handle.abort()
-                    msg = result.message if result else '机器人运动服务调用失败!(倒车朝向)'
-                    return create_result(False, msg, index, T1, pose_stamped)
-
-                # ➤ 再倒车移动，**通过传递负距离实现倒车**
+                # 与前进方向相反的角度
+                delta_theta = normalize_angle(delta_theta - math.pi)
+                # 通过传递负距离实现倒车
                 distance = -distance
 
-            # ➤ 执行移动（正数为前进，负数为后退）
+            # 执行移动（正数为前进，负数为后退）
             result = await self.move_robot(math.degrees(delta_theta), distance)
 
             if result is None or not result.success:
@@ -154,11 +160,26 @@ class NavigationToPoseNode(rclpy.node.Node):
             goal_handle.publish_feedback(feedback)
             self.get_logger().info(f'成功前往路径点 {waypoint.name}, 开始前往下一个路径点.')
 
-        # 最后调整终点朝向
+        pose_stamped = self.get_pose_stamped()
+        if pose_stamped is None:
+            goal_handle.abort()
+            return create_result(False, '获取当前位置失败!', len(waypoints), T1)
+        distance = compute_distance(pose_stamped, waypoints[-1])
+        # 计算应转动角度
+        delta_theta = compute_delta_theta(pose_stamped, waypoints[-1])
+
+        result = await self.move_robot(math.degrees(delta_theta), distance)
+
+        if result is None or not result.success:
+            goal_handle.abort()
+            msg = result.message if result else '机器人运动服务调用失败!'
+            return create_result(False, msg, len(waypoints), T1, pose_stamped)
+
+        # 最后调整终点位姿
         final_pose = self.get_pose_stamped()
         if final_pose is None:
             goal_handle.abort()
-            return create_result(False, '获取当前位置失败!', -1, T1)
+            return create_result(False, '获取当前位置失败!', len(waypoints), T1)
 
         delta_theta = compute_final_orientation(final_pose, waypoints[-1])
         result = await self.move_robot(math.degrees(delta_theta), 0.0)
@@ -201,6 +222,7 @@ class NavigationToPoseNode(rclpy.node.Node):
         goal.speed = self.speed
         try:
             handle: ClientGoalHandle = await self.motion_action_client.send_goal_async(goal)
+            self.goal_handle = handle
             return (await handle.get_result_async()).result
         except Exception as e:
             self.get_logger().error(f'发送运动目标失败: {e}')

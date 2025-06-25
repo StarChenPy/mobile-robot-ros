@@ -10,6 +10,8 @@ from ..param import ArmMovement as Movement
 from ..service.RobotService import RobotService
 from ..service.SowerServoService import SowerServoService
 
+# 开合24 伸缩6 升降16
+
 
 toggle = False
 
@@ -35,10 +37,10 @@ class PuchipuchiController:
 
     def run(self):
         self.robot.with_robot_connect()
-        self.arm.back_origin()
 
         while True:
             print("请输入指令，抓取演示请使用2-3，播种请使用4-2")
+            print("0. 复位")
             print("1. 抓果-基本控制")
             print("2. 抓果-功能演示")
             print("3. 播种-基本控制")
@@ -46,7 +48,10 @@ class PuchipuchiController:
             print("q. 退出")
 
             choice = input()
-            if choice == "1":
+            if choice == "0":
+                self.arm.back_origin()
+                print("已复位")
+            elif choice == "1":
                 self.grab_basic_control()
             elif choice == "2":
                 self.grab_func_control()
@@ -89,42 +94,42 @@ class PuchipuchiController:
             i = input("输入夹爪旋转角度，或输入q退出: ")
             if i == "q":
                 break
-            self.arm.rotary_servo(int(i))
+            self.arm.rotary_servo(float(i))
 
     def servo_nod(self):
         while True:
             i = input("输入夹爪抬头角度，或输入q退出: ")
             if i == "q":
                 break
-            self.arm.nod_servo(int(i))
+            self.arm.nod_servo(float(i))
 
     def servo_telescopic(self):
         while True:
             i = input("输入夹爪伸缩距离，或输入q退出: ")
             if i == "q":
                 break
-            self.arm.telescopic_servo(int(i))
+            self.arm.telescopic_servo(float(i))
 
     def servo_gripper(self):
         while True:
             i = input("输入夹爪张开距离，或输入q退出: ")
             if i == "q":
                 break
-            self.arm.gripper_servo(int(i))
+            self.arm.gripper_servo(float(i))
 
     def arm_lift(self):
         while True:
             i = input("输入升降高度，或输入q退出: ")
             if i == "q":
                 break
-            self.arm.lift(int(i), 40, True)
+            self.arm.lift(float(i), 40, True)
 
     def arm_rotate(self):
         while True:
             i = input("输入旋转角度，或输入q退出: ")
             if i == "q":
                 break
-            self.arm.rotate(int(i), 40, True)
+            self.arm.rotate(float(i), 40, True)
 
 
     def grab_func_control(self):
@@ -168,7 +173,7 @@ class PuchipuchiController:
             self.arm.control(ArmMovement(MotorMovement(180, 8), ServoMotor(0, 0, 12, 19)))
             self.arm.control(ArmMovement(MotorMovement(0, 8)))
 
-            Movement.grab_basket_to_robot(self.arm, 4 - i)
+            Movement.put_basket_to_robot(self.arm, 4 - i)
 
         # 抓取三个水果
         for i in range(1, 4):
@@ -256,7 +261,7 @@ class PuchipuchiController:
             self.sower.telescopic_servo(0, enable=False)
             if i == "q":
                 break
-            self.sower.telescopic_servo(int(i))
+            self.sower.telescopic_servo(float(i))
 
     def servo_knob_rotate(self):
         while True:

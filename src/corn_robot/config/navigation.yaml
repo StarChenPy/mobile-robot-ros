@@ -10,7 +10,7 @@ generate_path:
     waypoints_topic: /waypoints
     generate_path_service: /generate_path
 
-navigation_to_waypoints:
+navigation_to_waypoint:
   ros__parameters:
     use_sim_time: False
     navigation_to_waypoint_action: /navigation_to_waypoint

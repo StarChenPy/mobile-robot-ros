@@ -1,12 +1,12 @@
+import time
+
 import rclpy
 
-from ..popo.ArmMovement import ArmMovement
+from ..param import ArmMovement as Movement
 from ..popo.Corrective import Corrective
 from ..popo.CorrectivePoint import CorrectivePoint
 from ..popo.Direction import Direction
-from ..popo.MotorMovement import MotorMovement
 from ..popo.NavigationPoint import NavigationPoint
-from ..popo.ServoMotor import ServoMotor
 from ..service.ArmService import ArmService
 from ..service.MoveService import MoveService
 from ..service.RobotService import RobotService
@@ -16,7 +16,6 @@ from ..util import Math
 from ..util.Logger import Logger
 from ..util.NavigationPointParam import NavigationPointParam
 from ..util.Singleton import singleton
-from ..param import ArmMovement as Movement, ShandongTrialsNavigationPath
 
 
 @singleton
@@ -41,7 +40,27 @@ class TestController:
         print(angles)
 
     def run(self):
-        self.__move.navigation(ShandongTrialsNavigationPath.START_TO_TREE_1)
+        self.__arm.back_origin()
+        self.__sensor.initial_pose(NavigationPoint(3.7, 3.7, 180))
+        self.__arm.control(Movement.MOVING)
+        self.b2()
+
+    def b1(self):
+        input("按回车键开始导航...")
+        self.__move.my_navigation("r")
+        Movement.grab_basket_from_station(self.__arm)
+        Movement.put_basket_to_robot(self.__arm, 1)
+        self.__move.my_navigation("j")
+        Movement.grab_basket_to_station(self.__arm, 1)
+        self.__move.my_navigation("a")
+        print("测试完成！")
+
+    def b2(self):
+        input("按回车键开始导航...")
+        self.__move.my_navigation("f")
+        time.sleep(3)
+        self.__move.my_navigation("a")
+        print("测试完成！")
 
     def create_point(self):
         s = input("是否已有点？y/n: ")

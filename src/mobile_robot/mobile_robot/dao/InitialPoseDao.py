@@ -49,14 +49,10 @@ class InitialPoseDao(object):
 
         # 协方差（根据需要可以调大或调小）
         # 只需关心第 0 位（x 方向方差）第 7 位（y 方向方差）第 35 位（yaw 方向方差）
-        pose_data.pose.covariance = [
-            0.25, 0, 0, 0, 0, 0,
-            0, 0.25, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, math.radians(10) ** 2
-        ]
+        pose_data.pose.covariance = [0.0] * 36
+        pose_data.pose.covariance[0] = 0.002  # x 方向，标准差 5cm
+        pose_data.pose.covariance[7] = 0.002  # y 方向，标准差 2cm
+        pose_data.pose.covariance[35] = math.radians(2) ** 2  # 偏航角，标准差 2°
 
         self.__topic.publish(pose_data)
         rclpy.spin_once(self.node)

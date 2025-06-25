@@ -1,5 +1,6 @@
 # Request
 string waypoint_name                    # 路径点名
+float64 speed                           # 速度限制
 ---
 # Result
 bool success                            # 是否成功

@@ -19,21 +19,29 @@ def generate_launch_description():
     pub_waypoints_node = Node(package=package_name,
                               executable='pub_waypoints',
                               name='pub_waypoints',
+                              emulate_tty=True,
+                              output='screen',
                               parameters=[LaunchConfiguration('navigation_params_file')])
 
     generate_path_node = Node(package=package_name,
                               executable='generate_path',
                               name='generate_path',
+                              emulate_tty=True,
+                              output='screen',
                               parameters=[LaunchConfiguration('navigation_params_file')])
 
     robot_motion_service = Node(package=package_name,
                                 executable='robot_motion',
                                 name='corn_robot_motion',
+                                emulate_tty=True,
+                                output='screen',
                                 parameters=[LaunchConfiguration('navigation_params_file')])
 
     navigation_to_waypoint_node = Node(package=package_name,
                                        executable='navigation_to_waypoint',
                                        name='navigation_to_waypoint',
+                                       emulate_tty=True,
+                                       output='screen',
                                        parameters=[LaunchConfiguration('navigation_params_file')])
 
     amcl_launch_path = IncludeLaunchDescription(

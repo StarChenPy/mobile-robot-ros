@@ -13,10 +13,14 @@ def generate_launch_description():
     robot_state_publisher_node = launch_ros.actions.Node(package="robot_state_publisher",
                                                          executable="robot_state_publisher",
                                                          name="robot_state_publisher",
+                                                         emulate_tty=True,
+                                                         output='screen',
                                                          parameters=[{"robot_description": urdf_content}])
 
     joint_state_publisher_node = launch_ros.actions.Node(package="joint_state_publisher",
                                                          executable="joint_state_publisher",
+                                                         emulate_tty=True,
+                                                         output='screen',
                                                          name="joint_state_publisher")
 
     return launch.LaunchDescription([

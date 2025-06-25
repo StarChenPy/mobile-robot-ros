@@ -27,6 +27,7 @@ def generate_launch_description():
         name='map_server',
         namespace='',
         output='screen',
+        emulate_tty=True,
         parameters=[{
             'yaml_filename': os.path.join(package_dir, 'maps', 'map.yaml'),
             'use_sim_time': False
@@ -39,6 +40,7 @@ def generate_launch_description():
         name='amcl',
         namespace='',
         output='screen',
+        emulate_tty=True,
         parameters=[LaunchConfiguration('amcl_params_file')],
     )
 
@@ -48,6 +50,7 @@ def generate_launch_description():
         executable='lifecycle_manager',
         name='lifecycle_manager_map',
         output='screen',
+        emulate_tty=True,
         parameters=[
             {'autostart': True},
             {'node_names': ['map_server', 'amcl']},
@@ -61,27 +64,10 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(os.path.join(package_dir, 'launch', 'urdf.launch.py'))
     )
 
-    # 事件处理器 - 确保启动顺序
-    map_server_event = RegisterEventHandler(
-        event_handler=OnProcessStart(
-            target_action=map_server,
-            on_start=[
-                LogInfo(msg='Map server started, waiting for activation...'),
-                TimerAction(
-                    period=5.0,  # 等待5秒让map_server完全启动
-                    actions=[lifecycle_manager]
-                )
-            ]
-        )
-    )
-
     return LaunchDescription([
         amcl_params,
         urdf_launch,
         map_server,
         amcl,
-        map_server_event,  # 添加事件处理器
-
-        # 调试信息
-        LogInfo(msg='Starting AMCL localization system...'),
+        lifecycle_manager
     ])

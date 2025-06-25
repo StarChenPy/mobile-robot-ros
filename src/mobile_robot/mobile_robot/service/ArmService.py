@@ -124,6 +124,7 @@ class ArmService:
             self.__lift_motor.wait_finish()
 
     def rotate(self, target: float, speed: float, is_block):
+        target += 4  # 调整偏差
         self.__rotate_motor.ctrl_motor(target, speed)
         if is_block:
             self.__lift_motor.wait_finish()
@@ -216,7 +217,7 @@ class ArmService:
         match servo:
             case Servo.NOD:
                 config = servo_config["nod"]
-                coeff = (config["deg90_duty"] - config["zero_duty"]) / 90.0
+                coeff = (config["neg_deg90_duty"] - config["zero_duty"]) / 90.0
                 duty = config["zero_duty"] + value * coeff
             case Servo.TELESCOPIC:
                 config = servo_config["telescopic"]

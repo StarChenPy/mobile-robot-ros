@@ -2,6 +2,7 @@ import enum
 
 import rclpy
 import rclpy.node
+import ros2_asyncio
 from rcl_interfaces.msg import ParameterDescriptor
 from rclpy.action import ActionServer
 from rclpy.action.server import ServerGoalHandle
@@ -98,6 +99,7 @@ class RobotMotionNode(rclpy.node.Node):
         motion_status: 0:空闲 1:运行中 2:完成
         """
         while rclpy.ok():
+            await ros2_asyncio.sleep(self, 1)
             req = self.create_motion_request(MotionMode.QUERY, 0, 0)
             result = await self.hb_motion_client.call_async(req)
 
