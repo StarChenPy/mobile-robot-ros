@@ -6,6 +6,7 @@ from ..param import ArmMovement as Movement
 from ..popo.Corrective import Corrective
 from ..popo.CorrectivePoint import CorrectivePoint
 from ..popo.Direction import Direction
+from ..popo.FruitLocationOnTree import FruitLocationOnTree
 from ..popo.NavigationPoint import NavigationPoint
 from ..service.ArmService import ArmService
 from ..service.MoveService import MoveService
@@ -36,21 +37,28 @@ class TestController:
         angle_by_right = self.__sensor.get_angle_from_wall(Direction.RIGHT)
         angle_by_left = self.__sensor.get_angle_from_wall(Direction.LEFT)
         angles = [angle_by_front, angle_by_right, angle_by_left]
+        angles = [x for x in angles if x != 0]
 
-        print(angles)
+        self.__logger.info(f"直角矫正角度: {angles}")
+
+        min_angle = min(angles, key=lambda x: (abs(x), -x))
+        if abs(min_angle) < 15:
+            self.__move.rotate(min_angle)
 
     def run(self):
         self.__arm.back_origin()
         self.__sensor.initial_pose(NavigationPoint(3.7, 3.7, 180))
         self.__arm.control(Movement.MOVING)
-        self.b2()
+        self.b6()
 
     def b1(self):
         input("按回车键开始导航...")
         self.__move.my_navigation("r")
+        self.rotation_correction()
         Movement.grab_basket_from_station(self.__arm)
         Movement.put_basket_to_robot(self.__arm, 1)
         self.__move.my_navigation("j")
+        self.rotation_correction()
         Movement.grab_basket_to_station(self.__arm, 1)
         self.__move.my_navigation("a")
         print("测试完成！")
@@ -61,6 +69,68 @@ class TestController:
         time.sleep(3)
         self.__move.my_navigation("a")
         print("测试完成！")
+
+    def b3(self):
+        input("按回车键开始导航...")
+        self.__move.my_navigation("n")
+        Movement.grab_apple_on_tree(self.__arm, FruitLocationOnTree.TOP_CENTER)
+        self.__arm.control(Movement.MOVING)
+        self.__move.my_navigation("s")
+        Movement.put_fruit_into_warehouse(self.__arm, 4)
+        self.__move.my_navigation("a")
+        print("测试完成！")
+
+    def b4(self):
+        input("按回车键开始导航...")
+        self.__move.my_navigation("c")
+        Movement.grab_banana_on_tree(self.__arm, FruitLocationOnTree.BOTTOM_LEFT)
+        self.__arm.control(Movement.MOVING_BANANA)
+        self.__move.my_navigation("v")
+        Movement.put_fruit_into_warehouse(self.__arm, 1.5)
+        self.__move.my_navigation("a")
+        print("测试完成！")
+
+    def b5(self):
+        input("按回车键开始导航...")
+        self.__move.my_navigation("x")
+        self.rotation_correction()
+        Movement.grab_grape(self.__arm)
+        self.__arm.control(Movement.MOVING_GRAPE)
+        self.__move.my_navigation("s")
+        Movement.put_fruit_into_warehouse(self.__arm, 2)
+        self.__move.my_navigation("a")
+        print("测试完成！")
+
+    def b6(self):
+        input("按回车键开始导航...")
+        self.__move.my_navigation("r")
+        self.rotation_correction()
+        Movement.grab_basket_from_station(self.__arm)
+        Movement.put_basket_to_robot(self.__arm, 1)
+        # self.__move.my_navigation("y")
+        # Movement.recognition_orchard_banana_tree(self.__arm)  # 假装识别一下
+        location = FruitLocationOnTree.TOP_CENTER
+        self.__move.my_navigation("c")
+        Movement.grab_banana_on_tree(self.__arm, location)
+        Movement.put_fruit_into_basket(self.__arm, 1, 1.5)
+        self.__move.my_navigation("j")
+        self.rotation_correction()
+        Movement.grab_basket_to_station(self.__arm, 1)
+        self.__move.my_navigation("a")
+
+        print("测试完成！")
+
+    def b7(self):
+        pass
+
+    def b8(self):
+        pass
+
+    def b9(self):
+        pass
+
+    def b10(self):
+        pass
 
     def create_point(self):
         s = input("是否已有点？y/n: ")

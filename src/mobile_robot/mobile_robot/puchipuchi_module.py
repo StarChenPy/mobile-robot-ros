@@ -22,11 +22,15 @@ class PuchipuchiModule(Node):
 
 
 def main():
-    rclpy.init()
 
-    node = PuchipuchiModule()
+    try:
+        rclpy.init()
 
-    rclpy.spin(node)
+        node = PuchipuchiModule()
+
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        Logger().info("Puchi模块因键盘中断而关闭.")
 
 
 if __name__ == '__main__':

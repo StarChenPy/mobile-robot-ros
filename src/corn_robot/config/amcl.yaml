@@ -2,15 +2,44 @@ amcl:
   ros__parameters:
     use_sim_time: false
     base_frame_id: "base_link"
-    min_particles: 500
-    max_particles: 5000
-    kld_err: 0.01
+    odom_frame_id: "odom"
+    global_frame_id: "map"
+
+    # 粒子设置：较多粒子提高稳定性
+    min_particles: 1000
+    max_particles: 3000
+
+    kld_err: 0.02
     kld_z: 0.99
-    update_min_d: 0.05
-    update_min_a: 0.05
+
+    # 更新频率设置
+    update_min_d: 0.02
+    update_min_a: 0.02
     resample_interval: 1
-    transform_tolerance: 1.0
-    recovery_alpha_slow: 0.0
-    recovery_alpha_fast: 0.0
-    laser_max_range: 6.0    # 按雷达参数调整
-    laser_min_range: 0.05
+    transform_tolerance: 0.5
+
+    # 恢复机制，增强对 odom 浮动的适应力
+    recovery_alpha_slow: 0.001
+    recovery_alpha_fast: 0.1
+
+    # 激光雷达设置，参考 YDLIDAR X2 数据
+    laser_min_range: 0.12         # 最小有效距离
+    laser_max_range: 6.0          # 稳定识别上限（8米不稳定，建议取6米）
+
+    # 使用似然场模型（适合特征稀疏地图）
+    laser_model_type: "likelihood_field"
+    likelihood_field_z_hit: 0.8
+    likelihood_field_sigma_hit: 0.3
+
+    # 动作模型（运动噪声大点，减少对 odom 依赖）
+    odom_model_type: "diff"
+    alpha1: 0.2
+    alpha2: 0.2
+    alpha3: 0.2
+    alpha4: 0.2
+    alpha5: 0.1
+
+    # 激光 beam skip 设置：可提升空旷环境下稳定性
+    do_beamskip: true
+    beam_skip_distance: 0.3
+    beam_skip_threshold: 0.3

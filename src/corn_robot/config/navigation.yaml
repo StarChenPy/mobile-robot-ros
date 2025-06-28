@@ -19,7 +19,7 @@ navigation_to_waypoint:
     robot_motion_action: /robot_motion
     initialpose_topic: /initialpose
     speed: 0.4
-    distance_threshold: 0.05
+    distance_threshold: 0.10
 
 robot_motion_node:
   ros__parameters:

@@ -39,7 +39,7 @@ class GrabFruitOnTreeController:
         """
         抓树上水果
         """
-        Movement.recognition_orchard_tree(self.__arm)
+        Movement.recognition_orchard_apple_tree(self.__arm)
         while True:
             result = self.__vision.get_onnx_identify_depth()
             if not result:
@@ -53,9 +53,9 @@ class GrabFruitOnTreeController:
             d = {FruitType.GREEN_APPLE: 1, FruitType.YELLOW_APPLE: 2, FruitType.RED_APPLE: 3}
             location_on_tree = Util.get_fruit_location_on_tree(self.__vision, fruit)
 
-            Movement.grab_fruit_on_tree(self.__arm, self.__move, location_on_tree)
+            Movement.grab_apple_on_tree(self.__arm, self.__move, location_on_tree)
             Movement.put_fruit_into_basket(self.__arm, d[fruit])
 
-            Movement.recognition_orchard_tree(self.__arm)
+            Movement.recognition_orchard_apple_tree(self.__arm)
 
         self.__arm.control(Movement.MOVING)

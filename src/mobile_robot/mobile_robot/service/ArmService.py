@@ -161,9 +161,9 @@ class ArmService:
         卡爪舵机 夹合 ( cm )
         原 gripper
         """
-        self.__ctrl_servo(Servo.GRIPPER, distance, enable, 1)
+        self.__ctrl_servo(Servo.GRIPPER, distance, enable)
 
-    def __ctrl_servo(self, servo: Servo, value: float, enable: bool, decelerate=2):
+    def __ctrl_servo(self, servo: Servo, value: float, enable: bool, decelerate=0):
         """
         通用舵机控制方法
         @param servo 舵机类型
@@ -244,5 +244,6 @@ class ArmService:
                     time.sleep(difference / (decelerate * 1000))
             else:
                 self.__robot_ctrl.write_pwm(pin, duty)
+                time.sleep(0.5)
         else:
             self.__logger.debug(f'舵机 {type_name} 已经在目标位置，无需调整')

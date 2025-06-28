@@ -168,12 +168,13 @@ class NavigationToPoseNode(rclpy.node.Node):
         # 计算应转动角度
         delta_theta = compute_delta_theta(pose_stamped, waypoints[-1])
 
-        result = await self.move_robot(math.degrees(delta_theta), distance)
+        if distance > (self.distance_threshold / 10):
+            result = await self.move_robot(math.degrees(delta_theta), distance)
 
-        if result is None or not result.success:
-            goal_handle.abort()
-            msg = result.message if result else '机器人运动服务调用失败!'
-            return create_result(False, msg, len(waypoints), T1, pose_stamped)
+            if result is None or not result.success:
+                goal_handle.abort()
+                msg = result.message if result else '机器人运动服务调用失败!'
+                return create_result(False, msg, len(waypoints), T1, pose_stamped)
 
         # 最后调整终点位姿
         final_pose = self.get_pose_stamped()

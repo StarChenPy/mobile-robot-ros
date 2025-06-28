@@ -8,9 +8,9 @@ from ..popo.ServoMotor import ServoMotor
 from ..service.ArmService import ArmService
 
 # 基础动作
-MOVING = ArmMovement(MotorMovement(0, 17), ServoMotor(0, 0, 0, 6.5))
-TEST = ArmMovement(MotorMovement(90, 15))
-ZERO = ArmMovement(MotorMovement(0, 15))
+MOVING = ArmMovement(MotorMovement(0, 20), ServoMotor(0, 0, 0, 4))
+MOVING_BANANA = ArmMovement(MotorMovement(0, 20), ServoMotor(0, 0, 0, 1.5))
+MOVING_GRAPE = ArmMovement(MotorMovement(0, 20), ServoMotor(0, 0, 0, 2))
 
 # 识别果仓中的水果动作
 RECOGNITION_WAREHOUSE = ArmMovement(MotorMovement(175, 15), ServoMotor(0, -90, 14, 20))
@@ -20,13 +20,29 @@ READY_PULL_WAREHOUSE = ArmMovement(MotorMovement(180, 16), ServoMotor(0, 0, 8, 6
 PULL_WAREHOUSE = ArmMovement(servo=ServoMotor(0, 0, 8, 16))
 
 
-def recognition_orchard_tree(arm: ArmService):
+def recognition_orchard_apple_tree(arm: ArmService):
     """
     调整为识别姿态（看树）
     """
-    arm.control(ArmMovement(MotorMovement(180, 16), ServoMotor(0, 0, 0, 15)))
-    arm.control(ArmMovement(MotorMovement(180, 24), ServoMotor(-175, 0, 0, 20)))
-    arm.control(ArmMovement(servo=ServoMotor(-175, 0, 0, 20)))
+    arm.control(ArmMovement(MotorMovement(90, 20)))
+    arm.control(ArmMovement(MotorMovement(90, 45), ServoMotor(-90, 0, 0, 12)))
+    time.sleep(1)
+
+
+def recognition_orchard_banana_tree(arm: ArmService):
+    """
+    调整为识别姿态（看树）
+    """
+    arm.control(ArmMovement(MotorMovement(180, 22), ServoMotor(0, 0, 0, 24)))
+    time.sleep(1)
+
+
+def recognition_orchard_grape(arm: ArmService):
+    """
+    调整为识别姿态（看树）
+    """
+    arm.control(ArmMovement(MotorMovement(90, 20)))
+    arm.control(ArmMovement(MotorMovement(90, 45), ServoMotor(-90, 0, 0, 24)))
     time.sleep(1)
 
 
@@ -43,7 +59,7 @@ def recognition_orchard(arm: ArmService, direction: Direction.LEFT or Direction.
     arm.control(ArmMovement(MotorMovement(arm_pos, 6), ServoMotor(0, -90, 15, 20)))
 
 
-def put_fruit_into_basket(arm: ArmService, box_number: int) -> None:
+def put_fruit_into_basket(arm: ArmService, box_number: int, gripper: float) -> None:
     """将水果放置到指定框子中"""
 
     # 根据框号确定参数
@@ -59,8 +75,8 @@ def put_fruit_into_basket(arm: ArmService, box_number: int) -> None:
     else:
         raise ValueError("篮子编号无效")
 
-    arm.control(ArmMovement(MotorMovement(arm_pos, 14), ServoMotor(0, 0, telescopic, 6.5)))
-    arm.control(ArmMovement(MotorMovement(arm_pos, 14), ServoMotor(0, 0, telescopic, 10)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 8), ServoMotor(0, 90, telescopic, gripper)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 8), ServoMotor(0, 90, telescopic, 12)))
     time.sleep(0.5)
 
 
@@ -97,7 +113,7 @@ def grab_basket_from_station(arm: ArmService) -> None:
     arm.control(ArmMovement(MotorMovement(180, 16), ServoMotor(0, 0, 6, 24)))
     arm.control(ArmMovement(MotorMovement(180, 16), ServoMotor(0, 0, 6, 15)))
     arm.control(ArmMovement(MotorMovement(180, 1), ServoMotor(0, 0, 0, 15)))
-    arm.control(ArmMovement(MotorMovement(0, 3), ServoMotor(0, 0, 0, 15)))
+    arm.control(ArmMovement(MotorMovement(0, 1)))
 
 
 def grab_basket_to_station(arm: ArmService, box_number: int) -> None:
@@ -122,9 +138,9 @@ def grab_basket_to_station(arm: ArmService, box_number: int) -> None:
     arm.control(ArmMovement(MotorMovement(0, 1), ServoMotor(0, 0, 3, 6.5)))
     arm.control(ArmMovement(MotorMovement(arm_pos, 1), ServoMotor(rotary, 90, telescopic, 24)))
     time.sleep(0.5)
-    arm.control(ArmMovement(MotorMovement(arm_pos, 15), ServoMotor(rotary, 90, telescopic, 24)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 16), ServoMotor(rotary, 90, telescopic, 24)))
     # 夹合
-    arm.control(ArmMovement(MotorMovement(arm_pos, 15), ServoMotor(rotary, 90, telescopic, 15)))
+    arm.control(ArmMovement(MotorMovement(arm_pos, 16), ServoMotor(rotary, 90, telescopic, 15)))
     time.sleep(0.5)
     # 提起
     arm.control(ArmMovement(MotorMovement(arm_pos, 1), ServoMotor(rotary, 90, telescopic, 15)))
@@ -183,37 +199,111 @@ def grab_basket_to_warehouse(arm: ArmService, box_number: int) -> None:
     arm.control(ArmMovement(MotorMovement(0, 16), ServoMotor(0, 0, 3, 6.5)))
 
 
-def grab_fruit_on_tree(arm_service, move_service, location_on_tree: FruitLocationOnTree):
-    CONFIGS = {
-        FruitLocationOnTree.TOP_LEFT: (185, 27, 15, 0.34, 0, 10, 12),
-        FruitLocationOnTree.TOP_CENTER: (180, 25, 0, 0.2, 0, 0, 2),
-        FruitLocationOnTree.TOP_RIGHT: (175, 27, -15, 0.34, 0, 10, 12),
-        FruitLocationOnTree.BOTTOM_LEFT: (200, 32, 15, 0.34, -10, 0, 11),
-        FruitLocationOnTree.BOTTOM_CENTER: (180, 32, 0, 0.2, 0, 0, 9),
-        FruitLocationOnTree.BOTTOM_RIGHT: (160, 32, -15, 0.34, 10, 0, 11)
-    }
-
+def grab_apple_on_tree(arm, location_on_tree: FruitLocationOnTree):
     match location_on_tree:
-        case loc if loc in CONFIGS:
-            arm_pos, arm_lift, rotate, line, rotary, nod, telescopic = CONFIGS[loc]
-        case _:
-            raise RuntimeError("不支持的水果位置")
+        case FruitLocationOnTree.TOP_CENTER:
+            arm.control(ArmMovement(MotorMovement(180, 1), ServoMotor(0, 58, 0, 12)))
+            arm.control(ArmMovement(MotorMovement(180, 22)))
+            arm.control(ArmMovement(servo=ServoMotor(0, 58, 0, 4)))
+            arm.control(ArmMovement(servo=ServoMotor(0, 90, 0, 4)))
+            arm.control(ArmMovement(MotorMovement(180, 1)))
+        case FruitLocationOnTree.BOTTOM_CENTER:
+            arm.control(ArmMovement(MotorMovement(180, 1), ServoMotor(90, 30, 0, 12)))
+            arm.control(ArmMovement(MotorMovement(180, 50)))
+            arm.control(ArmMovement(servo=ServoMotor(0, 30, 0, 12)))
+            arm.control(ArmMovement(servo=ServoMotor(0, -15, 1, 12)))
+            arm.control(ArmMovement(servo=ServoMotor(0, -15, 1, 4)))
+            arm.control(ArmMovement(servo=ServoMotor(90, -15, 0, 4)))
+            arm.control(ArmMovement(MotorMovement(180, 1)))
+        case FruitLocationOnTree.TOP_LEFT:
+            arm.control(ArmMovement(MotorMovement(155, 1), ServoMotor(-10, 0, 0, 12)))
+            arm.control(ArmMovement(MotorMovement(155, 37)))
+            arm.control(ArmMovement(servo=ServoMotor(-10, 0, 13, 12)))
+            arm.control(ArmMovement(servo=ServoMotor(-10, 0, 13, 4)))
+            arm.control(ArmMovement(servo=ServoMotor(30, 0, 0, 4)))
+            arm.control(ArmMovement(MotorMovement(155, 1)))
+        case FruitLocationOnTree.BOTTOM_LEFT:
+            arm.control(ArmMovement(MotorMovement(151, 1), ServoMotor(0, 0, 0, 12)))
+            arm.control(ArmMovement(MotorMovement(151, 50)))
+            arm.control(ArmMovement(servo=ServoMotor(-40, 20, 0, 12)))
+            arm.control(ArmMovement(servo=ServoMotor(-68, 20, 18, 12)))
+            arm.control(ArmMovement(servo=ServoMotor(-68, -10, 18, 12)))
+            arm.control(ArmMovement(servo=ServoMotor(-68, -10, 18, 4)))
+            arm.control(ArmMovement(servo=ServoMotor(-40, 0, 17, 4)))
+            arm.control(ArmMovement(servo=ServoMotor(-40, 0, 0, 4)))
+            arm.control(ArmMovement(servo=ServoMotor(20, 0, 0, 4)))
+            arm.control(ArmMovement(MotorMovement(151, 1)))
+        case FruitLocationOnTree.TOP_RIGHT:
+            arm.control(ArmMovement(MotorMovement(-155, 1), ServoMotor(10, 0, 0, 12)))
+            arm.control(ArmMovement(MotorMovement(-155, 37)))
+            arm.control(ArmMovement(servo=ServoMotor(10, 0, 13, 12)))
+            arm.control(ArmMovement(servo=ServoMotor(10, 0, 13, 4)))
+            arm.control(ArmMovement(servo=ServoMotor(-30, 0, 13, 4)))
+            arm.control(ArmMovement(servo=ServoMotor(-30, 0, 0, 4)))
+            arm.control(ArmMovement(MotorMovement(-155, 1)))
+        case FruitLocationOnTree.BOTTOM_RIGHT:
+            arm.control(ArmMovement(MotorMovement(-151, 1), ServoMotor(0, 0, 0, 12)))
+            arm.control(ArmMovement(MotorMovement(-151, 50)))
+            arm.control(ArmMovement(servo=ServoMotor(40, 20, 0, 12)))
+            arm.control(ArmMovement(servo=ServoMotor(68, 20, 18, 12)))
+            arm.control(ArmMovement(servo=ServoMotor(68, -10, 18, 12)))
+            arm.control(ArmMovement(servo=ServoMotor(68, -10, 18, 4)))
+            arm.control(ArmMovement(servo=ServoMotor(-20, -10, 17, 4)))
+            arm.control(ArmMovement(servo=ServoMotor(-20, 0, 0, 4)))
+            arm.control(ArmMovement(MotorMovement(-151, 1)))
 
-    # 左上水果
-    # 准备抓
-    arm_service.control(ArmMovement(MotorMovement(arm_pos, arm_lift), ServoMotor(0, 0, 0, 12)))
-    move_service.rotate(rotate)
-    move_service.line(line)
-    arm_service.control(ArmMovement(MotorMovement(arm_pos, arm_lift), ServoMotor(-170 - rotary, 0, telescopic, 12)))
-    # 抓取
-    arm_service.control(ArmMovement(MotorMovement(arm_pos, arm_lift), ServoMotor(-170 - rotary, nod, telescopic, 12)))
-    time.sleep(0.5)
-    arm_service.control(ArmMovement(MotorMovement(arm_pos, arm_lift), ServoMotor(-170 - rotary, nod, telescopic, 6.5)))
-    time.sleep(0.5)
-    arm_service.control(ArmMovement(MotorMovement(arm_pos, arm_lift), ServoMotor(-170 - rotary, 0, telescopic, 6.5)))
-    time.sleep(1)
-    # 抓离
-    arm_service.control(ArmMovement(MotorMovement(arm_pos, arm_lift), ServoMotor(-170 - rotary, 0, 0, 6.5)))
-    move_service.line(-line)
-    move_service.rotate(-rotate)
-    arm_service.control(ArmMovement(MotorMovement(180, 18), ServoMotor(0, 0, 0, 6.5)))
+
+def grab_banana_on_tree(arm, location_on_tree: FruitLocationOnTree):
+    match location_on_tree:
+        case FruitLocationOnTree.TOP_CENTER:
+            arm.control(ArmMovement(MotorMovement(180, 1), ServoMotor(0, 90, 0, 12)))
+            arm.control(ArmMovement(servo=ServoMotor(0, 35, 0, 12)))
+            arm.control(ArmMovement(servo=ServoMotor(0, 35, 0, 1.5)))
+            arm.control(ArmMovement(MotorMovement(0, 1), ServoMotor(0, 90, 0, 1.5)))
+        case FruitLocationOnTree.BOTTOM_CENTER:
+            arm.control(ArmMovement(MotorMovement(155, 1), ServoMotor(0, 90, 0, 12)))
+            arm.control(ArmMovement(MotorMovement(180, 14)))
+            arm.control(ArmMovement(servo=ServoMotor(0, 70, 0, 12)))
+            arm.control(ArmMovement(servo=ServoMotor(0, 70, 0, 1.5)))
+            arm.control(ArmMovement(MotorMovement(100, 14)))
+            # arm.control(ArmMovement(MotorMovement(0, 1), ServoMotor(0, 0, 0, 1.5)))
+        case FruitLocationOnTree.TOP_LEFT:
+            arm.control(ArmMovement(MotorMovement(155, 10), ServoMotor(-30, 0, 0, 12)))
+            arm.control(ArmMovement(servo=ServoMotor(-30, 0, 14, 12)))
+            arm.control(ArmMovement(servo=ServoMotor(-30, 0, 14, 1.5)))
+        case FruitLocationOnTree.BOTTOM_LEFT:
+            arm.control(ArmMovement(MotorMovement(155, 1), ServoMotor(-10, 0, 0, 12)))
+            arm.control(ArmMovement(MotorMovement(155, 30)))
+            arm.control(ArmMovement(servo=ServoMotor(-10, 0, 14, 12)))
+            arm.control(ArmMovement(servo=ServoMotor(-10, 0, 14, 1.5)))
+            arm.control(ArmMovement(servo=ServoMotor(50, 0, 14, 1.5)))
+            arm.control(ArmMovement(servo=ServoMotor(50, 0, 0, 1.5)))
+            arm.control(ArmMovement(MotorMovement(155, 1)))
+        case FruitLocationOnTree.TOP_RIGHT:
+            arm.control(ArmMovement(MotorMovement(-151, 10), ServoMotor(40, 0, 0, 12)))
+            arm.control(ArmMovement(servo=ServoMotor(40, 0, 14, 12)))
+            arm.control(ArmMovement(servo=ServoMotor(40, 0, 14, 1.5)))
+        case FruitLocationOnTree.BOTTOM_RIGHT:
+            arm.control(ArmMovement(MotorMovement(-155, 1), ServoMotor(10, 0, 0, 12)))
+            arm.control(ArmMovement(MotorMovement(-155, 30)))
+            arm.control(ArmMovement(servo=ServoMotor(10, 0, 14, 12)))
+            arm.control(ArmMovement(servo=ServoMotor(10, 0, 14, 1.5)))
+            arm.control(ArmMovement(servo=ServoMotor(-50, 0, 14, 1.5)))
+            arm.control(ArmMovement(servo=ServoMotor(-50, 0, 0, 1.5)))
+            arm.control(ArmMovement(MotorMovement(-155, 1)))
+
+
+def put_fruit_into_warehouse(arm, gripper):
+    arm.control(ArmMovement(MotorMovement(180, 20), ServoMotor(0, 0, 0, gripper)))
+    arm.control(ArmMovement(MotorMovement(180, 43), ServoMotor(0, 90, 10, gripper)))
+    arm.control(ArmMovement(servo=ServoMotor(0, 90, 10, 12)))
+    arm.control(ArmMovement(MotorMovement(180, 20)))
+    arm.control(MOVING)
+
+
+def grab_grape(arm):
+    arm.control(ArmMovement(MotorMovement(180, 1), ServoMotor(90, 0, 0, 24)))
+    arm.control(ArmMovement(MotorMovement(180, 45), ServoMotor(70, 0, 8, 24)))
+    arm.control(ArmMovement(MotorMovement(161, 45)), 20)
+    arm.control(ArmMovement(servo=ServoMotor(70, 0, 8, 2)))
+    arm.control(ArmMovement(MotorMovement(180, 1)))
