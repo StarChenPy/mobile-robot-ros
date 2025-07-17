@@ -1,5 +1,5 @@
-max_value: 50
-min_value: 0.0
+max_value: 35
+min_value: 0
 
 origin_param:
   back_origin_vel: 40.0

@@ -7,6 +7,7 @@ from ..popo.MotorMovement import MotorMovement
 from ..popo.ServoMotor import ServoMotor
 from ..service.ArmService import ArmService
 from ..param import ArmMovement as Movement
+from ..service.MoveService import MoveService
 from ..service.RobotService import RobotService
 from ..service.SowerServoService import SowerServoService
 
@@ -31,6 +32,7 @@ class PuchipuchiController:
         self.robot = RobotService(node)
         self.sower = SowerServoService(node)
         self.robot_data = RobotDataDao(node)
+        self.move = MoveService(node)
 
         self.prev_state = False
         self.rising_edge_count = 0
@@ -45,6 +47,7 @@ class PuchipuchiController:
             print("2. 抓果-功能演示")
             print("3. 播种-基本控制")
             print("4. 播种-功能演示")
+            print("5. 移动控制")
             print("q. 退出")
 
             choice = input()
@@ -59,6 +62,8 @@ class PuchipuchiController:
                 self.sower_basic_control()
             elif choice == "4":
                 self.sower_func_control()
+            elif choice == "5":
+                self.move_control()
             elif choice == "q":
                 exit(0)
 
@@ -131,7 +136,6 @@ class PuchipuchiController:
                 break
             self.arm.rotate(float(i), 40, True)
 
-
     def grab_func_control(self):
         while True:
             print("请输入指令")
@@ -184,10 +188,9 @@ class PuchipuchiController:
             self.arm.control(ArmMovement(MotorMovement(180, 14), ServoMotor(0, 0, 12, 7)))
             self.arm.control(ArmMovement(MotorMovement(0, 14), ServoMotor(0, 0, 0, 7)))
 
-            Movement.put_fruit_into_basket(self.arm, i)
+            Movement.put_fruit_into_basket(self.arm, i, 7)
 
         self.arm.control(Movement.MOVING)
-
 
     def sower_basic_control(self):
         while True:
@@ -352,3 +355,32 @@ class PuchipuchiController:
                     self.sower.servo_exit_toggle(True, False)
                     self.rising_edge_count = 0
                     break
+
+    def move_control(self):
+        while True:
+            print("请输入指令")
+            print("1. 直线运动")
+            print("2. 旋转运动")
+            print("q. 退出")
+
+            choice = input()
+            if choice == "1":
+                self.line()
+            elif choice == "2":
+                self.rotate()
+            elif choice == "q":
+                break
+
+    def line(self):
+        while True:
+            i = input("输入行进距离，或输入q退出: ")
+            if i == "q":
+                break
+            self.move.line(float(i))
+
+    def rotate(self):
+        while True:
+            i = input("输入行进距离，或输入q退出: ")
+            if i == "q":
+                break
+            self.move.rotate(float(i))

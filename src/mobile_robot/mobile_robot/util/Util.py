@@ -86,12 +86,13 @@ def get_fruit_location(data: list[IdentifyResult], fruits: list[FruitType]) -> d
         center = i.box.get_rectangle_center()
 
         y_threshold = 160
-        if center.x < 270:
+        x_threshold = 320
+        if center.x < (x_threshold - 20):
             if center.y < y_threshold:
                 locations[FruitLocationOnTree.TOP_LEFT] = fruit_type
             else:
                 locations[FruitLocationOnTree.BOTTOM_LEFT] = fruit_type
-        elif center.x > 330:
+        elif center.x > (x_threshold + 20):
             if center.y < y_threshold:
                 locations[FruitLocationOnTree.TOP_RIGHT] = fruit_type
             else:

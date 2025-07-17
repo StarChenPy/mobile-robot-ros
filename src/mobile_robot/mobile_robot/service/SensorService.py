@@ -26,7 +26,7 @@ class SensorService:
         self.__odom = OdomDao(node)
         self.__initial_pose = InitialPoseDao(node)
 
-    def ping_revise(self, dis: float, is_block):
+    def ping_revise(self, dis: float, is_block=True):
         self.__sensor.ping_revise(dis)
         if is_block:
             time.sleep(1)

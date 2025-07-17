@@ -217,7 +217,7 @@ class ArmService:
         match servo:
             case Servo.NOD:
                 config = servo_config["nod"]
-                coeff = (config["neg_deg90_duty"] - config["zero_duty"]) / 90.0
+                coeff = (config["deg90_duty"] - config["zero_duty"]) / 90.0
                 duty = config["zero_duty"] + value * coeff
             case Servo.TELESCOPIC:
                 config = servo_config["telescopic"]

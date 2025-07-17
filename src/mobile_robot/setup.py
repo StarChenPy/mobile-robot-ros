@@ -25,10 +25,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'b_module = mobile_robot.b_module:main',
-            'c_module = mobile_robot.c_module:main',
             'test_module = mobile_robot.test_module:main',
-            'trials = mobile_robot.shandong_trials_module:main',
             'puchi = mobile_robot.puchipuchi_module:main'
         ],
     },

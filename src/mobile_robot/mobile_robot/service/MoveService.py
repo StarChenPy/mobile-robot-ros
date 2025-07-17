@@ -38,7 +38,7 @@ class MoveService:
         if is_block:
             self.__navigation.wait_finish()
 
-    def my_navigation(self, waypoint_name: str, speed=0.4, is_block=True):
+    def my_navigation(self, waypoint_name: str, speed=0.6, is_block=True):
         self.__my_navigation.navigation(waypoint_name, speed)
 
         if is_block:
@@ -101,3 +101,6 @@ class MoveService:
 
     def stop_navigation(self):
         self.__navigation.cancel()
+
+    def stop_my_navigation(self):
+        self.__my_navigation.cancel()

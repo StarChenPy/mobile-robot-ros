@@ -75,6 +75,7 @@ class VisionService:
     def get_onnx_identify(self, inverted=False) -> list[IdentifyResult]:
         while True:
             photo = self.__camera.photograph_color(True)
+            self.show_photo(photo)
             if inverted:
                 photo = cv2.rotate(photo, cv2.ROTATE_180)
             return infer_onnx_model(self.__weight_path, photo)
