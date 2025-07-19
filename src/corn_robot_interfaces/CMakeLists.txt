@@ -16,6 +16,13 @@ rosidl_generate_interfaces(${PROJECT_NAME}
     "srv/GeneratePath.srv"
     "action/RobotMotion.action"
     "action/NavigationToWaypoint.action"
+
+    "msg/KeyBool.msg"
+    "msg/Motion.msg"
+    "msg/MotionArray.msg"
+    "msg/ConnectedNode.msg"
+    "srv/GenerateMotionPath.srv"
+    "action/OmsMotion.action"
     DEPENDENCIES geometry_msgs
 )
 

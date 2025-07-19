@@ -59,7 +59,7 @@ def classify_fruit_locations(data: list[IdentifyResult], fruits: list[FruitType]
         row_set.add(row)
 
         pos = col + row
-        fruit_type = FruitType.get_by_value(item.classId)
+        fruit_type = FruitType(item.classId)
         if pos in all_positions and fruit_type in fruits:
             existing_positions[all_positions[pos]] = fruit_type
 
@@ -79,7 +79,7 @@ def get_fruit_location(data: list[IdentifyResult], fruits: list[FruitType]) -> d
     locations = {}
 
     for i in data:
-        fruit_type = FruitType.get_by_value(i.classId)
+        fruit_type = FruitType(i.classId)
         if fruit_type not in fruits:
             continue
 

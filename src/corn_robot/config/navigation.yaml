@@ -21,7 +21,7 @@ navigation_to_waypoint:
     speed: 0.4
     distance_threshold: 0.10
 
-robot_motion_node:
+robot_motion:
   ros__parameters:
     use_sim_time: False
     robot_motion_action: /robot_motion

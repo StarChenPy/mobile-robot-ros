@@ -1,0 +1,18 @@
+pub_motion:
+  ros__parameters:
+    use_sim_time: true
+
+    motion_path: 国赛OMS动作.yaml
+    motions_topic: motions
+
+generate_motion_path:
+  ros__parameters:
+    use_sim_time: true
+
+motion_actuator:
+  ros__parameters:
+    use_sim_time: true
+
+motion_debugger:
+  ros__parameters:
+    use_sim_time: true

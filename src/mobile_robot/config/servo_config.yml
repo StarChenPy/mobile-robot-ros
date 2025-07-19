@@ -22,7 +22,7 @@ telescopic:
 gripper:
   pin: 3
   min_value: 0
-  max_value: 25
+  max_value: 28
   min_duty: 12.5
   max_duty: 41.0
   itinerary: 10.5

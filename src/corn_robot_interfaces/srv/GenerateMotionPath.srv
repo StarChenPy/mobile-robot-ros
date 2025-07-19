@@ -1,0 +1,8 @@
+# 起始点与目标点
+string start
+string goal
+
+---
+
+# 生成的动作路径
+Motion[] path

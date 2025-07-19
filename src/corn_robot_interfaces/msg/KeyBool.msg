@@ -1,0 +1,2 @@
+string key
+bool value

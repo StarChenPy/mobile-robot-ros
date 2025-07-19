@@ -1,0 +1,16 @@
+aaa:
+  rotate: 0
+  lift: 0
+  rotary_servo: 0
+  nod_servo: 0
+  telescopic_servo: 0
+  gripper_servo: 0
+  connected_nodes:
+    ccc:
+      conditions:
+        gapper: true
+    bbb:
+      conditions:
+        gapper: false
+  update_status:
+    gapper: true

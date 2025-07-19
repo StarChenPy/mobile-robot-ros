@@ -21,7 +21,7 @@ class MotionMode(enum.Enum):
 class RobotMotionNode(rclpy.node.Node):
     def __init__(self):
         """基础运动节点"""
-        super().__init__('robot_motion_node')
+        super().__init__('robot_motion')
         self.get_logger().info('基础运动节点 已启动.')
 
         self.declare_parameter('line_kp', 1.8)

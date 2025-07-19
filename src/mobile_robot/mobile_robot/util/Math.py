@@ -7,6 +7,13 @@ from ..popo.Point import Point
 from ..popo.Rectangle import Rectangle
 
 
+def ease_in_out_interp(start, end, steps):
+    """非线性插值函数：Ease-In-Out"""
+    x = np.linspace(0, 1, steps)
+    t = 0.5 * (1 - np.cos(np.pi * x))  # cosine-based缓动曲线
+    return start + (end - start) * t
+
+
 def calculate_right_angle_side(adjacent_length, angle_degrees):
     """
     根据直角边长度和与斜边形成的角度计算另一直角边的长度。

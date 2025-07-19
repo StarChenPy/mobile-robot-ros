@@ -12,7 +12,7 @@ from corn_robot_interfaces.msg import WaypointArray
 
 class GeneratePathNode(rclpy.node.Node):
     def __init__(self):
-        super().__init__('generate_path_node')
+        super().__init__('generate_path')
         self.get_logger().info('路径生成节点 已启动.')
         self.waypoints = WaypointArray()
 

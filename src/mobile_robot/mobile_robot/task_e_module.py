@@ -2,17 +2,17 @@ import rclpy
 from rclpy.impl.logging_severity import LoggingSeverity
 from rclpy.node import Node
 
-from .controller.PuchipuchiController import PuchipuchiController
+from .controller.TaskEController import TaskEController
 from .util.Logger import Logger
 
 
-class PuchipuchiModule(Node):
+class TaskEModule(Node):
     def __init__(self):
-        super().__init__("shandong_trials_module")
+        super().__init__("task_b_module")
 
         Logger().set_ros_logger(self.get_logger(), LoggingSeverity.INFO)
 
-        controller = PuchipuchiController(self)
+        controller = TaskEController(self)
 
         controller.run()
 
@@ -26,11 +26,11 @@ def main():
     try:
         rclpy.init()
 
-        node = PuchipuchiModule()
+        node = TaskEModule()
 
         rclpy.spin(node)
     except KeyboardInterrupt:
-        Logger().info("Puchi模块因键盘中断而关闭.")
+        Logger().info("任务E模块接收到键盘中断信号, 退出.")
 
 
 if __name__ == '__main__':

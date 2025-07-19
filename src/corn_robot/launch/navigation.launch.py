@@ -32,7 +32,7 @@ def generate_launch_description():
 
     robot_motion_service = Node(package=package_name,
                                 executable='robot_motion',
-                                name='corn_robot_motion',
+                                name='robot_motion',
                                 emulate_tty=True,
                                 output='screen',
                                 parameters=[LaunchConfiguration('navigation_params_file')])

@@ -24,7 +24,7 @@ class VisionService:
         self.__camera = CameraDao(node)
 
         share_directory = ament_index_python.packages.get_package_share_directory("mobile_robot")
-        self.__weight_path = share_directory + "/weights/best.onnx"
+        self.__weight_path = share_directory + "/weights/grape_and_apple.onnx"
         self.__names_path = share_directory + "/weights/fruit.names"
 
     def get_mnn_identify_result(self) -> list[IdentifyResult]:

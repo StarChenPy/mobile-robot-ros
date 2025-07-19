@@ -21,7 +21,7 @@ def resolve_waypoints_path(raw_path: str) -> str:
 
 class PubWaypointsNode(rclpy.node.Node):
     def __init__(self):
-        super().__init__('pub_waypoints_node')
+        super().__init__('pub_waypoints')
         self.get_logger().info('导航点发布节点 已启动.')
         self.raw_waypoints = {}
 
@@ -61,16 +61,16 @@ class PubWaypointsNode(rclpy.node.Node):
         waypoint_array = WaypointArray()
 
         if not self.raw_waypoints:
-            self.get_logger().error("路径点数据为空!")
+            self.get_logger().warn("没有可用的路径点.")
 
         for k, v in self.raw_waypoints.items():
             msg = Waypoint()
 
             msg.name = k
             pose_data = v.get('pose')
-            x = pose_data.get('x')
-            y = pose_data.get('y')
-            yaw_deg = pose_data.get('yaw')
+            x = float(pose_data.get('x'))
+            y = float(pose_data.get('y'))
+            yaw_deg = float(pose_data.get('yaw'))
 
             msg.pose.position = Point(x=x, y=y, z=0.0)
             quat = quaternion_from_euler(0, 0, math.radians(yaw_deg))
@@ -83,7 +83,7 @@ class PubWaypointsNode(rclpy.node.Node):
 
             waypoint_array.waypoints.append(msg)
 
-            self.get_logger().debug(f"已从参数加载路径点: {msg.name} (x={x}, y={y}, yaw={yaw_deg}°)")
+            self.get_logger().debug(f"已从参数加载路径点: {msg.name}")
 
         self.publisher.publish(waypoint_array)
 

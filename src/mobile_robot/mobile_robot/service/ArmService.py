@@ -1,6 +1,6 @@
+import threading
 import time
 
-import numpy as np
 import rclpy
 
 from ..dao.LaserRadarDao import LaserRadarDao
@@ -8,11 +8,8 @@ from ..dao.LiftMotorDao import LiftMotorDao
 from ..dao.RobotCtrlDao import RobotCtrlDao
 from ..dao.RobotDataDao import RobotDataDao
 from ..dao.RotateMotorDao import RotateMotorDao
-from ..popo.ArmMovement import ArmMovement
-from ..popo.Direction import Direction
-from ..popo.MotorMovement import MotorMovement
 from ..popo.Servo import Servo
-from ..popo.ServoMotor import ServoMotor
+from ..util import Math
 from ..util.Config import Config
 from ..util.Logger import Logger
 from ..util.Singleton import singleton
@@ -29,139 +26,67 @@ class ArmService:
         self.__robot_data = RobotDataDao(node)
         self.__radar = LaserRadarDao(node)
 
-    def grab_fruit(self, height: float, direction: Direction.LEFT or Direction.RIGHT):
-        """抓墙上水果"""
-        self.__logger.info(f"收到的升降距离为 {height}")
-        if height > 29:
-            telescopic = 8
-            nod = -60
-            height -= 10
-        else:
-            telescopic = 1.5
-            nod = 0
-
-        # 计算伸缩要伸出的距离
-        default_distance_from_wall = 0.33
-        distance_from_wall = 0
-
-        if direction == Direction.LEFT:
-            distance_from_wall = self.__robot_data.get_ir_left()
-        elif direction == Direction.RIGHT:
-            distance_from_wall = self.__robot_data.get_ir_right()
-
-        if distance_from_wall and 0.5 > distance_from_wall > 0.1:
-            dis = (distance_from_wall - default_distance_from_wall) * 100
-            telescopic += dis
-            self.__logger.info(f"伸缩距离计算为 {telescopic}")
-        else:
-            self.__logger.warn(f"红外数据不可信，尝试使用雷达数据")
-            distance_from_wall = self.__radar.get_distance_from_wall(direction)
-            if distance_from_wall and 0.4 > distance_from_wall > 0.1:
-                dis = (distance_from_wall - default_distance_from_wall) * 100
-                telescopic += dis
-                self.__logger.info(f"伸缩距离计算为 {telescopic}")
-            else:
-                self.__logger.warn(f"雷达数据不可信，使用默认值")
-
-        # 计算要旋转的角度
-        angle = self.__radar.get_angle_from_wall(direction)
-
-        if angle == 0 or angle > 10:
-            self.__logger.warn("雷达角度不可用，使用Odom Yaw进行机械臂角度矫正")
-            odom_yaw = self.__robot_data.get_robot_data().odom.y
-            angle = 90 - (odom_yaw % 90)
-
-        if direction == Direction.LEFT:
-            arm_pos = 90 - angle
-        elif direction == Direction.RIGHT:
-            arm_pos = -90 - angle
-        else:
-            raise ValueError("不可用的Direction")
-
-        self.__logger.info(f"旋转角度计算为 {arm_pos}")
-
-        # 准备抓
-        self.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, nod, telescopic, 22)))
-        self.control(ArmMovement(MotorMovement(arm_pos, height), ServoMotor(0, nod, telescopic, 22)))
-        # 夹合
-        self.control(ArmMovement(MotorMovement(arm_pos, height), ServoMotor(0, nod, telescopic, 6.5)))
-        time.sleep(0.5)
-        # 提起
-        self.control(ArmMovement(MotorMovement(arm_pos, 18), ServoMotor(0, nod, telescopic, 6.5)))
-
-    def control(self, movement: ArmMovement, speed=60.0, is_block=True):
-        self.__logger.debug(f"机械臂控制 {movement}")
-
-        if movement.motor is not None:
-            self.lift(movement.motor.lift, speed, False)
-            self.rotate(movement.motor.rotate, speed, False)
-
-        if movement.servo is not None:
-            self.nod_servo(movement.servo.nod)
-            self.telescopic_servo(movement.servo.telescopic)
-            self.gripper_servo(movement.servo.gripper)
-            self.rotary_servo(movement.servo.rotary)
-
-        if is_block and movement.motor is not None:
-            self.__lift_motor.wait_finish()
-            self.__rotate_motor.wait_finish()
-
     def back_origin(self, speed=20):
         self.__logger.info(f"回原点")
 
         self.__lift_motor.back_origin(speed)
         self.__rotate_motor.back_origin(speed)
         self.__lift_motor.wait_finish()
-        self.__lift_motor.ctrl_motor(0.5, speed)
-        self.__lift_motor.wait_finish()
+        self.lift(1, speed, True)
         self.__rotate_motor.wait_finish()
 
         self.__logger.info(f"回原点结束")
 
-    def lift(self, target: float, speed: float, is_block):
+    def lift(self, target: float, speed: float, is_block=True):
         self.__lift_motor.ctrl_motor(target, speed)
         if is_block:
             self.__lift_motor.wait_finish()
 
-    def rotate(self, target: float, speed: float, is_block):
-        target += 4  # 调整偏差
+    def rotate(self, target: float, speed: float, is_block=True):
+        target += 1  # 调整偏差
         self.__rotate_motor.ctrl_motor(target, speed)
         if is_block:
             self.__lift_motor.wait_finish()
 
-    def disable_servo(self):
-        self.nod_servo(0, enable=False)
-        self.telescopic_servo(0, enable=False)
-        self.gripper_servo(0, enable=False)
-        self.rotary_servo(0, enable=False)
-
-    def rotary_servo(self, angle: float, enable=True):
+    def rotary_servo(self, angle: float, enable=True, block=True):
         """
         卡爪舵机 旋转
         原 gripper_rz
         """
-        self.__ctrl_servo(Servo.ROTARY, angle, enable)
+        if block:
+            self.__ctrl_servo(Servo.ROTARY, angle, enable)
+        else:
+            threading.Thread(target=self.__ctrl_servo, args=(Servo.ROTARY, angle, enable)).start()
 
-    def nod_servo(self, angle: float, enable=True):
+    def nod_servo(self, angle: float, enable=True, block=True):
         """
         卡爪舵机 点头(角度)
         原 gripper_ry
         """
-        self.__ctrl_servo(Servo.NOD, angle, enable)
+        if block:
+            self.__ctrl_servo(Servo.NOD, angle, enable)
+        else:
+            threading.Thread(target=self.__ctrl_servo, args=(Servo.NOD, angle, enable)).start()
 
-    def telescopic_servo(self, distance: float, enable=True):
+    def telescopic_servo(self, distance: float, enable=True, block=True):
         """
         卡爪舵机 伸缩 ( cm )
         原 telescopic
         """
-        self.__ctrl_servo(Servo.TELESCOPIC, distance, enable, 3)
+        if block:
+            self.__ctrl_servo(Servo.TELESCOPIC, distance, enable, 1)
+        else:
+            threading.Thread(target=self.__ctrl_servo, args=(Servo.TELESCOPIC, distance, enable, 1)).start()
 
-    def gripper_servo(self, distance: float, enable=True):
+    def gripper_servo(self, distance: float, enable=True, block=True):
         """
         卡爪舵机 夹合 ( cm )
         原 gripper
         """
-        self.__ctrl_servo(Servo.GRIPPER, distance, enable)
+        if block:
+            self.__ctrl_servo(Servo.GRIPPER, distance, enable)
+        else:
+            threading.Thread(target=self.__ctrl_servo, args=(Servo.GRIPPER, distance, enable)).start()
 
     def __ctrl_servo(self, servo: Servo, value: float, enable: bool, decelerate=0):
         """
@@ -238,7 +163,8 @@ class ArmService:
 
             if decelerate > 0 and prev_duty != 0:
                 difference = abs(prev_duty - duty)
-                duty_array = np.linspace(prev_duty, duty, int(decelerate * 30))
+                steps = int(decelerate * 30)
+                duty_array = Math.ease_in_out_interp(prev_duty, duty, steps)
                 for d in duty_array:
                     self.__robot_ctrl.write_pwm(pin, d.item())
                     time.sleep(difference / (decelerate * 1000))
