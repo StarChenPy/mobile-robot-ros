@@ -18,6 +18,7 @@ class RobotService:
         self.__robot_ctrl = RobotCtrlDao(node)
 
     def with_robot_connect(self):
+        self.logger.info("等待机器人链接...")
         while self.__robot_data.get_robot_data() is None:
             time.sleep(0.5)
         return

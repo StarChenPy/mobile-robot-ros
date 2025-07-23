@@ -1,0 +1,28 @@
+geometry_msgs/Pose2D[] points       #路径坐标点[x,y]
+
+float32 linear_vel                  #最大线速度m/s
+float32 rotation_vel                #最大旋转速度rad/s
+
+float32 linear_acc                  #最大直线加速度
+float32 linear_decel                #最大直线减加速度
+float32 rotate_acc                  #旋转加速度
+float32 rotate_decel                #旋转减加速度
+
+float32 heading                     #最终点航向
+bool back                           #倒车
+
+---
+
+bool success                           #导航成功
+float32 err_linear                     #直线误差m
+float32 err_rotation                   #角度误差rad
+
+
+---
+bool goal_rotate_final      #最终旋转到位
+int8 state                  #运动状态[0:初始化, 1:旋转: 2:直线运动 3:空闲]
+int32 curr_point_index      #当前路径点索引
+int32 point_size            #所有路径点数量
+float32 curr_time           #当前运动时间
+float32 curr_total_time     #当前运动总时间
+

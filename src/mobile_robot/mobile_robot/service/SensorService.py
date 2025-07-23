@@ -8,8 +8,10 @@ from ..dao.LaserRadarDao import LaserRadarDao
 from ..dao.OdomDao import OdomDao
 from ..dao.RobotDataDao import RobotDataDao
 from ..dao.SensorDao import SensorDao
+from ..popo.CorrectivePoint import CorrectivePoint
 from ..popo.Direction import Direction
 from ..popo.NavigationPoint import NavigationPoint
+from ..util import Math
 from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
@@ -78,5 +80,3 @@ class SensorService:
         time.sleep(1)
         rclpy.spin_once(self.__node)
 
-    def reset_odom(self):
-        self.__odom.set_init(False)

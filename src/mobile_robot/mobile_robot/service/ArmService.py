@@ -37,56 +37,48 @@ class ArmService:
 
         self.__logger.info(f"回原点结束")
 
-    def lift(self, target: float, speed: float, is_block=True):
+    def lift(self, target: float, speed = 40, is_block=True):
         self.__lift_motor.ctrl_motor(target, speed)
         if is_block:
             self.__lift_motor.wait_finish()
 
-    def rotate(self, target: float, speed: float, is_block=True):
+    def rotate(self, target: float, speed = 40, is_block=True):
         target += 1  # 调整偏差
         self.__rotate_motor.ctrl_motor(target, speed)
         if is_block:
-            self.__lift_motor.wait_finish()
+            self.__rotate_motor.wait_finish()
 
-    def rotary_servo(self, angle: float, enable=True, block=True):
+    def wait_finish(self):
+        self.__lift_motor.wait_finish()
+        self.__rotate_motor.wait_finish()
+
+    def rotary_servo(self, angle: float, enable=True):
         """
         卡爪舵机 旋转
         原 gripper_rz
         """
-        if block:
-            self.__ctrl_servo(Servo.ROTARY, angle, enable)
-        else:
-            threading.Thread(target=self.__ctrl_servo, args=(Servo.ROTARY, angle, enable)).start()
+        self.__ctrl_servo(Servo.ROTARY, angle, enable)
 
-    def nod_servo(self, angle: float, enable=True, block=True):
+    def nod_servo(self, angle: float, enable=True):
         """
         卡爪舵机 点头(角度)
         原 gripper_ry
         """
-        if block:
-            self.__ctrl_servo(Servo.NOD, angle, enable)
-        else:
-            threading.Thread(target=self.__ctrl_servo, args=(Servo.NOD, angle, enable)).start()
+        self.__ctrl_servo(Servo.NOD, angle, enable)
 
-    def telescopic_servo(self, distance: float, enable=True, block=True):
+    def telescopic_servo(self, distance: float, enable=True):
         """
         卡爪舵机 伸缩 ( cm )
         原 telescopic
         """
-        if block:
-            self.__ctrl_servo(Servo.TELESCOPIC, distance, enable, 1)
-        else:
-            threading.Thread(target=self.__ctrl_servo, args=(Servo.TELESCOPIC, distance, enable, 1)).start()
+        self.__ctrl_servo(Servo.TELESCOPIC, distance, enable, 1)
 
-    def gripper_servo(self, distance: float, enable=True, block=True):
+    def gripper_servo(self, distance: float, enable=True):
         """
         卡爪舵机 夹合 ( cm )
         原 gripper
         """
-        if block:
-            self.__ctrl_servo(Servo.GRIPPER, distance, enable)
-        else:
-            threading.Thread(target=self.__ctrl_servo, args=(Servo.GRIPPER, distance, enable)).start()
+        self.__ctrl_servo(Servo.GRIPPER, distance, enable)
 
     def __ctrl_servo(self, servo: Servo, value: float, enable: bool, decelerate=0):
         """

@@ -1,13 +1,16 @@
 from ..dao.RobotDataDao import RobotDataDao
+from ..param import ArmMovement
 from ..service.ArmService import ArmService
 from ..service.MoveService import MoveService
 from ..service.RobotService import RobotService
 from ..service.SowerServoService import SowerServoService
+from ..util.Logger import Logger
 
 
 class DebugController:
     def __init__(self, node):
         self.node = node
+        self.logger = Logger()
         self.arm = ArmService(node)
         self.robot = RobotService(node)
         self.sower = SowerServoService(node)
@@ -27,6 +30,7 @@ class DebugController:
             print("6. 机械臂旋转控制")
             print("7. 直线运动")
             print("8. 旋转运动")
+            print("9. 已有动作")
             print("q. 退出")
 
             choice = input("请输入指令，或输入q退出:")
@@ -49,10 +53,27 @@ class DebugController:
                 self.line()
             elif choice == "8":
                 self.rotate()
+            elif choice == "9":
+                self.arm_movement()
             elif choice == "q":
                 exit(0)
             else:
                 print("无效的指令，请重新输入")
+
+    def arm_movement(self):
+        while True:
+            # 动态获取任务，拒绝重复代码
+            task = input("输入动作名称, q 退出: ")
+            if task == "q":
+                return
+
+            task_method = getattr(ArmMovement, f"{task}")
+            if callable(task_method):
+                self.logger.info(f"开始执行{task}")
+                task_method()
+                self.logger.info(f"动作{task}完成")
+            else:
+                self.logger.error(f"{task}不存在")
 
     def servo_rotary(self):
         while True:

@@ -16,11 +16,13 @@ class OdomDao:
         self.__logger = Logger()
 
         self.__service = node.create_client(chassis_msgs.srv.ResetOdom, '/chassis/reset_odom')
+        self.init = False
 
     def __call_service(self, pose: NavigationPoint, mode: ResetOdomMode):
         """初始化机器人位置，支持重置odom不同模式"""
         self.__logger.debug(f"初始化机器人位置 [{pose.x}, {pose.y}, {pose.yaw}] 模式为 {mode.name}")
 
+        self.init = True
         self.__service.wait_for_service()
 
         req = chassis_msgs.srv.ResetOdom.Request()
@@ -53,3 +55,6 @@ class OdomDao:
 
     def init_yaw(self, yaw: float):
         self.__call_service(NavigationPoint(0, 0, yaw), ResetOdomMode.RESET_YAW)
+
+    def get_init(self):
+        return self.init

@@ -65,8 +65,6 @@ class RobotCtrlDao(object):
                 self.__robot_ctrl.pwm4 = duty
         self.__topic.publish(self.__robot_ctrl)
         rclpy.spin_once(self.__node)
-        rclpy.spin_once(self.__node)
-        rclpy.spin_once(self.__node)
 
     def read_pwm(self, port):
         """

@@ -22,10 +22,10 @@ setup(
     maintainer_email='3425316708@qq.com',
     description='这是移动机器人节点',
     license='Apache-2.0',
-    tests_require=['pytest'],
     entry_points={
         'console_scripts': [
             'test_module = mobile_robot.test_module:main',
+            'b = mobile_robot.task_b_module:main',
             'debug = mobile_robot.debug_module:main'
         ],
     },

@@ -7,9 +7,12 @@ from ..dao.LaserRadarDao import LaserRadarDao
 from ..dao.MotionDao import MotionDao
 from ..dao.MyNavigationDao import MyNavigationDao
 from ..dao.NavigationDao import NavigationDao
+from ..dao.NavigationPtpDao import NavigationPtpDao
 from ..dao.OdomDao import OdomDao
 from ..dao.RobotDataDao import RobotDataDao
 from ..dao.SensorDao import SensorDao
+from ..popo.CorrectivePoint import CorrectivePoint
+from ..popo.Direction import Direction
 from ..popo.NavigationPoint import NavigationPoint
 from ..util import Math
 from ..util.Logger import Logger
@@ -22,7 +25,7 @@ class MoveService:
         self.__node = node
         self.__logger = Logger()
 
-        self.__navigation = NavigationDao(node)
+        self.navigation_ptp = NavigationPtpDao(node)
         self.__motion = MotionDao(node)
         self.__sensor = SensorDao(node)
         self.__odom = OdomDao(node)
@@ -33,10 +36,22 @@ class MoveService:
 
     def __navigation_handle(self, path: list[NavigationPoint], speed: float, is_block: bool):
         ROTATION_ACCELERATION = 3
-        ROTATION_DECELERATION = 3
-        self.__navigation.navigation(path, speed, speed * 5, ROTATION_ACCELERATION, ROTATION_DECELERATION, False)
+        ROTATION_DECELERATION = 1
+        self.navigation_ptp.navigation(path, speed, speed * 5, ROTATION_ACCELERATION, ROTATION_DECELERATION, False)
         if is_block:
-            self.__navigation.wait_finish()
+            self.navigation_ptp.wait_finish()
+
+    def rotation_correction(self):
+        angle_by_front = self.__radar.get_angle_from_wall(Direction.FRONT)
+        angle_by_right = self.__radar.get_angle_from_wall(Direction.RIGHT)
+        angle_by_left = self.__radar.get_angle_from_wall(Direction.LEFT)
+        angles = [angle_by_front, angle_by_right, angle_by_left]
+
+        print(angles)
+
+        min_angle = min(angles, key=lambda x: (abs(x), -x))
+        if abs(min_angle) > 1:
+            self.rotate(min_angle)
 
     def my_navigation(self, waypoint_name: str, speed=0.6, is_block=True):
         self.__my_navigation.navigation(waypoint_name, speed)
@@ -55,8 +70,18 @@ class MoveService:
         previous_point = None
 
         for point in nav_path:
-            if not self.init_pose.get_init():
-                self.init_pose.set_initial_pose(point)
+            if isinstance(point, CorrectivePoint):
+                if path:
+                    path.append(point)
+                    self.__navigation_handle(path, speed, True)
+                elif self.__odom.get_init():
+                    self.__navigation_handle([point], speed, True)
+                else:
+                    self.__odom.init_yaw(point.yaw)
+
+                self.corrective(point)
+                path = []
+                continue
 
             if previous_point is None:
                 odom = self.__robot_data.get_robot_data().odom
@@ -69,8 +94,8 @@ class MoveService:
                     path = []
                 if point.yaw is None:
                     point.yaw = previous_point.yaw
-                self.__navigation.navigation([point], speed, speed * 5, 3, 3, True)
-                self.__navigation.wait_finish()
+                self.navigation_ptp.navigation([point], speed, speed * 5, 3, 3, True)
+                self.navigation_ptp.wait_finish()
             else:
                 path.append(point)
 
@@ -78,6 +103,60 @@ class MoveService:
 
         if path:
             self.__navigation_handle(path, speed, is_block)
+
+
+    def corrective(self, point: CorrectivePoint):
+        x_buffer = 0
+        y_buffer = 0
+        angle_from_wall = 0
+        for corrective in point.corrective_data:
+            match corrective.direction:
+                case Direction.FRONT:
+                    distance_from_wall = self.__radar.get_distance_from_wall(corrective.direction)
+                    if distance_from_wall:
+                        angle_from_wall = self.__radar.get_angle_from_wall(corrective.direction)
+                        x_buffer = distance_from_wall - corrective.distance
+                case Direction.BACK:
+                    sonar = self.__robot_data.get_sonar()
+                    distance_from_wall = Math.distance_from_origin(-5, sonar[0], 5, sonar[1]) + 0.222
+                    x_buffer = distance_from_wall - corrective.distance
+                case Direction.LEFT:
+                    distance_from_wall = self.__radar.get_distance_from_wall(corrective.direction)
+                    if distance_from_wall:
+                        angle_from_wall = self.__radar.get_angle_from_wall(corrective.direction)
+                        y_buffer = corrective.distance - distance_from_wall
+                case Direction.RIGHT:
+                    distance_from_wall = self.__radar.get_distance_from_wall(corrective.direction)
+                    if distance_from_wall:
+                        angle_from_wall = self.__radar.get_angle_from_wall(corrective.direction)
+                        y_buffer = distance_from_wall - corrective.distance
+
+        if angle_from_wall != 0:
+            new_yaw = point.yaw - angle_from_wall
+            odom_w = self.__robot_data.get_robot_data().odom.w
+            abs1 = abs(odom_w - new_yaw)
+            # 陀螺仪不会歪那么多，角度超过10就是不可信的数据
+            if abs1 > 300:
+                self.__logger.warn("矫正角度与陀螺仪误差超过300度, 可能是180度分界线.")
+            elif abs1 > 15:
+                self.__logger.warn(f"矫正角度与陀螺仪误差超过15度，不可信数据。陀螺仪角度: {odom_w}, 测量角度: {new_yaw}")
+                return
+            self.__odom.init_yaw(new_yaw)
+
+        if abs(point.yaw) < 5:
+            self.__odom.init_location(point.x + x_buffer, point.y + y_buffer)
+        elif abs(90 - point.yaw) < 5:
+            self.__odom.init_location(point.x + y_buffer, point.y + x_buffer)
+        elif abs(180 - point.yaw) < 5 or abs(180 - point.yaw) < 5:
+            self.__odom.init_location(point.x - x_buffer, point.y - y_buffer)
+        elif abs(-90 - point.yaw) < 5:
+            self.__odom.init_location(point.x + y_buffer, point.y - x_buffer)
+
+        rclpy.spin_once(self.__node)
+        rclpy.spin_once(self.__node)
+        rclpy.spin_once(self.__node)
+        rclpy.spin_once(self.__node)
+        rclpy.spin_once(self.__node)
 
     def line(self, distance: float, speed: float = 0.2, is_block=True):
         self.__motion.line(distance, speed)
@@ -94,13 +173,13 @@ class MoveService:
             self.__motion.wait_finish()
 
     def get_status(self):
-        return self.__navigation.get_status()
+        return self.navigation_ptp.get_status()
 
     def stop_motion(self):
         self.__motion.stop()
 
     def stop_navigation(self):
-        self.__navigation.cancel()
+        self.navigation_ptp.cancel()
 
     def stop_my_navigation(self):
         self.__my_navigation.cancel()

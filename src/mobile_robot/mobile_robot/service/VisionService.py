@@ -39,7 +39,7 @@ class VisionService:
         result = infer_onnx_model(self.__weight_path, photo)
         for r in result:
             cv2.rectangle(photo, (r.box.x1, r.box.y1), (r.box.x2, r.box.y2), (0, 255, 0), 2)
-            cv2.putText(photo, '{} {:.3f}'.format(r.classId, r.confidence), (r.box.x1, r.box.y1), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
+            cv2.putText(photo, '{} {:.3f}'.format(r.class_id, r.confidence), (r.box.x1, r.box.y1), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
         cv2.imshow("123", photo)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
@@ -75,7 +75,6 @@ class VisionService:
     def get_onnx_identify(self, inverted=False) -> list[IdentifyResult]:
         while True:
             photo = self.__camera.photograph_color(True)
-            self.show_photo(photo)
             if inverted:
                 photo = cv2.rotate(photo, cv2.ROTATE_180)
             return infer_onnx_model(self.__weight_path, photo)

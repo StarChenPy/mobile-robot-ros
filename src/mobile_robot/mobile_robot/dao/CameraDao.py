@@ -18,9 +18,8 @@ class CameraDao:
         self.__cv_bridge = cv_bridge.CvBridge()
         self.__service = node.create_client(camera_orbbec2.srv.ReqImage, "/camera/req_image")
 
-        self.__service.wait_for_service()
-
     def __call_service(self, request: camera_orbbec2.srv.ReqImage.Request) -> camera_orbbec2.srv.ReqImage.Response:
+        self.__service.wait_for_service()
         while rclpy.ok():
             future = self.__service.call_async(request)
 

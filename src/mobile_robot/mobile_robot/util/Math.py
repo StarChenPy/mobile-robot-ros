@@ -228,38 +228,87 @@ def distance_from_origin(x1, y1, x2, y2):
     return numerator / denominator
 
 
-def pixel_to_horizontal_distance_x(x_pixel: float, camera_height: float) -> float:
+def pixel_to_horizontal_distance_x_centered(x_pixel: float, camera_height: float) -> float:
     """
-    计算苹果的横向现实距离（米）。
-    相机垂直向下，固定参数：
-    - 图像宽度 640px
-    - 水平 FOV 110°
+    将图像x像素坐标（以图像中心为0）转换为现实世界的横向距离（米）。
 
-    @param x_pixel: 苹果的水平像素坐标（图像中心为0，向右为正）
-    @param camera_height: 相机高度（米）
+    输入的 x_pixel 是以图像中心为0，向右为正，向左为负。
+    相机垂直向下安装，图像宽度640px，水平FOV为110°。
     """
+    fov_deg = 80
+    image_width = 600
+    fov_rad = math.radians(fov_deg)
 
-    fov_deg = 110  # 水平视场角
-    image_width = 640  # 图像宽度
-    focal_length = image_width / (1.3 * math.tan(math.radians(fov_deg) / 2))
-    return (camera_height * x_pixel) / focal_length
+    # 焦距（像素单位）
+    focal_length = image_width / (2 * math.tan(fov_rad / 2))
+
+    # 计算角度
+    angle_rad = math.atan2(x_pixel, focal_length)
+
+    # 计算横向现实距离
+    distance = camera_height * math.tan(angle_rad)
+    return distance
 
 
-def pixel_to_horizontal_distance_y(y_pixel: float, camera_height: float) -> float:
+def pixel_to_distance_from_bottom(y_pixel: float, camera_height: float) -> float:
     """
-    计算苹果的纵向现实距离（米）。
-    相机垂直向下，固定参数：
-    - 图像宽度 480px
-    - 垂直 FOV 55°
+    将图像中的像素位置映射为现实世界距离，底部为 0 米，向上递增。
 
-    @param y_pixel: 苹果的垂直像素坐标（图像底部为0，向上为正）
-    @param camera_height: 相机高度（米）
+    参数:
+    - y_pixel: 像素坐标（图像底部为0）
+    - camera_height: 相机离地高度（米）
+
+    返回:
+    - 从图像底部到该点的现实距离（米）
     """
+    IMAGE_HEIGHT = 320  # 图像高度（像素）
+    VERTICAL_FOV_DEG = 55  # 垂直视场角（度）
 
-    fov_deg = 55  # 垂直视场角
-    image_width = 480  # 图像宽度
-    focal_length = image_width / (2.8 * math.tan(math.radians(fov_deg) / 2))
-    return (camera_height * y_pixel) / focal_length
+    # 像素相对图像中心的位置
+    y_pixel = IMAGE_HEIGHT - y_pixel
+    pixel_from_center = y_pixel - IMAGE_HEIGHT / 2
+
+    # 每像素的角度（弧度）
+    angle_per_pixel = math.radians(VERTICAL_FOV_DEG) / IMAGE_HEIGHT
+    angle = pixel_from_center * angle_per_pixel
+
+    # 当前点的距离
+    distance = camera_height * math.tan(angle)
+
+    # 底部的距离作为 0 基准
+    angle_min = -math.radians(VERTICAL_FOV_DEG) / 2
+    distance_bottom = camera_height * math.tan(angle_min)
+
+    # 相对底部的距离
+    return distance - distance_bottom
+
+
+def pixel_to_distance_from_center(y_pixel: float, camera_height: float) -> float:
+    """
+    将图像中的像素位置映射为现实世界距离，底部为 0 米，向上递增。
+
+    参数:
+    - y_pixel: 像素坐标（图像底部为0）
+    - camera_height: 相机离地高度（米）
+
+    返回:
+    - 从图像底部到该点的现实距离（米）
+    """
+    IMAGE_HEIGHT = 320  # 图像高度（像素）
+    VERTICAL_FOV_DEG = 55  # 垂直视场角（度）
+
+    # 像素相对图像中心的位置
+    y_pixel = IMAGE_HEIGHT - y_pixel
+    pixel_from_center = y_pixel - IMAGE_HEIGHT / 2
+
+    # 每像素的角度（弧度）
+    angle_per_pixel = math.radians(VERTICAL_FOV_DEG) / IMAGE_HEIGHT
+    angle = pixel_from_center * angle_per_pixel
+
+    # 当前点的距离
+    distance = camera_height * math.tan(angle)
+
+    return distance
 
 
 def pixel_to_world(point: Point, dis):
