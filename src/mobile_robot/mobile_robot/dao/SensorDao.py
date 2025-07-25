@@ -40,6 +40,7 @@ class SensorDao(object):
                     self.__logger.error("安全控制触发(急停)")
 
             return result.success
+        return False
 
     def ping_revise(self, distance: float):
         request = user_sensor_msgs.srv.SensorService.Request()
@@ -78,6 +79,6 @@ class SensorDao(object):
 
         while rclpy.ok():
             if self.__call_service(request):
-                self.__logger.debug(f"修正结束！")
+                self.__logger.info(f"修正结束！")
                 break
             time.sleep(0.2)

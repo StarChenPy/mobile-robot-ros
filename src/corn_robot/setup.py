@@ -24,7 +24,6 @@ setup(
     maintainer_email='3425316708@qq.com',
     description='移动机器人项目功能包',
     license='Apache-2.0',
-    tests_require=['pytest'],
     entry_points={
         'console_scripts': [
             'pub_waypoints = corn_robot.pub_waypoints:main',

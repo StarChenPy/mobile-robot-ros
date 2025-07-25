@@ -11,7 +11,7 @@ from ..util.Singleton import singleton
 class RobotDataDao(object):
     def __init__(self, node: rclpy.node.Node):
         self.__node = node
-        self.__robot_data = web_message_transform_ros2.msg.RobotData()
+        self.__robot_data = None
 
         node.create_subscription(
             web_message_transform_ros2.msg.RobotData,
@@ -32,7 +32,7 @@ class RobotDataDao(object):
     def get_sonar(self) -> tuple[float, float]:
         sonar0 = []
         sonar1 = []
-        for i in range(10):
+        for i in range(5):
             sonar = self.get_robot_data().sonar
             sonar0.append(sonar[0])
             sonar1.append(sonar[1])

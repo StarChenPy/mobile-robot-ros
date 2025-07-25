@@ -11,7 +11,7 @@ from ..util import Math
 from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
-RADAR_ERROR = 3.1
+RADAR_ERROR = 2.7
 
 
 @singleton
@@ -75,14 +75,18 @@ class LaserRadarDao:
         start_angle = 0
 
         if direction == Direction.RIGHT:
-            start_angle = 0
+            start_angle = -10
         elif direction == Direction.FRONT:
             start_angle = 80
         elif direction == Direction.LEFT:
-            start_angle = 155
+            start_angle = 170
 
-        for i in range(0, 5):
+        for i in range(1, 6):
             angle = start_angle + 5 * i
+            if angle > 180:
+                angle -= 360
+            if angle < -180:
+                angle += 360
             points.append(self.get_radar_data(angle))
 
         return points
@@ -109,33 +113,38 @@ class LaserRadarDao:
             self.__logger.error("无法获取角度: 不支持的方向")
             return 0
 
-        angle_list = []
-
-        for i in range(5):
-            once_angle = self.get_angle_from_wall_once(direction)
-            angle_list.append(once_angle)
+        for i in range(1, 11):
+            angle_1 = self.get_angle_from_wall_once(direction)
             time.sleep(0.2)
+            angle_2 = self.get_angle_from_wall_once(direction)
 
-        self.__logger.debug(f"扫描到的雷达角度为 {angle_list}")
+            if abs(angle_2 - angle_1) < 0.5:
+                angle = (angle_1 + angle_2) / 2
+                self.__logger.debug(f"扫描到的雷达角度为 {angle}")
+                return angle
+            else:
+                self.__logger.warn(f"雷达两次角度获取误差较大 {abs(angle_2 - angle_1)}，重试 {i} 次")
+        return 0
 
-        return Math.average_without_extremes(angle_list)
-
-    def get_distance_from_wall_once(self, direction: Direction) -> float or None:
+    def get_distance_from_wall_once(self, direction: Direction) -> float:
         # 返回距离雷达扫描的5个坐标拟合成的直线的垂直距离
         points = self.__get_radar_points(direction)
         distance = Math.fit_polar_line_and_get_distance(points)
 
+        # 方差过大，说明扫出墙壁
+        var = np.var(distance)
+        if var > 0.1:
+            self.__logger.warn(f"{distance} 方差 {var} 过大")
+            return 0
+
         if direction == Direction.FRONT:
             # 加上从雷达到机器人中心的距离
-            distance += 0.225
+            distance += 0.21
         else:
             # 补偿因倾斜导致的雷达与墙和机器人中心与墙的距离不一致的问题
-            angle_from_wall = self.get_angle_from_wall_once(direction)
-            if angle_from_wall == 0:
-                self.__logger.warn("雷达距离数据无效")
-                return None
+            angle_from_wall = self.get_angle_from_wall(direction)
 
-            side = Math.calculate_right_angle_side(0.225, abs(angle_from_wall))
+            side = Math.calculate_right_angle_side(0.21, abs(angle_from_wall))
 
             if direction == Direction.LEFT:
                 side = -side
@@ -147,39 +156,28 @@ class LaserRadarDao:
 
         return distance
 
-    def get_distance_from_wall(self, direction: Direction) -> float | None:
+    def get_distance_from_wall(self, direction: Direction) -> float:
         if direction == Direction.BACK:
             self.__logger.error("无法获取距离: 不支持的方向")
             return 0
 
-        distance_list = []
-
+        dis = 0
         for i in range(5):
-            once_dis = self.get_distance_from_wall_once(direction)
-            distance_list.append(once_dis)
+            dis = self.get_distance_from_wall_once(direction)
+            if dis > 0:
+                break
+            self.__logger.warn(f"获取 {direction} 方向雷达距离失败, 重试 {i} 次")
             time.sleep(0.2)
 
-        if distance_list.count(None) > 1:
-            self.__logger.warn(f"过多不可信距离")
-            return None
+        if dis != 0:
+            self.__logger.debug(f"{direction} 扫描到的雷达距离为 {dis}")
+        else:
+            self.__logger.error(f"雷达无法获取 {direction} 方向的距离!")
 
-        if None in distance_list:
-            distance_list.remove(None)
-
-        # 方差过大，说明扫出墙壁
-        var = np.var(distance_list)
-        if var > 0.1:
-            self.__logger.warn(f"{distance_list} 方差 {var} 过大")
-            return None
-
-        self.__logger.debug(f"扫描到的雷达距离为 {distance_list}")
-
-        # 返回平均值
-        dis = Math.average_without_extremes(distance_list)
-
-        # 左、右墙有大约1cm度误差，加一下
+        # 左、右墙有误差，加一下
         if direction == Direction.LEFT:
-            dis += 0.01
+            dis -= 0.0
         elif direction == Direction.RIGHT:
-            dis -= 0.01
+            dis -= 0.00
+
         return dis

@@ -17,8 +17,7 @@ class NavigationPtpDao:
 
         self.__action = rclpy.action.ActionClient(self.__node, NavPTPCMD, '/nav2_ptp_action')
 
-    def navigation(self, points: list[NavigationPoint], linear_speed: float, rotation_speed: float,
-                   linear_acc: float, rotate_acc: float, reverse: bool):
+    def navigation(self, points: list[NavigationPoint], linear_speed: float, rotation_speed: float, reverse: bool):
         """
         路径跟随: 输入路径点、最终角度等参数，发送导航请求
         @param points 路径坐标点 NavigationPoint(x, y, yaw)
@@ -35,17 +34,23 @@ class NavigationPtpDao:
             goal_msg.points.append(pose2d)
 
         # 这里要获取导航最后一个点的角度并赋给heading
+        # goal_msg.linear_vel = float(linear_speed)
+        # goal_msg.rotation_vel = float(rotation_speed)
+        # goal_msg.linear_acc = float(linear_acc)  # 直线加速度
+        # goal_msg.linear_decel = float(linear_acc)  # 直线减加速度
+        # goal_msg.rotate_acc = float(rotate_acc)  # 旋转加速度
+        # goal_msg.rotate_decel = float(rotate_acc)  # 旋转减加速度
         goal_msg.linear_vel = float(linear_speed)
         goal_msg.rotation_vel = float(rotation_speed)
-        goal_msg.linear_acc = float(linear_acc)  # 直线加速度
-        goal_msg.linear_decel = float(linear_acc)  # 直线减加速度
-        goal_msg.rotate_acc = float(rotate_acc)  # 旋转加速度
-        goal_msg.rotate_decel = float(rotate_acc)  # 旋转减加速度
+        goal_msg.linear_acc = float(0.69)  # 直线加速度
+        goal_msg.linear_decel = float(0.33)  # 直线减加速度
+        goal_msg.rotate_acc = float(2.5)  # 旋转加速度
+        goal_msg.rotate_decel = float(1)  # 旋转减加速度
         goal_msg.heading = float(points[-1].yaw)
         goal_msg.back = reverse
 
         self.__action.wait_for_server()
-        self.__logger.info(f"正在发送新的导航请求: {points}")
+        self.__logger.info(f"正在发送新的导航请求: {points}, 速度: {linear_speed}")
 
         goal_handle = self.__action.send_goal_async(goal_msg)
         goal_handle.add_done_callback(self.__goal_response_callback)

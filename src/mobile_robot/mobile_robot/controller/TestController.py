@@ -1,7 +1,12 @@
+import time
+
 import rclpy
 
-from ..param import ArmMovement
+from ..param import ArmMovement, NavMovement
+from ..popo.Direction import Direction
+from ..popo.FruitType import FruitType
 from ..popo.IdentifyResult import IdentifyResult
+from ..popo.NavigationPoint import NavigationPoint
 from ..service.ArmService import ArmService
 from ..service.MoveService import MoveService
 from ..service.RobotService import RobotService
@@ -25,55 +30,57 @@ class TestController:
         self.move = MoveService(node)
 
 
-    def find_grape(self) -> IdentifyResult | None:
-        grape = ["yellow_grapes", "green_grapes", "purple_grapes"]
-        identify = self.vision.get_onnx_identify()
+    def find_fruit(self, fruit=None):
+        identify = self.vision.get_onnx_identify_depth()
         for i in identify:
-            i: IdentifyResult
-            if i.class_id not in grape:
-                continue
+            if fruit:
+                if FruitType(i.class_id) not in fruit:
+                    continue
             return i
         return None
+
+    def grab_apple_from_tree(self, direction: Direction):
+        # ArmMovement.identify_tree_fruit(self.arm, Direction.LEFT)
+        input("等待...")
+        fruit = self.find_fruit([FruitType.RED_APPLE])
+        if fruit is not None:
+            center = fruit.box.get_rectangle_center()
+
+            distance = 0.3
+            if fruit.distance != 0:
+                distance = fruit.distance
+
+            x_distance = Math.pixel_to_horizontal_distance_x_centered(320 - center.x, distance) - 0.215
+            if direction == Direction.LEFT:
+                x_distance = -x_distance
+            elif direction != Direction.RIGHT:
+                raise ValueError("不支持的方向!")
+
+            self.move.line(x_distance)
+
+            ArmMovement.open_half_gripper(self.arm)
+            self.arm.telescopic_servo(distance)
+            ArmMovement.close_gripper_apple(self.arm)
+            self.arm.telescopic_servo(0)
+
+            ArmMovement.put_fruit_to_basket(self.arm, 1)
+
+            self.move.line(-x_distance)
 
     def run(self):
         self.robot.with_robot_connect()
         # self.arm.back_origin()
 
-        ArmMovement.identify_ground_fruit(self.arm)
+        # self.sensor.init_odom_all(NavigationPoint(0, 0, 0))
+        # self.move.navigation([NavigationPoint(1, 0, 0)])
 
-        while True:
-            input("等待...")
-            grape = self.find_grape()
-            if grape:
-                center = grape.box.get_rectangle_center()
-                x_dis = Math.pixel_to_horizontal_distance_x_centered(320 - center.x, 0.41)
-                photo_telescopic_len = 0.25
+        # ArmMovement.identify_grape(self.arm, Direction.RIGHT)
+        # ArmMovement.grab_grape_on_wall(self.arm, Direction.RIGHT, True)
+        # self.arm.back_origin()
+        self.grab_apple_from_tree(Direction.LEFT)
 
-                telescopic_len = Math.calculate_hypotenuse(photo_telescopic_len, x_dis)
-                print("x_dis:", x_dis)
-                self.arm.telescopic_servo((telescopic_len - photo_telescopic_len) * 100 + 6)
 
-                # rotary_angle = -Math.calculate_right_triangle_angle(x_dis, telescopic_len)
-                # print(rotary_angle, telescopic_len)
-                # if 180 + rotary_angle > 200:
-                #     self.arm.rotate(-180 + rotary_angle, 40, False)
-                #     self.arm.rotary_servo(-90 - rotary_angle)
-                #     self.arm.rotary_servo(-90 - rotary_angle)
-                #     self.arm.rotary_servo(-90 - rotary_angle)
-                # else:
-                #     self.arm.rotate(180 + rotary_angle, 40, False)
-                #     self.arm.rotary_servo(90 - rotary_angle)
-                #     self.arm.rotary_servo(90 - rotary_angle)
-                #     self.arm.rotary_servo(90 - rotary_angle)
+        # while True:
+        #     input("Press Enter to continue...")
+        #     self.move.corrective(NavMovement.START_POINT)
 
-                rotary_angle = -Math.calculate_right_triangle_angle(x_dis, telescopic_len)
-                print("rotary_angle:", rotary_angle)
-                if 180 + rotary_angle > 200:
-                    self.arm.rotary_servo(-90 - rotary_angle)
-                else:
-                    self.arm.rotary_servo(90 - rotary_angle)
-                self.arm.rotate(180 + rotary_angle, 40)
-
-                input("123")
-
-                ArmMovement.identify_ground_fruit(self.arm)

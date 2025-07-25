@@ -77,7 +77,8 @@ class VisionService:
             photo = self.__camera.photograph_color(True)
             if inverted:
                 photo = cv2.rotate(photo, cv2.ROTATE_180)
-            return infer_onnx_model(self.__weight_path, photo)
+            result = infer_onnx_model(self.__weight_path, photo)
+            return result
 
     def get_depth_data(self, point: Point) -> float:
         """

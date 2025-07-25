@@ -35,9 +35,7 @@ class MoveService:
         self.init_pose = InitialPoseDao(node)
 
     def __navigation_handle(self, path: list[NavigationPoint], speed: float, is_block: bool):
-        ROTATION_ACCELERATION = 3
-        ROTATION_DECELERATION = 1
-        self.navigation_ptp.navigation(path, speed, speed * 5, ROTATION_ACCELERATION, ROTATION_DECELERATION, False)
+        self.navigation_ptp.navigation(path, speed, speed * 5, False)
         if is_block:
             self.navigation_ptp.wait_finish()
 
@@ -47,19 +45,17 @@ class MoveService:
         angle_by_left = self.__radar.get_angle_from_wall(Direction.LEFT)
         angles = [angle_by_front, angle_by_right, angle_by_left]
 
-        print(angles)
-
         min_angle = min(angles, key=lambda x: (abs(x), -x))
         if abs(min_angle) > 1:
             self.rotate(min_angle)
 
-    def my_navigation(self, waypoint_name: str, speed=0.6, is_block=True):
+    def my_navigation(self, waypoint_name: str, speed=0.5, is_block=True):
         self.__my_navigation.navigation(waypoint_name, speed)
 
         if is_block:
             self.__my_navigation.wait_finish()
 
-    def navigation(self, nav_path: list[NavigationPoint], speed=0.4, is_block=True):
+    def navigation(self, nav_path: list[NavigationPoint], speed=0.5, is_block=True):
         """
         通过路径进行导航
         @param nav_path 路径列表
@@ -69,32 +65,40 @@ class MoveService:
         path = []
         previous_point = None
 
+        if not nav_path:
+            self.__logger.warn("导航为空路径")
+            return
+
         for point in nav_path:
-            if isinstance(point, CorrectivePoint):
-                if path:
-                    path.append(point)
-                    self.__navigation_handle(path, speed, True)
-                elif self.__odom.get_init():
-                    self.__navigation_handle([point], speed, True)
-                else:
-                    self.__odom.init_yaw(point.yaw)
-
-                self.corrective(point)
-                path = []
-                continue
-
             if previous_point is None:
                 odom = self.__robot_data.get_robot_data().odom
                 previous_point = NavigationPoint(odom.x, odom.y, odom.w)
 
+            if isinstance(point, CorrectivePoint):
+                # 如果是矫正点，先执行完已有的导航
+                if path:
+                    path.append(point)
+                    self.__navigation_handle(path, speed, True)
+                # 如果已经初始化过坐标，就直接往这个点走
+                elif self.__odom.get_init():
+                    self.__navigation_handle([point], speed, True)
+                # 否则就初始化一下角度
+                else:
+                    self.__odom.init_yaw(point.yaw)
+                # 然后矫正当前坐标
+                self.corrective(point)
+                path = []
+                continue
+
+            # 如果这个点位在上个点位的后面，就倒车回去
             if previous_point.yaw is not None and Math.is_behind(previous_point, point, 30):
-                # 如果这个点位在上个点位的后面，就倒车回去
+                # 先清空导航
                 if path:
                     self.__navigation_handle(path, speed, True)
                     path = []
                 if point.yaw is None:
                     point.yaw = previous_point.yaw
-                self.navigation_ptp.navigation([point], speed, speed * 5, 3, 3, True)
+                self.navigation_ptp.navigation([point], speed, speed * 5,  True)
                 self.navigation_ptp.wait_finish()
             else:
                 path.append(point)
@@ -141,21 +145,30 @@ class MoveService:
             elif abs1 > 15:
                 self.__logger.warn(f"矫正角度与陀螺仪误差超过15度，不可信数据。陀螺仪角度: {odom_w}, 测量角度: {new_yaw}")
                 return
+            self.__logger.info(f"矫正当前角度为: {new_yaw}")
+            self.__odom.init_yaw(new_yaw)
             self.__odom.init_yaw(new_yaw)
 
+        x, y = 0, 0
         if abs(point.yaw) < 5:
-            self.__odom.init_location(point.x + x_buffer, point.y + y_buffer)
+            x = point.x + x_buffer
+            y = point.y + y_buffer
         elif abs(90 - point.yaw) < 5:
-            self.__odom.init_location(point.x + y_buffer, point.y + x_buffer)
+            x = point.x - y_buffer
+            y = point.y + x_buffer
         elif abs(180 - point.yaw) < 5 or abs(180 - point.yaw) < 5:
-            self.__odom.init_location(point.x - x_buffer, point.y - y_buffer)
+            x = point.x - x_buffer
+            y = point.y - y_buffer
         elif abs(-90 - point.yaw) < 5:
-            self.__odom.init_location(point.x + y_buffer, point.y - x_buffer)
+            x = point.x + y_buffer
+            y = point.y - x_buffer
 
-        rclpy.spin_once(self.__node)
-        rclpy.spin_once(self.__node)
-        rclpy.spin_once(self.__node)
-        rclpy.spin_once(self.__node)
+        if x and y:
+            self.__logger.info(f"矫正当前坐标为: x: {x}, y: {y}")
+            self.__odom.init_location(x, y)
+        else:
+            self.__logger.warn("矫正失败")
+
         rclpy.spin_once(self.__node)
 
     def line(self, distance: float, speed: float = 0.2, is_block=True):

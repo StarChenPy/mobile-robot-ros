@@ -29,7 +29,9 @@ class SensorService:
         self.__initial_pose = InitialPoseDao(node)
 
     def ping_revise(self, dis: float, is_block=True):
+        dis = (dis - 0.24) * 100
         self.__sensor.ping_revise(dis)
+        self.__logger.info("开始超声修正")
         if is_block:
             time.sleep(1)
             self.__sensor.wait_finish()
@@ -52,8 +54,10 @@ class SensorService:
     def get_ir_right(self) -> float:
         return self.__robot_data.get_ir_right()
 
-    def get_sonar(self) -> tuple[float, float]:
-        return self.__robot_data.get_sonar()
+    def get_sonar(self) -> float:
+        sonar = self.__robot_data.get_sonar()
+        distance_from_wall = Math.distance_from_origin(-5, sonar[0], 5, sonar[1]) + 0.226
+        return distance_from_wall
 
     def get_radar_data(self, target_angle: float) -> tuple[float, float]:
         return self.__radar.get_radar_data(target_angle)

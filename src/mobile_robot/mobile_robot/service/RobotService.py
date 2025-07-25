@@ -21,6 +21,7 @@ class RobotService:
         self.logger.info("等待机器人链接...")
         while self.__robot_data.get_robot_data() is None:
             time.sleep(0.5)
+        self.logger.info("机器人链接成功.")
         return
 
     def with_start_button(self):
