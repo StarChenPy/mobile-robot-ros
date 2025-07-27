@@ -37,7 +37,7 @@ class ArmService:
 
         self.__logger.info(f"回原点结束")
 
-    def lift(self, target: float, speed = 50, is_block=True):
+    def lift(self, target: float, speed = 60, is_block=True):
         self.__lift_motor.ctrl_motor(target, speed)
         if is_block:
             self.__lift_motor.wait_finish()

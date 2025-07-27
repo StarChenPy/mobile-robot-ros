@@ -1,3 +1,5 @@
+import time
+
 import ament_index_python
 import cv2
 import numpy as np
@@ -44,31 +46,33 @@ class VisionService:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-    def get_onnx_identify_depth(self, inverted=False) -> list[IdentifyResult]:
-        count = 0
-        while True:
-            photo, depth = self.__camera.photograph_all(True)
-            if inverted:
-                photo = cv2.rotate(photo, cv2.ROTATE_180)
-                depth = cv2.rotate(depth, cv2.ROTATE_180)
-            result = infer_onnx_model(self.__weight_path, photo)
+    def get_onnx_identify_depth(self, inverted=False, kernel_size=11) -> list[IdentifyResult]:
+        half_k = kernel_size // 2
 
-            flag = False
-            for r in result:
-                point = r.box.get_rectangle_center()
-                r.distance = depth[int(point.y), int(point.x)] / 1000
-                if r.distance != 0:
-                    flag = True
+        photo, depth = self.__camera.photograph_all(True)
+        if inverted:
+            photo = cv2.rotate(photo, cv2.ROTATE_180)
+            depth = cv2.rotate(depth, cv2.ROTATE_180)
 
-            if flag:
-                break
+        result = infer_onnx_model(self.__weight_path, photo)
+
+        for r in result:
+            point = r.box.get_rectangle_center()
+            cx, cy = int(point.x), int(point.y)
+
+            # 定义感兴趣区域（ROI），考虑图像边界
+            x1 = max(0, cx - half_k)
+            x2 = min(depth.shape[1], cx + half_k + 1)
+            y1 = max(0, cy - half_k)
+            y2 = min(depth.shape[0], cy + half_k + 1)
+
+            roi = depth[y1:y2, x1:x2]
+            valid_depths = roi[roi > 0]  # 自动忽略0深度
+
+            if valid_depths.size > 0:
+                r.distance = float(np.median(valid_depths)) / 1000  # 使用中位数，避免离群值
             else:
-                self.__logger.warn(f"没有检测到深度，重试第{count}次")
-                count += 1
-
-            if count > 15:
-                self.__logger.error("深度检测失败，无深度信息")
-                break
+                r.distance = -1
 
         return result
 

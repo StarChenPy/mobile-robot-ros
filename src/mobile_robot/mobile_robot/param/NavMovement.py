@@ -20,8 +20,10 @@ RED_STATION_2 = NavigationPoint(2.89, 3.7, 0)
 YELLOW_STATION_3 = NavigationPoint(3.7, 2.89, -90)
 RED_STATION_3 = NavigationPoint(3.7, 2.89, -90)
 
-IDENTIFY_TREE_1_1 = NavigationPoint(0.91, 2.35, 0)
-IDENTIFY_TREE_1_2 = NavigationPoint(1.82, 3.25, -90)
+IDENTIFY_TREE_1_1 = NavigationPoint(1.26, 2.65, -90)
+IDENTIFY_TREE_1_2 = NavigationPoint(1.5, 2.93, 0)
+IDENTIFY_RANDOM_TREE_1_1 = NavigationPoint(1.14, 2.65, -90)
+IDENTIFY_RANDOM_TREE_1_2 = NavigationPoint(1.5, 2.93, 0)
 
 VINEYARD_1 = CorrectivePoint(3.6, 1.675, 180, [Corrective(Direction.BACK, 0.4), Corrective(Direction.LEFT, 0.325)])
 VINEYARD_2 = CorrectivePoint(3.22, 1.675, 180, [Corrective(Direction.BACK, 0.4), Corrective(Direction.LEFT, 0.325)])

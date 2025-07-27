@@ -24,7 +24,7 @@ setup(
     license='Apache-2.0',
     entry_points={
         'console_scripts': [
-            'test_module = mobile_robot.test_module:main',
+            'test = mobile_robot.test_module:main',
             'b = mobile_robot.task_b_module:main',
             'debug = mobile_robot.debug_module:main'
         ],

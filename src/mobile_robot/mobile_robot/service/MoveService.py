@@ -137,6 +137,10 @@ class MoveService:
 
         if angle_from_wall != 0:
             new_yaw = point.yaw - angle_from_wall
+            if new_yaw > 180:
+                new_yaw -= 360
+            if new_yaw < -180:
+                new_yaw += 360
             odom_w = self.__robot_data.get_robot_data().odom.w
             abs1 = abs(odom_w - new_yaw)
             # 陀螺仪不会歪那么多，角度超过10就是不可信的数据

@@ -1,13 +1,16 @@
+import time
+
 from ..param import NavMovement, ArmMovement
 from ..popo.Direction import Direction
-from ..popo.FruitLocationOnTree import FruitLocationOnTree
 from ..popo.FruitType import FruitType
+from ..popo.IdentifyResult import IdentifyResult
 from ..service.ArmService import ArmService
 from ..service.MoveService import MoveService
 from ..service.RobotService import RobotService
 from ..service.SensorService import SensorService
 from ..service.VisionService import VisionService
-from ..util import Math, Util
+from ..util import Math
+from ..util.GrabAppleTree import GrabAppleTree
 from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
@@ -17,6 +20,7 @@ class TaskBController:
     def __init__(self, node):
         self.logger = Logger()
 
+        self.node = node
         self.vision = VisionService(node)
         self.arm = ArmService(node)
         self.sensor = SensorService(node)
@@ -39,7 +43,8 @@ class TaskBController:
         self.arm.back_origin()
         ArmMovement.motion(self.arm)
 
-        for i in range(i, 11):
+        for i in range(10):
+            i += 1
             # 动态获取任务，拒绝重复代码
             task_method = getattr(self, f"task_{i}")
             if callable(task_method):
@@ -59,6 +64,7 @@ class TaskBController:
         yellow_station = None
         while yellow_station is None:
             yellow_station = self.find_fruit()
+            time.sleep(1)
         ArmMovement.motion(self.arm)
 
         # 去红站台1抓取水果
@@ -75,16 +81,16 @@ class TaskBController:
         red_station.sort(key=lambda x: x.box.get_rectangle_center().x)
 
         if len(red_station) != 3:
-            ArmMovement.grab_center_fruit_from_station(self.arm, 3)
+            ArmMovement.grab_center_fruit_from_station(self.arm)
         elif red_station[0].class_id == yellow_station.class_id:
-            ArmMovement.grab_left_fruit_from_station(self.arm, 3)
+            ArmMovement.grab_left_fruit_from_station(self.arm)
         elif red_station[1].class_id == yellow_station.class_id:
-            ArmMovement.grab_center_fruit_from_station(self.arm, 3)
+            ArmMovement.grab_center_fruit_from_station(self.arm)
         elif red_station[2].class_id == yellow_station.class_id:
-            ArmMovement.grab_right_fruit_from_station(self.arm, 3)
+            ArmMovement.grab_right_fruit_from_station(self.arm)
         else:
-            ArmMovement.grab_center_fruit_from_station(self.arm, 3)
-        ArmMovement.grab_motion(self.arm, 3)
+            ArmMovement.grab_center_fruit_from_station(self.arm)
+        ArmMovement.motion(self.arm)
 
     def corrective_form_front(self, dis):
         from_wall = self.sensor.get_distance_from_wall(Direction.FRONT)
@@ -96,7 +102,7 @@ class TaskBController:
             self.move.line(wall_dis)
 
     def find_fruit(self, fruit=None):
-        identify = self.vision.get_onnx_identify()
+        identify = self.vision.get_onnx_identify_depth()
         for i in identify:
             if fruit:
                 if FruitType(i.class_id) not in fruit:
@@ -150,17 +156,20 @@ class TaskBController:
                     # 抓取
                     self.arm.lift(31, 40)
                     if "grape" in fruit.class_id:
-                        ArmMovement.close_gripper_apple(self.arm, 2)
+                        ArmMovement.close_gripper_apple(self.arm)
                     else:
-                        ArmMovement.close_gripper_apple(self.arm, 4)
+                        ArmMovement.close_gripper_apple(self.arm)
                     self.arm.lift(0, 40)
 
                     ArmMovement.put_fruit_to_basket(self.arm, 1)
 
                     ArmMovement.identify_ground_fruit(self.arm)
-                    self.move.navigation([coordinate_point], 0.05, False)
-                else:
-                    self.move.navigation([coordinate_point], 0.05, False)
+
+                angle_from_wall = self.sensor.get_angle_from_wall(Direction.LEFT)
+                if abs(angle_from_wall) < 10:
+                    self.sensor.init_odom_yaw(coordinate_point.yaw - angle_from_wall)
+
+                self.move.navigation([coordinate_point], 0.05, False)
         ArmMovement.motion(self.arm)
 
         # 前往黄平台3放置果篮
@@ -174,47 +183,30 @@ class TaskBController:
     def task_3(self):
         # 去果树1抓一颗苹果
         NavMovement.start_to_tree1(self.move)
-        ArmMovement.identify_tree_fruit(self.arm)
-        identify = self.vision.get_onnx_identify()
-        fruit_location = Util.get_fruit_location(identify, [FruitType.RED_APPLE])
-        if fruit_location:
-            ArmMovement.top_180(self.arm)
-            self.move.line(0.32)
-            for i in fruit_location.keys():
-                ArmMovement.grab_apple_on_tree(self.arm, i)
-            ArmMovement.grab_motion(self.arm, 4)
-            return
+        grab_apple_tree = GrabAppleTree(self.node, Direction.LEFT)
+        grab_apple_tree.basket_1 = [FruitType.RED_APPLE]
+        grab_apple_tree.grab_apple_from_tree()
 
         # 如果正面没有，去侧面看一下
-        ArmMovement.motion(self.arm)
-        self.move.rotate(90)
-        self.move.line(0.94)
-        self.move.rotate(-90)
-        self.move.line(0.94)
-        self.move.rotate(-90)
-        ArmMovement.identify_tree_fruit(self.arm)
-        identify = self.vision.get_onnx_identify()
-        fruit_location = Util.get_fruit_location(identify, [FruitType.RED_APPLE])
-        ArmMovement.top_180(self.arm)
-        self.move.line(0.32)
-        for i in fruit_location.keys():
-            ArmMovement.grab_apple_on_tree(self.arm, i)
-        ArmMovement.grab_motion(self.arm, 4)
+        if grab_apple_tree.has_fruit():
+            self.move.navigation([NavMovement.CORRECTIVE_POINT_1, NavMovement.IDENTIFY_TREE_1_2])
+            grab_apple_tree.direction = Direction.RIGHT
+            grab_apple_tree.grab_apple_from_tree()
 
-    def grab_grape(self, grape: list[FruitType], direction: Direction) -> bool:
-        grape = self.find_fruit(grape)
-        if grape:
-            center = grape.box.get_rectangle_center()
-            x_dis = Math.pixel_to_horizontal_distance_x_centered(center.x - 320, 0.25)
+    def grab_grape(self, grape: IdentifyResult, direction: Direction):
+        center = grape.box.get_rectangle_center()
 
-            if direction == Direction.LEFT:
-                self.move.line(x_dis)
-            elif direction == Direction.RIGHT:
-                self.move.line(-x_dis)
+        distance = 0.25
+        if grape.distance != -1:
+            distance = grape.distance
+        x_dis = Math.pixel_to_horizontal_distance_x_centered(center.x - 320, distance)
 
-            ArmMovement.grab_grape_on_wall(self.arm, direction, center.y > 280)
-            return True
-        return False
+        if direction == Direction.LEFT:
+            self.move.line(x_dis)
+        elif direction == Direction.RIGHT:
+            self.move.line(-x_dis)
+
+        ArmMovement.grab_grape_on_wall(self.arm, direction, center.y > 280)
 
     def task_4(self):
         # 前往葡萄园
@@ -230,13 +222,13 @@ class TaskBController:
             if grape:
                 self.move.stop_navigation()
                 for i in range(10):
-                    if self.grab_grape(target, Direction.RIGHT):
+                    if self.grab_grape(grape, Direction.RIGHT):
                         ArmMovement.motion(self.arm)
                         return
                     self.logger.warn(f"识别葡萄失败，重试第 {i} 次")
                 ArmMovement.identify_grape(self.arm, Direction.RIGHT)
                 self.move.navigation([coordinate_point], 0.05, False)
-        ArmMovement.grab_motion(self.arm, 2)
+        ArmMovement.motion(self.arm)
 
     def grab_basket_from_station(self, direction: Direction):
         ArmMovement.station_basket_top(self.arm, direction)
@@ -246,7 +238,7 @@ class TaskBController:
         self.arm.telescopic_servo((distance_from_wall - 0.25) * 100)
 
         self.arm.lift(9.5)
-        ArmMovement.close_gripper_apple(self.arm, 15.3)
+        ArmMovement.close_gripper_basket(self.arm)
         self.arm.lift(0, is_block=False)
         self.arm.rotate(0, is_block=False)
         self.arm.wait_finish()
@@ -309,9 +301,7 @@ class TaskBController:
         # 去苹果区抓一个苹果，放到篮子里
         self.move.navigation([NavMovement.IDENTIFY_TREE_1_1])
         self.move.rotation_correction()
-        self.sensor.ping_revise(0.60)
-        self.move.line(0.63)
-        ArmMovement.grab_apple_on_tree(self.arm, FruitLocationOnTree.TOP_CENTER)
+        ArmMovement.grab_apple_on_tree(self.arm, Direction.LEFT, 0, False)
         ArmMovement.put_fruit_to_basket(self.arm, 1)
         ArmMovement.motion(self.arm)
 
@@ -333,112 +323,80 @@ class TaskBController:
         self.move.navigation([NavMovement.CORRECTIVE_POINT_1, NavMovement.START_POINT])
 
     def task_7(self):
-        # # 去黄站台2抓框子
-        # NavMovement.start_to_yellow_station_2(self.move)
-        # self.move.rotation_correction()
-        # self.corrective_form_front(1.11)
-        # self.grab_basket_from_station(Direction.LEFT)
-        # ArmMovement.put_basket_to_robot_b(self.arm, 1)
-        # ArmMovement.motion(self.arm)
-        #
-        # # 去红站台1抓框子
-        # self.move.navigation([NavMovement.RED_STATION_1])
-        # self.move.rotation_correction()
-        # self.sensor.ping_revise(0.89)
-        # self.grab_basket_from_station(Direction.LEFT)
-        # ArmMovement.put_basket_to_robot_b(self.arm, 2)
-        # ArmMovement.motion(self.arm)
-        #
-        # # 去红站台2抓框子
-        # self.move.navigation([NavMovement.RED_STATION_2])
-        # self.move.rotation_correction()
-        # self.corrective_form_front(1.11)
-        # self.grab_basket_from_station(Direction.LEFT)
-        # ArmMovement.put_basket_to_robot_b(self.arm, 3)
-        # ArmMovement.motion(self.arm)
+        # 去黄站台2抓框子
+        NavMovement.start_to_yellow_station_2(self.move)
+        self.move.rotation_correction()
+        self.corrective_form_front(1.11)
+        self.grab_basket_from_station(Direction.LEFT)
+        ArmMovement.put_basket_to_robot_b(self.arm, 1)
+        ArmMovement.motion(self.arm)
 
-        basket_1 = [FruitType.RED_APPLE, FruitType.GREEN_APPLE]
-        basket_2 = [FruitType.RED_APPLE, FruitType.PURPLE_GRAPE]
-        basket_3 = [FruitType.YELLOW_APPLE, FruitType.PURPLE_GRAPE]
+        # 去红站台1抓框子
+        self.move.navigation([NavMovement.RED_STATION_1])
+        self.move.rotation_correction()
+        self.sensor.ping_revise(0.89)
+        self.grab_basket_from_station(Direction.LEFT)
+        ArmMovement.put_basket_to_robot_b(self.arm, 2)
+        ArmMovement.motion(self.arm)
+
+        # 去红站台2抓框子
+        self.move.navigation([NavMovement.RED_STATION_2])
+        self.move.rotation_correction()
+        self.corrective_form_front(1.11)
+        self.grab_basket_from_station(Direction.LEFT)
+        ArmMovement.put_basket_to_robot_b(self.arm, 3)
+        ArmMovement.motion(self.arm)
+
+        grab_apple_tree = GrabAppleTree(self.node, Direction.LEFT)
+        grab_apple_tree.basket_1 = [FruitType.RED_APPLE, FruitType.GREEN_APPLE]
+        grab_apple_tree.basket_2 = [FruitType.RED_APPLE, FruitType.PURPLE_GRAPE]
+        grab_apple_tree.basket_3 = [FruitType.YELLOW_APPLE, FruitType.PURPLE_GRAPE]
         # 去果树2抓6颗水果，分别为红绿、绿黄、黄紫
         # self.move.navigation([NavMovement.CORRECTIVE_POINT_1, NavMovement.IDENTIFY_TREE_1_1])
         self.move.navigation([NavMovement.START_POINT, NavMovement.CORRECTIVE_POINT_1, NavMovement.IDENTIFY_TREE_1_1])
-        self.sensor.ping_revise(0.63)
-        self.move.line(0.3)
         self.move.rotation_correction()
-        ArmMovement.identify_tree_fruit(self.arm)
-        identify = self.vision.get_onnx_identify()
-        fruit_location = Util.get_fruit_location(identify, basket_1 + basket_2 + basket_3)
-
-        if fruit_location:
-            ArmMovement.top_180(self.arm)
-            self.move.line(0.3)
-            for k, v in fruit_location.items():
-                if v in basket_1:
-                    ArmMovement.grab_apple_on_tree(self.arm, k)
-                    ArmMovement.put_fruit_to_basket(self.arm, 1)
-                    basket_1.remove(v)
-                elif v in basket_2:
-                    ArmMovement.grab_apple_on_tree(self.arm, k)
-                    ArmMovement.put_fruit_to_basket(self.arm, 2)
-                    basket_2.remove(v)
-                elif v in basket_3:
-                    ArmMovement.grab_apple_on_tree(self.arm, k)
-                    ArmMovement.put_fruit_to_basket(self.arm, 2)
-                    basket_3.remove(v)
-        ArmMovement.motion(self.arm)
+        grab_apple_tree.grab_apple_from_tree()
 
         # 如果还有水果没抓，去侧面看看
-        if basket_1 or basket_2 or basket_3:
+        if grab_apple_tree.has_fruit():
             self.move.navigation([NavMovement.CORRECTIVE_POINT_1, NavMovement.IDENTIFY_TREE_1_2])
-            self.sensor.ping_revise(0.75)
-            ArmMovement.identify_tree_fruit(self.arm)
-            identify = self.vision.get_onnx_identify()
-            fruit_location = Util.get_fruit_location(identify, basket_1 + basket_2 + basket_3)
-            if fruit_location:
-                ArmMovement.top_180(self.arm)
-                self.move.line(0.3)
-                for k, v in fruit_location.items():
-                    if v in basket_1:
-                        ArmMovement.grab_apple_on_tree(self.arm, k)
-                        ArmMovement.put_fruit_to_basket(self.arm, 1)
-                        basket_1.remove(v)
-                    elif v in basket_2:
-                        ArmMovement.grab_apple_on_tree(self.arm, k)
-                        ArmMovement.put_fruit_to_basket(self.arm, 2)
-                        basket_2.remove(v)
-                    elif v in basket_3:
-                        ArmMovement.grab_apple_on_tree(self.arm, k)
-                        ArmMovement.put_fruit_to_basket(self.arm, 2)
-                        basket_3.remove(v)
-            ArmMovement.motion(self.arm)
+            self.move.rotation_correction()
+            grab_apple_tree.direction = Direction.RIGHT
+            grab_apple_tree.grab_apple_from_tree()
 
         # 回起始区
         self.move.navigation([NavMovement.CORRECTIVE_POINT_1, NavMovement.START_POINT])
 
     def find_grape_and_grab(self, coordinate_point, direction: Direction, basket_1, basket_2, basket_3):
         ArmMovement.identify_grape(self.arm, direction)
-        self.move.navigation([coordinate_point], 0.05, False)
+        self.move.navigation([coordinate_point], 0.1, False)
         while self.move.get_status():
             grape = self.find_fruit(basket_1 + basket_2 + basket_3)
             if grape:
                 self.move.stop_navigation()
-                fruit_type = FruitType(grape.class_id)
-                if fruit_type in basket_1:
-                    basket_1.remove(fruit_type)
-                    self.grab_grape([fruit_type], direction)
-                    ArmMovement.put_fruit_to_basket(self.arm, 1)
-                elif fruit_type in basket_2:
-                    basket_2.remove(fruit_type)
-                    self.grab_grape([fruit_type], direction)
-                    ArmMovement.put_fruit_to_basket(self.arm, 2)
-                elif fruit_type in basket_3:
-                    basket_3.remove(fruit_type)
-                    self.grab_grape([fruit_type], direction)
-                    ArmMovement.put_fruit_to_basket(self.arm, 3)
+                grape = self.find_fruit(basket_1 + basket_2 + basket_3)
+                if grape:
+                    fruit_type = FruitType(grape.class_id)
+                    if fruit_type in basket_1:
+                        basket_1.remove(fruit_type)
+                        self.grab_grape(grape, direction)
+                        ArmMovement.put_fruit_to_basket(self.arm, 1)
+                    elif fruit_type in basket_2:
+                        basket_2.remove(fruit_type)
+                        self.grab_grape(grape, direction)
+                        ArmMovement.put_fruit_to_basket(self.arm, 2)
+                    elif fruit_type in basket_3:
+                        basket_3.remove(fruit_type)
+                        self.grab_grape(grape, direction)
+                        ArmMovement.put_fruit_to_basket(self.arm, 3)
 
-                ArmMovement.identify_grape(self.arm, direction)
-                self.move.navigation([coordinate_point], 0.05, False)
+                    ArmMovement.identify_grape(self.arm, direction)
+
+                angle_from_wall = self.sensor.get_angle_from_wall(Direction.LEFT)
+                if abs(angle_from_wall) < 10:
+                    self.sensor.init_odom_yaw(coordinate_point.yaw - angle_from_wall)
+
+                self.move.navigation([coordinate_point], 0.1, False)
         ArmMovement.motion(self.arm)
 
     def task_8(self):
@@ -469,15 +427,70 @@ class TaskBController:
         basket_1 = [FruitType.GREEN_GRAPE, FruitType.YELLOW_GRAPE]
         basket_2 = [FruitType.YELLOW_GRAPE, FruitType.PURPLE_GRAPE]
         basket_3 = [FruitType.PURPLE_GRAPE, FruitType.GREEN_GRAPE]
-        # 前往葡萄区7抓取葡萄
-        # self.move.navigation([NavMovement.VINEYARD_1])
-        NavMovement.start_to_vineyard_1(self.move)
+        # 前往葡萄区抓取葡萄
+        self.move.navigation([NavMovement.VINEYARD_1])
+        # NavMovement.start_to_vineyard_1(self.move)
         coordinate_point = Math.get_target_coordinate(NavMovement.VINEYARD_1, 2)
         self.find_grape_and_grab(coordinate_point, Direction.RIGHT, basket_1, basket_2, basket_3)
-        # # 前往葡萄区8抓取葡萄
-        # self.move.navigation([NavMovement.VINEYARD_8])
-        # coordinate_point = Math.get_target_coordinate(NavMovement.VINEYARD_8, 2)
-        # self.find_grape_and_grab(coordinate_point, Direction.RIGHT, basket_1, basket_2, basket_3)
 
         #返回起始区
         self.move.navigation([NavMovement.VINEYARD_1, NavMovement.CORRECTIVE_POINT_2, NavMovement.CORRECTIVE_POINT_1, NavMovement.START_POINT])
+
+    def task_9(self):
+        # 去果树1抓一颗苹果
+        NavMovement.start_to_tree1(self.move)
+        grab_apple_tree = GrabAppleTree(self.node, Direction.LEFT)
+        grab_apple_tree.basket_1 = [FruitType.RED_APPLE]
+        grab_apple_tree.grab_apple_from_tree()
+
+        # 如果正面没有，去侧面看一下
+        if grab_apple_tree.has_fruit():
+            self.move.navigation([NavMovement.CORRECTIVE_POINT_1, NavMovement.IDENTIFY_TREE_1_2])
+            grab_apple_tree.direction = Direction.RIGHT
+            grab_apple_tree.grab_apple_from_tree()
+
+    def task_10(self):
+        # 去黄站台2抓框子
+        NavMovement.start_to_yellow_station_2(self.move)
+        self.move.rotation_correction()
+        self.corrective_form_front(1.11)
+        self.grab_basket_from_station(Direction.LEFT)
+        ArmMovement.put_basket_to_robot_b(self.arm, 1)
+        ArmMovement.motion(self.arm)
+
+        # 去红站台1抓框子
+        self.move.navigation([NavMovement.RED_STATION_1])
+        self.move.rotation_correction()
+        self.sensor.ping_revise(0.89)
+        self.grab_basket_from_station(Direction.LEFT)
+        ArmMovement.put_basket_to_robot_b(self.arm, 2)
+        ArmMovement.motion(self.arm)
+
+        # 去红站台2抓框子
+        self.move.navigation([NavMovement.RED_STATION_2])
+        self.move.rotation_correction()
+        self.corrective_form_front(1.11)
+        self.grab_basket_from_station(Direction.LEFT)
+        ArmMovement.put_basket_to_robot_b(self.arm, 3)
+        ArmMovement.motion(self.arm)
+
+        grab_apple_tree = GrabAppleTree(self.node, Direction.LEFT)
+        grab_apple_tree.basket_1 = [FruitType.RED_APPLE, FruitType.GREEN_APPLE]
+        grab_apple_tree.basket_2 = [FruitType.RED_APPLE, FruitType.PURPLE_GRAPE]
+        grab_apple_tree.basket_3 = [FruitType.YELLOW_APPLE, FruitType.PURPLE_GRAPE]
+        # 去果树2抓6颗水果，分别为红绿、绿黄、黄紫
+        # self.move.navigation([NavMovement.CORRECTIVE_POINT_1, NavMovement.IDENTIFY_TREE_1_1])
+        self.move.navigation([NavMovement.START_POINT, NavMovement.CORRECTIVE_POINT_1, NavMovement.IDENTIFY_TREE_1_1])
+        self.move.rotation_correction()
+        grab_apple_tree.grab_apple_from_tree()
+
+        # 如果还有水果没抓，去侧面看看
+        if grab_apple_tree.has_fruit():
+            self.move.navigation([NavMovement.CORRECTIVE_POINT_1, NavMovement.IDENTIFY_TREE_1_2])
+            self.move.rotation_correction()
+            grab_apple_tree.direction = Direction.RIGHT
+            grab_apple_tree.grab_apple_from_tree()
+
+        # 回起始区
+        self.move.navigation([NavMovement.CORRECTIVE_POINT_1, NavMovement.START_POINT])
+

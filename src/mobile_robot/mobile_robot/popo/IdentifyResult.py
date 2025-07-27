@@ -8,4 +8,4 @@ class IdentifyResult:
     class_id: str
     confidence: float
     box: Rectangle
-    distance: float = 0
+    distance: float = -1

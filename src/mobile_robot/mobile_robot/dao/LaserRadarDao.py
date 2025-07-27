@@ -97,14 +97,11 @@ class LaserRadarDao:
 
         if direction == Direction.FRONT:
             pass
-        elif direction == Direction.LEFT:
-            if angle < 0:
-                angle += 90
         else:
-            if angle < 0:
-                angle += 90
-            else:
+            if angle > 0:
                 angle -= 90
+            else:
+                angle += 90
 
         return angle - RADAR_ERROR
 
@@ -113,7 +110,7 @@ class LaserRadarDao:
             self.__logger.error("无法获取角度: 不支持的方向")
             return 0
 
-        for i in range(1, 11):
+        for i in range(10):
             angle_1 = self.get_angle_from_wall_once(direction)
             time.sleep(0.2)
             angle_2 = self.get_angle_from_wall_once(direction)
@@ -123,7 +120,7 @@ class LaserRadarDao:
                 self.__logger.debug(f"扫描到的雷达角度为 {angle}")
                 return angle
             else:
-                self.__logger.warn(f"雷达两次角度获取误差较大 {abs(angle_2 - angle_1)}，重试 {i} 次")
+                self.__logger.warn(f"雷达两次角度获取误差较大 {abs(angle_2 - angle_1)}，重试 {i + 1} 次")
         return 0
 
     def get_distance_from_wall_once(self, direction: Direction) -> float:
