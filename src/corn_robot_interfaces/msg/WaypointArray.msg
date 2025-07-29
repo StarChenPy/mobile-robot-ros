@@ -1,1 +1,0 @@
-corn_robot_interfaces/Waypoint[] waypoints

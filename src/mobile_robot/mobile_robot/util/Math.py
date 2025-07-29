@@ -384,3 +384,15 @@ def find_points_in_squares(points: list[Point], squares: list[Rectangle]):
                 results.append(point)
                 points.remove(point)  # 确保每个点只被计入一次
     return results
+
+def round_right_angle(i: float) -> int:
+    """
+    给定一个角度，向直角逼近
+    """
+
+    f = 1 if i > 0 else -1
+
+    if abs(i % (90 * f)) >= 45:
+        return  90 * f * (abs(int(i / 90)) + 1)
+    else:
+        return 90 * f * (abs(int(i / 90)))

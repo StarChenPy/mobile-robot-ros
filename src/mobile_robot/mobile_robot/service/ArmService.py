@@ -8,6 +8,8 @@ from ..dao.LiftMotorDao import LiftMotorDao
 from ..dao.RobotCtrlDao import RobotCtrlDao
 from ..dao.RobotDataDao import RobotDataDao
 from ..dao.RotateMotorDao import RotateMotorDao
+from ..param import ArmMovement
+from ..popo.Direction import Direction
 from ..popo.Servo import Servo
 from ..util import Math
 from ..util.Config import Config
@@ -51,6 +53,19 @@ class ArmService:
     def wait_finish(self):
         self.__lift_motor.wait_finish()
         self.__rotate_motor.wait_finish()
+
+    def grab_basket_from_station(self, direction: Direction):
+        ArmMovement.station_basket_top(self, direction)
+        ArmMovement.open_gripper(self)
+        self.nod_servo(0)
+        distance_from_wall = self.__radar.get_distance_from_wall(direction)
+        self.telescopic_servo((distance_from_wall - 0.25) * 100)
+
+        self.lift(9.5)
+        ArmMovement.close_gripper_basket(self)
+        self.lift(0, is_block=False)
+        self.rotate(0, is_block=False)
+        self.wait_finish()
 
     def rotary_servo(self, angle: float, enable=True):
         """

@@ -26,7 +26,7 @@ class VisionService:
         self.__camera = CameraDao(node)
 
         share_directory = ament_index_python.packages.get_package_share_directory("mobile_robot")
-        self.__weight_path = share_directory + "/weights/grape_and_apple.onnx"
+        self.__weight_path = share_directory + "/weights/best.onnx"
         self.__names_path = share_directory + "/weights/fruit.names"
 
     def get_mnn_identify_result(self) -> list[IdentifyResult]:
@@ -37,13 +37,16 @@ class VisionService:
         self.__mnn.stop()
         return result
 
+    def photograph(self):
+        return self.__camera.photograph_color(True)
+
     def show_photo(self, photo) -> None:
         result = infer_onnx_model(self.__weight_path, photo)
         for r in result:
             cv2.rectangle(photo, (r.box.x1, r.box.y1), (r.box.x2, r.box.y2), (0, 255, 0), 2)
             cv2.putText(photo, '{} {:.3f}'.format(r.class_id, r.confidence), (r.box.x1, r.box.y1), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
         cv2.imshow("123", photo)
-        cv2.waitKey(0)
+        cv2.waitKey(1)
         cv2.destroyAllWindows()
 
     def get_onnx_identify_depth(self, inverted=False, kernel_size=11) -> list[IdentifyResult]:
@@ -93,6 +96,17 @@ class VisionService:
         depth = self.__camera.photograph_depth(True)
         distance = depth[int(point.y), int(point.x)] / 1000
         return distance.item()
+
+    def find_fruit(self, fruit=None):
+        identify = self.get_onnx_identify_depth()
+        if not fruit:
+            return None
+
+        for i in identify:
+            if FruitType(i.class_id) not in fruit:
+                continue
+            return i
+        return None
 
     def get_order_box(self) -> dict[int: list[Rectangle]]:
         image = self.__camera.photograph_color(True)

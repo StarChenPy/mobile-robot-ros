@@ -55,12 +55,14 @@ class MoveService:
         if is_block:
             self.__my_navigation.wait_finish()
 
-    def navigation(self, nav_path: list[NavigationPoint], speed=0.5, is_block=True):
+    def navigation(self, nav_path: list[NavigationPoint], speed=0.5, is_block=True, corrective=True):
         """
         通过路径进行导航
+        若目标点为矫正点且开启矫正功能，则在前往矫正点时强制阻塞
         @param nav_path 路径列表
         @param speed 移送速度
         @param is_block 是否阻塞
+        @param corrective 是否启用矫正
         """
         path = []
         previous_point = None
@@ -74,7 +76,7 @@ class MoveService:
                 odom = self.__robot_data.get_robot_data().odom
                 previous_point = NavigationPoint(odom.x, odom.y, odom.w)
 
-            if isinstance(point, CorrectivePoint):
+            if isinstance(point, CorrectivePoint) and corrective:
                 # 如果是矫正点，先执行完已有的导航
                 if path:
                     path.append(point)

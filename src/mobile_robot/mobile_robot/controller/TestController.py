@@ -1,19 +1,14 @@
-import time
-
 import rclpy
 
 from ..param import ArmMovement, NavMovement
 from ..popo.Direction import Direction
 from ..popo.FruitType import FruitType
-from ..popo.IdentifyResult import IdentifyResult
-from ..popo.NavigationPoint import NavigationPoint
 from ..service.ArmService import ArmService
 from ..service.MoveService import MoveService
 from ..service.RobotService import RobotService
 from ..service.SensorService import SensorService
 from ..service.VisionService import VisionService
-from ..util import Math
-from ..util.GrabAppleTree import GrabAppleTree
+from ..util.GrabGrapeWall import GrabGrapeWall
 from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
@@ -32,12 +27,19 @@ class TestController:
 
     def run(self):
         self.robot.with_robot_connect()
-        # self.arm.back_origin()
+        self.arm.back_origin()
 
+        # self.vision.show_photo(self.vision.photograph())
+
+        # self.move.navigation([NavMovement.VINEYARD_1])
+        wall = GrabGrapeWall(self.node, Direction.RIGHT)
         ArmMovement.identify_grape(self.arm, Direction.RIGHT)
+        wall.grab_grape(self.vision.find_fruit(FruitType.all()))
+        # wall.find_grape_and_grab(NavMovement.VINEYARD_3)
 
-        self.sensor.init_odom_all(NavigationPoint(0, 0, 0))
-        self.move.navigation([NavigationPoint(2, 0, 0)], 0.1)
+
+        # self.sensor.init_odom_all(NavigationPoint(0, 0, 0))
+        # self.move.navigation([NavigationPoint(2, 0, 0)], 0.1)
 
         # ArmMovement.identify_grape(self.arm, Direction.RIGHT)
         # ArmMovement.grab_grape_on_wall(self.arm, Direction.RIGHT, True)
@@ -52,4 +54,5 @@ class TestController:
         # while True:
         #     input("Press Enter to continue...")
         #     # self.move.corrective(NavMovement.VINEYARD_1)
-        #     print(self.sensor.get_angle_from_wall(Direction.RIGHT))
+        #     print("左墙: ", self.sensor.get_angle_from_wall(Direction.LEFT))
+        #     print("右墙: ", self.sensor.get_angle_from_wall(Direction.RIGHT))

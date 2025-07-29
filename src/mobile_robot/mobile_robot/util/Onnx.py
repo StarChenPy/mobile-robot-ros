@@ -5,7 +5,7 @@ import onnxruntime as ort
 from ..popo.IdentifyResult import IdentifyResult
 from ..popo.Rectangle import Rectangle
 
-names = ["red_apple", "green_apple", "yellow_apple", "purple_grapes", "green_grapes", "yellow_grapes"]
+names = ["red_apple", "green_apple", "yellow_apple", "purple_apple", "purple_grape", "green_grape", "yellow_grape"]
 
 
 def __preprocess(image: np.ndarray, target_size: int = 640) -> tuple[np.ndarray, tuple]:

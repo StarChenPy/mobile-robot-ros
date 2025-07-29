@@ -1,8 +1,0 @@
-# 起始点与目标点
-string start
-string goal
-
----
-
-# 生成的路径
-corn_robot_interfaces/WaypointArray path

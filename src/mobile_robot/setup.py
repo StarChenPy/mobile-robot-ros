@@ -26,6 +26,7 @@ setup(
         'console_scripts': [
             'test = mobile_robot.test_module:main',
             'b = mobile_robot.task_b_module:main',
+            'd = mobile_robot.task_d_module:main',
             'debug = mobile_robot.debug_module:main'
         ],
     },
