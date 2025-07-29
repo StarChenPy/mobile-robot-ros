@@ -5,8 +5,6 @@ import rclpy
 from ..dao.InitialPoseDao import InitialPoseDao
 from ..dao.LaserRadarDao import LaserRadarDao
 from ..dao.MotionDao import MotionDao
-from ..dao.MyNavigationDao import MyNavigationDao
-from ..dao.NavigationDao import NavigationDao
 from ..dao.NavigationPtpDao import NavigationPtpDao
 from ..dao.OdomDao import OdomDao
 from ..dao.RobotDataDao import RobotDataDao
@@ -31,7 +29,6 @@ class MoveService:
         self.__odom = OdomDao(node)
         self.__radar = LaserRadarDao(node)
         self.__robot_data = RobotDataDao(node)
-        self.__my_navigation = MyNavigationDao(node)
         self.init_pose = InitialPoseDao(node)
 
     def __navigation_handle(self, path: list[NavigationPoint], speed: float, is_block: bool):
@@ -48,12 +45,6 @@ class MoveService:
         min_angle = min(angles, key=lambda x: (abs(x), -x))
         if abs(min_angle) > 1:
             self.rotate(min_angle)
-
-    def my_navigation(self, waypoint_name: str, speed=0.5, is_block=True):
-        self.__my_navigation.navigation(waypoint_name, speed)
-
-        if is_block:
-            self.__my_navigation.wait_finish()
 
     def navigation(self, nav_path: list[NavigationPoint], speed=0.5, is_block=True, corrective=True):
         """
@@ -199,6 +190,3 @@ class MoveService:
 
     def stop_navigation(self):
         self.navigation_ptp.cancel()
-
-    def stop_my_navigation(self):
-        self.__my_navigation.cancel()
