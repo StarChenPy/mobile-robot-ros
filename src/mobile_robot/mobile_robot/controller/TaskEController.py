@@ -68,38 +68,13 @@ class TaskEController:
 
         self.move.navigation([NavMovement.IDENTIFY_TREE_1_1])
         grab_apple_tree.grab_apple_from_tree()
+        if not grab_apple_tree.has_apple():
+            return
 
-        if grab_apple_tree.has_apple():
-            self.move.navigation([NavMovement.IDENTIFY_TREE_1_2])
-            grab_apple_tree.grab_apple_from_tree()
-
-    def grab_grapes(self):
-        grab_grape_wall = GrabGrapeWall(self.node, Direction.RIGHT)
-        grab_grape_wall.basket_1 = [FruitType.PURPLE_GRAPE] * 6
-        grab_grape_wall.basket_2 = [FruitType.GREEN_GRAPE] * 6
-        grab_grape_wall.basket_3 = [FruitType.YELLOW_GRAPE] * 6
-
-        # 抓第一个走廊
-        self.move.navigation([NavMovement.CORRECTIVE_POINT_2, NavMovement.VINEYARD_1])
-        grab_grape_wall.find_grape_and_grab(NavMovement.VINEYARD_3)
-
-        # 抓第二个走廊的一半
-        self.move.navigation([NavMovement.VINEYARD_2, NavMovement.VINEYARD_4_180])
-        grab_grape_wall.find_grape_and_grab(NavMovement.VINEYARD_5)
-
-        # 抓第二个走廊的另一半
-        self.move.navigation([NavMovement.VINEYARD_4_0])
-        grab_grape_wall.direction = Direction.LEFT
-        grab_grape_wall.find_grape_and_grab(NavMovement.VINEYARD_6)
-
-        # 抓第三个走廊
-        self.move.navigation([NavMovement.VINEYARD_7])
-        grab_grape_wall.direction = Direction.RIGHT
-        grab_grape_wall.find_grape_and_grab(NavMovement.VINEYARD_8)
-
-        # 回到第一个走廊
-        self.move.navigation([NavMovement.VINEYARD_7, NavMovement.VINEYARD_6, NavMovement.VINEYARD_4_180, NavMovement.VINEYARD_2, NavMovement.VINEYARD_1])
-
+        self.move.navigation([NavMovement.IDENTIFY_TREE_1_2])
+        grab_apple_tree.grab_apple_from_tree()
+        if not grab_apple_tree.has_apple():
+            return
 
     def grab_grapes(self):
         grab_grape_wall = GrabGrapeWall(self.node, Direction.RIGHT)
@@ -110,24 +85,35 @@ class TaskEController:
         # 抓第一个走廊
         self.move.navigation([NavMovement.VINEYARD_1])
         grab_grape_wall.find_grape_and_grab(NavMovement.VINEYARD_3)
+        if not grab_grape_wall.has_grape():
+            self.move.navigation([NavMovement.VINEYARD_1])
+            return
 
         # 抓第二个走廊的一半
         self.move.navigation([NavMovement.VINEYARD_2, NavMovement.VINEYARD_4_180])
         grab_grape_wall.find_grape_and_grab(NavMovement.VINEYARD_5)
+        if not grab_grape_wall.has_grape():
+            self.move.navigation([NavMovement.VINEYARD_4_0, NavMovement.VINEYARD_2, NavMovement.VINEYARD_1])
+            return
 
         # 抓第二个走廊的另一半
         self.move.navigation([NavMovement.VINEYARD_4_0])
         grab_grape_wall.direction = Direction.LEFT
         grab_grape_wall.find_grape_and_grab(NavMovement.VINEYARD_6)
+        if not grab_grape_wall.has_grape():
+            self.move.navigation([NavMovement.VINEYARD_4_0, NavMovement.VINEYARD_2, NavMovement.VINEYARD_1])
+            return
 
         # 抓第三个走廊
         self.move.navigation([NavMovement.VINEYARD_7])
         grab_grape_wall.direction = Direction.RIGHT
         grab_grape_wall.find_grape_and_grab(NavMovement.VINEYARD_8)
+        if not grab_grape_wall.has_grape():
+            self.move.navigation([NavMovement.VINEYARD_4_0, NavMovement.VINEYARD_2, NavMovement.VINEYARD_1])
+            return
 
         # 回到第一个走廊
         self.move.navigation([NavMovement.VINEYARD_7, NavMovement.VINEYARD_6, NavMovement.VINEYARD_4_180, NavMovement.VINEYARD_2, NavMovement.VINEYARD_1])
-
 
     def put_baskets(self):
         # 去放第1个框子

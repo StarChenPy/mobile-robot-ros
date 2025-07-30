@@ -90,6 +90,10 @@ class GrabGrapeWall:
 
         self.move.navigation([target_point], 0.1, False, False)
         while self.move.get_status():
+            # 如果框子里没有要抓的水果了，直接返回
+            if not self.has_grape():
+                break
+
             odom = self.sensor.get_odom_data()
             d = math.sqrt(math.pow((target_point.x - odom.x), 2) + math.pow((target_point.y - odom.y), 2))
             # 走0.5m 固定矫正一次

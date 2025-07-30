@@ -2,7 +2,6 @@ import time
 
 import rclpy
 
-from ..dao.InitialPoseDao import InitialPoseDao
 from ..dao.LaserRadarDao import LaserRadarDao
 from ..dao.MotionDao import MotionDao
 from ..dao.NavigationPtpDao import NavigationPtpDao
@@ -23,13 +22,14 @@ class MoveService:
         self.__node = node
         self.__logger = Logger()
 
+        self.previous_point = None
+
         self.navigation_ptp = NavigationPtpDao(node)
         self.__motion = MotionDao(node)
         self.__sensor = SensorDao(node)
         self.__odom = OdomDao(node)
         self.__radar = LaserRadarDao(node)
         self.__robot_data = RobotDataDao(node)
-        self.init_pose = InitialPoseDao(node)
 
     def __navigation_handle(self, path: list[NavigationPoint], speed: float, is_block: bool):
         self.navigation_ptp.navigation(path, speed, speed * 5, False)
@@ -56,17 +56,12 @@ class MoveService:
         @param corrective 是否启用矫正
         """
         path = []
-        previous_point = None
 
         if not nav_path:
             self.__logger.warn("导航为空路径")
             return
 
         for point in nav_path:
-            if previous_point is None:
-                odom = self.__robot_data.get_robot_data().odom
-                previous_point = NavigationPoint(odom.x, odom.y, odom.w)
-
             if isinstance(point, CorrectivePoint) and corrective:
                 # 如果是矫正点，先执行完已有的导航
                 if path:
@@ -81,22 +76,28 @@ class MoveService:
                 # 然后矫正当前坐标
                 self.corrective(point)
                 path = []
+                self.previous_point = point
                 continue
 
+            if self.previous_point is None:
+                odom = self.__robot_data.get_robot_data().odom
+                self.previous_point = NavigationPoint(odom.x, odom.y, odom.w)
+
             # 如果这个点位在上个点位的后面，就倒车回去
-            if previous_point.yaw is not None and Math.is_behind(previous_point, point, 30):
+            if self.previous_point.yaw is not None and Math.is_behind(self.previous_point, point, 45):
+                print(f"触发倒车了，分别是 {self.previous_point} 与 {point}")
                 # 先清空导航
                 if path:
                     self.__navigation_handle(path, speed, True)
                     path = []
                 if point.yaw is None:
-                    point.yaw = previous_point.yaw
+                    point.yaw = self.previous_point.yaw
                 self.navigation_ptp.navigation([point], speed, speed * 5,  True)
                 self.navigation_ptp.wait_finish()
             else:
                 path.append(point)
 
-            previous_point = point
+            self.previous_point = point
 
         if path:
             self.__navigation_handle(path, speed, is_block)
