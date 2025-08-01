@@ -1,7 +1,9 @@
+from ..popo.Direction import Direction
 from ..popo.FruitLocationOnTree import FruitLocationOnTree
 from ..popo.FruitHeight import FruitHeight
 from ..popo.FruitType import FruitType
 from ..popo.IdentifyResult import IdentifyResult
+from ..popo.NavigationPoint import NavigationPoint
 
 
 def get_fruit_location(data: list[IdentifyResult], fruits: list[FruitType]) -> dict[FruitLocationOnTree: FruitType]:

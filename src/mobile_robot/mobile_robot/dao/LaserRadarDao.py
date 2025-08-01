@@ -11,7 +11,7 @@ from ..util import Math
 from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
-RADAR_ERROR = 2.7
+RADAR_ERROR = 3.3
 
 
 @singleton

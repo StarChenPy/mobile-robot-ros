@@ -3,12 +3,10 @@ import time
 import rclpy
 
 from web_message_transform_ros2.msg import Pose
-from ..dao.InitialPoseDao import InitialPoseDao
 from ..dao.LaserRadarDao import LaserRadarDao
 from ..dao.OdomDao import OdomDao
 from ..dao.RobotDataDao import RobotDataDao
 from ..dao.SensorDao import SensorDao
-from ..popo.CorrectivePoint import CorrectivePoint
 from ..popo.Direction import Direction
 from ..popo.NavigationPoint import NavigationPoint
 from ..util import Math
@@ -26,7 +24,6 @@ class SensorService:
         self.__radar = LaserRadarDao(node)
         self.__robot_data = RobotDataDao(node)
         self.__odom = OdomDao(node)
-        self.__initial_pose = InitialPoseDao(node)
 
     def ping_revise(self, dis: float, is_block=True):
         dis = (dis - 0.24) * 100
@@ -65,9 +62,6 @@ class SensorService:
     def get_odom_data(self) -> Pose:
         rclpy.spin_once(self.__node)
         return self.__robot_data.get_robot_data().odom
-
-    def initial_pose(self, point: NavigationPoint):
-        self.__initial_pose.set_initial_pose(point)
 
     def init_odom_all(self, point: NavigationPoint):
         self.__odom.init_all(point)

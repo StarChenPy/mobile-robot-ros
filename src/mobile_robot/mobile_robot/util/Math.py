@@ -133,6 +133,15 @@ def is_behind(point1: NavigationPoint, point2: NavigationPoint, angle_threshold:
     dx = point2.x - point1.x
     dy = point2.y - point1.y
 
+    if not point1.yaw or not point2.yaw:
+        return False
+
+    yaw = abs(point1.yaw - point2.yaw)
+    if yaw > 180:
+        yaw = abs(yaw - 360)
+    if yaw > angle_threshold:
+        return False
+
     # 处理两点重合的情况
     if dx == 0 and dy == 0:
         return False

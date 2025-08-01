@@ -11,6 +11,7 @@ from ..service.VisionService import VisionService
 from ..util.GrabGrapeWall import GrabGrapeWall
 from ..util.Logger import Logger
 from ..util.Singleton import singleton
+from ..util.StationEnum import Station
 
 
 @singleton
@@ -27,15 +28,9 @@ class TestController:
 
     def run(self):
         self.robot.with_robot_connect()
-        self.arm.back_origin()
+        # self.arm.back_origin()
 
         # self.vision.show_photo(self.vision.photograph())
-
-        # self.move.navigation([NavMovement.VINEYARD_1])
-        wall = GrabGrapeWall(self.node, Direction.RIGHT)
-        ArmMovement.identify_grape(self.arm, Direction.RIGHT)
-        wall.grab_grape(self.vision.find_fruit(FruitType.all()))
-        # wall.find_grape_and_grab(NavMovement.VINEYARD_3)
 
 
         # self.sensor.init_odom_all(NavigationPoint(0, 0, 0))
@@ -51,8 +46,7 @@ class TestController:
         # tree.grab_apple_from_tree()
         # ArmMovement.motion(self.arm)
 
-        # while True:
-        #     input("Press Enter to continue...")
-        #     # self.move.corrective(NavMovement.VINEYARD_1)
-        #     print("左墙: ", self.sensor.get_angle_from_wall(Direction.LEFT))
-        #     print("右墙: ", self.sensor.get_angle_from_wall(Direction.RIGHT))
+        while True:
+            input("Press Enter to continue...")
+            print("左墙: ", self.sensor.get_angle_from_wall(Direction.LEFT))
+            print("右墙: ", self.sensor.get_angle_from_wall(Direction.RIGHT))

@@ -43,7 +43,7 @@ class NavigationPtpDao:
         goal_msg.linear_vel = float(linear_speed)
         goal_msg.rotation_vel = float(rotation_speed)
         goal_msg.linear_acc = float(0.69)  # 直线加速度
-        goal_msg.linear_decel = float(0.33)  # 直线减加速度
+        goal_msg.linear_decel = float(0.43)  # 直线减加速度
         goal_msg.rotate_acc = float(2.5)  # 旋转加速度
         goal_msg.rotate_decel = float(1)  # 旋转减加速度
         goal_msg.heading = float(points[-1].yaw)

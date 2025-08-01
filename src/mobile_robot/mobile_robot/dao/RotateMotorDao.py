@@ -32,12 +32,12 @@ class RotateMotorDao(AbstractMotorDao):
             self.__logger.warn(f"目标角度 {target} 低于最小值 {min_val}")
             target = min_val
 
-        enc_ppi = 1720.0 * 4
+        enc_ppi = 1750.0 * 4
         target_pulses = target * (enc_ppi / 360.0)
 
         # 调用电机服务
         super()._call_service(MotorCmd.SET_POSITION, target_pulses, speed)
-        self.__logger.debug(f"已请求旋转电机服务")
+        self.__logger.info(f"已请求旋转电机服务, 目标值 {target}")
 
     def _get_motor_config(self):
         return Config().get_rotate_motor_config()

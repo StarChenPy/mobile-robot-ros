@@ -60,8 +60,8 @@ class GrabGrapeWall:
         y_distance = Math.pixel_to_distance_from_bottom(center.y, distance)
         self.move.line(x_distance)
 
-        # distance 要减去夹爪度8cm, x_distance要加上从夹爪到旋转中心的34cm
-        angle = Math.calculate_right_triangle_angle(distance - 0.1, 0.34)
+        # distance 要减去夹爪5cm, x_distance要加上从夹爪到旋转中心的34cm
+        angle = Math.calculate_right_triangle_angle(distance - 0.05, 0.34)
 
         lift_height = 32 - (y_distance * 100)
         self.arm.lift(lift_height, is_block=False)
@@ -88,7 +88,7 @@ class GrabGrapeWall:
 
         target_point.yaw = start_yaw
 
-        self.move.navigation([target_point], 0.1, False, False)
+        self.move.navigation([target_point], 0.15, False, False)
         while self.move.get_status():
             # 如果框子里没有要抓的水果了，直接返回
             if not self.has_grape():
@@ -123,6 +123,7 @@ class GrabGrapeWall:
                         basket.remove(fruit_type)
                         self.grab_grape(grape)
                         ArmMovement.put_fruit_to_basket(self.arm, i)
+                        break
 
                 ArmMovement.identify_grape(self.arm, self.direction)
 
@@ -132,7 +133,7 @@ class GrabGrapeWall:
                 self.sensor.init_odom_yaw(start_yaw - angle_from_wall)
 
             # 继续导航
-            self.move.navigation([target_point], 0.1, False, False)
+            self.move.navigation([target_point], 0.15, False, False)
 
         ArmMovement.motion(self.arm)
         target_point.yaw = end_yaw

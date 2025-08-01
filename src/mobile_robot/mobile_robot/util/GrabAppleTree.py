@@ -1,5 +1,3 @@
-import time
-
 import rclpy.node
 
 from typing import List
@@ -10,18 +8,82 @@ from ..param import ArmMovement
 from ..popo.Direction import Direction
 from ..popo.FruitType import FruitType
 from ..popo.IdentifyResult import IdentifyResult
+from ..popo.NavigationPoint import NavigationPoint
 from ..service.ArmService import ArmService
 from ..service.MoveService import MoveService
 from ..service.VisionService import VisionService
 
 
+def create_tree_path(tree_point: NavigationPoint, tree_dir: list[Direction]) -> list[tuple[NavigationPoint, Direction]]:
+    """
+    根据树的位置和方向来计算识别点坐标点
+    """
+
+    identify_distance = 0.57
+    identify_offset = 0.34
+    min_x, max_x = 0.0, 4.0
+    min_y, max_y = 0.0, 4.0
+
+    direction_deltas = {
+        Direction.LEFT:   (0,  identify_distance),
+        Direction.RIGHT:  (0, -identify_distance),
+        Direction.FRONT:  (identify_distance, 0),
+        Direction.BACK:  (-identify_distance, 0),
+    }
+
+    offset_map = {
+        (Direction.LEFT,  Direction.FRONT):  (identify_offset, 0, 180, Direction.LEFT),
+        (Direction.LEFT,  Direction.BACK):  (-identify_offset, 0, 0, Direction.RIGHT),
+        (Direction.RIGHT, Direction.FRONT):  (identify_offset, 0, 180, Direction.RIGHT),
+        (Direction.RIGHT, Direction.BACK):  (-identify_offset, 0, 0, Direction.LEFT),
+        (Direction.FRONT, Direction.LEFT):   (0, identify_offset, -90, Direction.RIGHT),
+        (Direction.FRONT, Direction.RIGHT):  (0, -identify_offset, 90, Direction.LEFT),
+        (Direction.BACK,  Direction.LEFT):   (0, identify_offset, -90, Direction.LEFT),
+        (Direction.BACK,  Direction.RIGHT):  (0, -identify_offset, 90, Direction.RIGHT),
+    }
+
+    nav_points = []
+
+    for i in tree_dir:
+        dx, dy = direction_deltas[i]
+        x = tree_point.x + dx
+        y = tree_point.y + dy
+
+        if not (min_x <= x <= max_x):
+            raise RuntimeError(f"{i} 无法推出路径点，x超出边界: {x}")
+        if not (min_y <= y <= max_y):
+            raise RuntimeError(f"{i} 无法推出路径点，y超出边界: {y}")
+
+        # 找到匹配的 offset 方向组合
+        for j in tree_dir:
+            if i == j:
+                continue
+            key = (i, j)
+            if key in offset_map:
+                odx, ody, yaw, identify_dir = offset_map[key]
+                x2 = x + odx
+                y2 = y + ody
+
+                if not (min_x <= x2 <= max_x):
+                    raise RuntimeError(f"{i}->{j} 无法推出路径点，x超出边界: {x2}")
+                if not (min_y <= y2 <= max_y):
+                    raise RuntimeError(f"{i}->{j} 无法推出路径点，y超出边界: {y2}")
+
+                nav_points.append((NavigationPoint(x2, y2, yaw), identify_dir))
+                break
+        else:
+            raise ValueError(f"{i} 无法推出路径点, 需要相邻的方向来推算!")
+
+    return nav_points
+
+
 @singleton
 class GrabAppleTree:
-    def __init__(self, node: rclpy.node.Node, direction: Direction):
+    def __init__(self, node: rclpy.node.Node):
         self.logger = Logger()
         self.node = node
 
-        self.direction = direction
+        self.direction = None
         self.max_move_distance = 0.68
         self.max_grab_distance = 0.46
         self.min_grab_distance = 0.27
@@ -45,8 +107,6 @@ class GrabAppleTree:
     def find_fruits(self, fruit=None) -> List[IdentifyResult]:
         identify = self.vision.get_onnx_identify_depth()
 
-        print(identify)
-
         result = []
         for i in identify:
             if fruit:
@@ -58,6 +118,11 @@ class GrabAppleTree:
         return result
 
     def close_tree(self, distance: float):
+        if not self.direction:
+            raise RuntimeError("没有方向!")
+
+        self.logger.info(f"向果树靠近 {distance} 米")
+
         """靠近果树"""
         ArmMovement.motion(self.arm)
         self.move.rotate(90)
@@ -68,6 +133,9 @@ class GrabAppleTree:
         self.move.rotate(-90)
 
     def grab_apple_from_tree(self):
+        if not self.direction:
+            raise RuntimeError("没有方向!")
+
         ArmMovement.identify_tree_fruit(self.arm, self.direction)
         fruits = self.find_fruits(self.basket_1 + self.basket_2 + self.basket_3)
         prev_move_len = 0
@@ -88,6 +156,18 @@ class GrabAppleTree:
 
         fruits.sort(key=lambda fruit: fruit.box.get_rectangle_center().x)
         for i in fruits:
+            if i.distance == -1:
+                self.logger.warn(f"没有深度信息，跳过{i.class_id}")
+                continue
+
+            if i.box.get_area() < 2000:
+                self.logger.warn(f"面积太小，可能有遮挡，跳过{i.class_id}")
+                self.logger.warn(f"面积 {i.box.get_area()}")
+
+            if max_distance - i.distance > 18:
+                self.logger.warn(f"与可见的最大深度差值过大，不可抓，跳过{i.class_id}")
+                continue
+
             center = i.box.get_rectangle_center()
             fruit_type = FruitType(i.class_id)
 
@@ -117,6 +197,15 @@ class GrabAppleTree:
                 if fruit_type in basket:
                     ArmMovement.put_fruit_to_basket(self.arm, i)
                     basket.remove(fruit_type)
+                    break
 
         ArmMovement.motion(self.arm)
         return True
+
+    def grab_tree(self, tree_point: NavigationPoint, tree_dir: list[Direction]):
+        path = create_tree_path(tree_point, tree_dir)
+
+        for p, d in path:
+            self.move.navigation([p])
+            self.direction = d
+            self.grab_apple_from_tree()

@@ -39,12 +39,12 @@ class ArmService:
 
         self.__logger.info(f"回原点结束")
 
-    def lift(self, target: float, speed = 60, is_block=True):
+    def lift(self, target: float, speed = 70, is_block=True):
         self.__lift_motor.ctrl_motor(target, speed)
         if is_block:
             self.__lift_motor.wait_finish()
 
-    def rotate(self, target: float, speed = 60, is_block=True):
+    def rotate(self, target: float, speed = 70, is_block=True):
         target += 2  # 调整偏差
         self.__rotate_motor.ctrl_motor(target, speed)
         if is_block:
@@ -63,9 +63,7 @@ class ArmService:
 
         self.lift(9.5)
         ArmMovement.close_gripper_basket(self)
-        self.lift(0, is_block=False)
-        self.rotate(0, is_block=False)
-        self.wait_finish()
+        self.lift(0)
 
     def rotary_servo(self, angle: float, enable=True):
         """

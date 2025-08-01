@@ -22,8 +22,6 @@ class MoveService:
         self.__node = node
         self.__logger = Logger()
 
-        self.previous_point = None
-
         self.navigation_ptp = NavigationPtpDao(node)
         self.__motion = MotionDao(node)
         self.__sensor = SensorDao(node)
@@ -46,7 +44,7 @@ class MoveService:
         if abs(min_angle) > 1:
             self.rotate(min_angle)
 
-    def navigation(self, nav_path: list[NavigationPoint], speed=0.5, is_block=True, corrective=True):
+    def navigation(self, nav_path: list[NavigationPoint], speed=0.63, is_block=True, corrective=True):
         """
         通过路径进行导航
         若目标点为矫正点且开启矫正功能，则在前往矫正点时强制阻塞
@@ -56,6 +54,7 @@ class MoveService:
         @param corrective 是否启用矫正
         """
         path = []
+        previous_point = None
 
         if not nav_path:
             self.__logger.warn("导航为空路径")
@@ -76,28 +75,28 @@ class MoveService:
                 # 然后矫正当前坐标
                 self.corrective(point)
                 path = []
-                self.previous_point = point
+                previous_point = point
                 continue
 
-            if self.previous_point is None:
+            if previous_point is None:
                 odom = self.__robot_data.get_robot_data().odom
-                self.previous_point = NavigationPoint(odom.x, odom.y, odom.w)
+                previous_point = NavigationPoint(odom.x, odom.y, odom.w)
 
             # 如果这个点位在上个点位的后面，就倒车回去
-            if self.previous_point.yaw is not None and Math.is_behind(self.previous_point, point, 45):
-                print(f"触发倒车了，分别是 {self.previous_point} 与 {point}")
+            if Math.is_behind(previous_point, point, 80):
+                print(f"触发倒车了，分别是 {previous_point} 与 {point}")
                 # 先清空导航
                 if path:
                     self.__navigation_handle(path, speed, True)
                     path = []
                 if point.yaw is None:
-                    point.yaw = self.previous_point.yaw
+                    point.yaw = previous_point.yaw
                 self.navigation_ptp.navigation([point], speed, speed * 5,  True)
                 self.navigation_ptp.wait_finish()
             else:
                 path.append(point)
 
-            self.previous_point = point
+            previous_point = point
 
         if path:
             self.__navigation_handle(path, speed, is_block)
@@ -140,8 +139,8 @@ class MoveService:
             # 陀螺仪不会歪那么多，角度超过10就是不可信的数据
             if abs1 > 300:
                 self.__logger.warn("矫正角度与陀螺仪误差超过300度, 可能是180度分界线.")
-            elif abs1 > 15:
-                self.__logger.warn(f"矫正角度与陀螺仪误差超过15度，不可信数据。陀螺仪角度: {odom_w}, 测量角度: {new_yaw}")
+            elif abs1 > 30:
+                self.__logger.warn(f"矫正角度与陀螺仪误差超过30度，不可信数据。陀螺仪角度: {odom_w}, 测量角度: {new_yaw}")
                 return
             self.__logger.info(f"矫正当前角度为: {new_yaw}")
             self.__odom.init_yaw(new_yaw)

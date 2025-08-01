@@ -47,9 +47,13 @@ class TaskBController:
         task_method = getattr(self, f"task_{i}")
         if callable(task_method):
             self.logger.info(f"开始执行任务B-任务{i}")
+            start_time = time.time()
             self.robot.set_start_led(True)
             task_method()
             self.robot.set_start_led(False)
+            end_time = time.time()
+            use_time = end_time - start_time
+            self.logger.info(f"执行时间：{int(use_time / 60)} 分 {use_time % 60}秒")
             self.logger.info(f"任务B-任务{i}完成")
         else:
             self.logger.error(f"任务B-任务{i}不存在")
@@ -95,7 +99,7 @@ class TaskBController:
         NavMovement.start_to_yellow_station_1(self.move)
         self.sensor.ping_revise(0.89)
         self.grab_basket_from_station(Direction.LEFT)
-        ArmMovement.put_basket_to_robot_b(self.arm, 1)
+        ArmMovement.put_basket_to_robot(self.arm, 1)
         ArmMovement.motion(self.arm)
 
         count = 0
@@ -222,9 +226,7 @@ class TaskBController:
 
         self.arm.lift(9.5)
         ArmMovement.close_gripper_basket(self.arm)
-        self.arm.lift(0, is_block=False)
-        self.arm.rotate(0, is_block=False)
-        self.arm.wait_finish()
+        self.arm.lift(0)
 
     def task_5(self):
         # 去抓第1个框子
@@ -232,7 +234,7 @@ class TaskBController:
         self.move.rotation_correction()
         self.sensor.ping_revise(0.89)
         self.grab_basket_from_station(Direction.LEFT)
-        ArmMovement.put_basket_to_robot_b(self.arm, 1)
+        ArmMovement.put_basket_to_robot(self.arm, 1)
         ArmMovement.motion(self.arm)
 
         # 去抓第2个框子
@@ -240,7 +242,7 @@ class TaskBController:
         self.move.rotation_correction()
         self.corrective_form_front(1.11)
         self.grab_basket_from_station(Direction.LEFT)
-        ArmMovement.put_basket_to_robot_b(self.arm, 2)
+        ArmMovement.put_basket_to_robot(self.arm, 2)
         ArmMovement.motion(self.arm)
 
         # 去抓第3个框子
@@ -248,7 +250,7 @@ class TaskBController:
         self.move.rotation_correction()
         self.sensor.ping_revise(0.89)
         self.grab_basket_from_station(Direction.LEFT)
-        ArmMovement.put_basket_to_robot_b(self.arm, 3)
+        ArmMovement.put_basket_to_robot(self.arm, 3)
         ArmMovement.motion(self.arm)
 
         # 去放第1个框子
@@ -278,7 +280,7 @@ class TaskBController:
         self.move.rotation_correction()
         self.sensor.ping_revise(0.89)
         self.grab_basket_from_station(Direction.LEFT)
-        ArmMovement.put_basket_to_robot_b(self.arm, 1)
+        ArmMovement.put_basket_to_robot(self.arm, 1)
         ArmMovement.motion(self.arm)
 
         # 去苹果区抓一个苹果，放到篮子里
@@ -312,7 +314,7 @@ class TaskBController:
         self.move.rotation_correction()
         self.corrective_form_front(1.11)
         self.grab_basket_from_station(Direction.LEFT)
-        ArmMovement.put_basket_to_robot_b(self.arm, 1)
+        ArmMovement.put_basket_to_robot(self.arm, 1)
         ArmMovement.motion(self.arm)
 
         # 去红站台1抓框子
@@ -320,7 +322,7 @@ class TaskBController:
         self.move.rotation_correction()
         self.sensor.ping_revise(0.89)
         self.grab_basket_from_station(Direction.LEFT)
-        ArmMovement.put_basket_to_robot_b(self.arm, 2)
+        ArmMovement.put_basket_to_robot(self.arm, 2)
         ArmMovement.motion(self.arm)
 
         # 去红站台2抓框子
@@ -328,7 +330,7 @@ class TaskBController:
         self.move.rotation_correction()
         self.corrective_form_front(1.11)
         self.grab_basket_from_station(Direction.LEFT)
-        ArmMovement.put_basket_to_robot_b(self.arm, 3)
+        ArmMovement.put_basket_to_robot(self.arm, 3)
         ArmMovement.motion(self.arm)
 
         grab_apple_tree = GrabAppleTree(self.node, Direction.LEFT)
@@ -388,7 +390,7 @@ class TaskBController:
         self.move.rotation_correction()
         self.sensor.ping_revise(0.89)
         self.grab_basket_from_station(Direction.LEFT)
-        ArmMovement.put_basket_to_robot_b(self.arm, 1)
+        ArmMovement.put_basket_to_robot(self.arm, 1)
         ArmMovement.motion(self.arm)
 
         # 去黄站台2抓框子
@@ -396,7 +398,7 @@ class TaskBController:
         self.move.rotation_correction()
         self.corrective_form_front(1.11)
         self.grab_basket_from_station(Direction.LEFT)
-        ArmMovement.put_basket_to_robot_b(self.arm, 2)
+        ArmMovement.put_basket_to_robot(self.arm, 2)
         ArmMovement.motion(self.arm)
 
         # 去黄站台3抓框子
@@ -404,7 +406,7 @@ class TaskBController:
         self.move.rotation_correction()
         self.sensor.ping_revise(0.89)
         self.grab_basket_from_station(Direction.LEFT)
-        ArmMovement.put_basket_to_robot_b(self.arm, 3)
+        ArmMovement.put_basket_to_robot(self.arm, 3)
         ArmMovement.motion(self.arm)
 
         basket_1 = [FruitType.GREEN_GRAPE, FruitType.YELLOW_GRAPE]
@@ -437,7 +439,7 @@ class TaskBController:
         self.move.rotation_correction()
         self.corrective_form_front(1.11)
         self.grab_basket_from_station(Direction.LEFT)
-        ArmMovement.put_basket_to_robot_b(self.arm, 1)
+        ArmMovement.put_basket_to_robot(self.arm, 1)
         ArmMovement.motion(self.arm)
 
         # 去红站台1抓框子
@@ -445,7 +447,7 @@ class TaskBController:
         self.move.rotation_correction()
         self.sensor.ping_revise(0.89)
         self.grab_basket_from_station(Direction.LEFT)
-        ArmMovement.put_basket_to_robot_b(self.arm, 2)
+        ArmMovement.put_basket_to_robot(self.arm, 2)
         ArmMovement.motion(self.arm)
 
         # 去红站台2抓框子
@@ -453,7 +455,7 @@ class TaskBController:
         self.move.rotation_correction()
         self.corrective_form_front(1.11)
         self.grab_basket_from_station(Direction.LEFT)
-        ArmMovement.put_basket_to_robot_b(self.arm, 3)
+        ArmMovement.put_basket_to_robot(self.arm, 3)
         ArmMovement.motion(self.arm)
 
         grab_apple_tree = GrabAppleTree(self.node, Direction.LEFT)
