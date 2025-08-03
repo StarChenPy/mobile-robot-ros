@@ -57,6 +57,8 @@ class VisionService:
             photo = cv2.rotate(photo, cv2.ROTATE_180)
             depth = cv2.rotate(depth, cv2.ROTATE_180)
 
+        self.show_photo(photo)
+
         result = infer_onnx_model(self.__weight_path, photo)
 
         for r in result:

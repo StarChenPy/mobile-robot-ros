@@ -4,6 +4,7 @@ import rclpy
 
 from ..dao.LaserRadarDao import LaserRadarDao
 from ..dao.MotionDao import MotionDao
+from ..dao.NavigationDao import NavigationDao
 from ..dao.NavigationPtpDao import NavigationPtpDao
 from ..dao.OdomDao import OdomDao
 from ..dao.RobotDataDao import RobotDataDao
@@ -22,17 +23,23 @@ class MoveService:
         self.__node = node
         self.__logger = Logger()
 
-        self.navigation_ptp = NavigationPtpDao(node)
+        self.__navigation_ptp = NavigationPtpDao(node)
+        self.__navigation = NavigationDao(node)
         self.__motion = MotionDao(node)
         self.__sensor = SensorDao(node)
         self.__odom = OdomDao(node)
         self.__radar = LaserRadarDao(node)
         self.__robot_data = RobotDataDao(node)
 
-    def __navigation_handle(self, path: list[NavigationPoint], speed: float, is_block: bool):
-        self.navigation_ptp.navigation(path, speed, speed * 5, False)
+    def __ptp_navigation_handle(self, path: list[NavigationPoint], speed: float, is_block: bool):
+        self.__navigation_ptp.navigation(path, speed, speed * 5, False)
         if is_block:
-            self.navigation_ptp.wait_finish()
+            self.__navigation_ptp.wait_finish()
+
+    def __navigation_handle(self, path: list[NavigationPoint], speed: float, is_block: bool):
+        self.__navigation.navigation(path, speed, speed * 5, False)
+        if is_block:
+            self.__navigation.wait_finish()
 
     def rotation_correction(self):
         angle_by_front = self.__radar.get_angle_from_wall(Direction.FRONT)
@@ -44,7 +51,7 @@ class MoveService:
         if abs(min_angle) > 1:
             self.rotate(min_angle)
 
-    def navigation(self, nav_path: list[NavigationPoint], speed=0.63, is_block=True, corrective=True):
+    def navigation(self, nav_path: list[NavigationPoint], speed=0.63, is_block=True, corrective=True, ptp=True):
         """
         通过路径进行导航
         若目标点为矫正点且开启矫正功能，则在前往矫正点时强制阻塞
@@ -56,6 +63,11 @@ class MoveService:
         path = []
         previous_point = None
 
+        if ptp:
+            navigation_handle = self.__ptp_navigation_handle
+        else:
+            navigation_handle = self.__navigation_handle
+
         if not nav_path:
             self.__logger.warn("导航为空路径")
             return
@@ -65,10 +77,10 @@ class MoveService:
                 # 如果是矫正点，先执行完已有的导航
                 if path:
                     path.append(point)
-                    self.__navigation_handle(path, speed, True)
+                    navigation_handle(path, speed, True)
                 # 如果已经初始化过坐标，就直接往这个点走
                 elif self.__odom.get_init():
-                    self.__navigation_handle([point], speed, True)
+                    navigation_handle([point], speed, True)
                 # 否则就初始化一下角度
                 else:
                     self.__odom.init_yaw(point.yaw)
@@ -87,19 +99,19 @@ class MoveService:
                 print(f"触发倒车了，分别是 {previous_point} 与 {point}")
                 # 先清空导航
                 if path:
-                    self.__navigation_handle(path, speed, True)
+                    navigation_handle(path, speed, True)
                     path = []
                 if point.yaw is None:
                     point.yaw = previous_point.yaw
-                self.navigation_ptp.navigation([point], speed, speed * 5,  True)
-                self.navigation_ptp.wait_finish()
+                self.__navigation_ptp.navigation([point], speed, speed * 5,  True)
+                self.__navigation_ptp.wait_finish()
             else:
                 path.append(point)
 
             previous_point = point
 
         if path:
-            self.__navigation_handle(path, speed, is_block)
+            navigation_handle(path, speed, is_block)
 
 
     def corrective(self, point: CorrectivePoint):
@@ -182,11 +194,17 @@ class MoveService:
         if is_block:
             self.__motion.wait_finish()
 
-    def get_status(self):
-        return self.navigation_ptp.get_status()
+    def get_status(self, ptp=True):
+        if ptp:
+            return self.__navigation_ptp.get_status()
+        else:
+            return self.__navigation.get_status()
 
     def stop_motion(self):
         self.__motion.stop()
 
-    def stop_navigation(self):
-        self.navigation_ptp.cancel()
+    def stop_navigation(self, ptp=True):
+        if ptp:
+            self.__navigation_ptp.cancel()
+        else:
+            self.__navigation.cancel()

@@ -41,6 +41,7 @@ class TaskDController:
         self.put_baskets()
 
         self.move.navigation([NavMovement.CORRECTIVE_POINT_1, NavMovement.START_POINT], corrective=False)
+        self.arm.nod_servo(90)
         self.robot.set_start_led(False)
 
         end_time = time.time()
@@ -54,7 +55,7 @@ class TaskDController:
         ArmMovement.put_basket_to_robot(self.arm, 1)
         ArmMovement.motion(self.arm)
 
-        self.move.navigation([NavMovement.POINT_B, NavMovement.POINT_D, Station.YELLOW_STATION_2.nav_point(Direction.LEFT)])
+        self.move.navigation([Station.YELLOW_STATION_2.nav_point(Direction.LEFT)])
         Station.YELLOW_STATION_2.revise(self.node, Direction.FRONT)
         self.arm.grab_basket_from_station(Direction.LEFT)
         ArmMovement.put_basket_to_robot(self.arm, 2)
@@ -88,6 +89,7 @@ class TaskDController:
             return
 
         # 抓第二个走廊的另一半
+        self.move.navigation([NavMovement.VINEYARD_5])
         self.move.navigation([NavMovement.VINEYARD_4_0])
         grab_grape_wall.direction = Direction.LEFT
         grab_grape_wall.find_grape_and_grab(NavMovement.VINEYARD_6)
@@ -101,26 +103,26 @@ class TaskDController:
         grab_grape_wall.find_grape_and_grab(NavMovement.VINEYARD_8)
 
         # 回到第一个走廊
-        self.move.navigation([NavMovement.VINEYARD_7, NavMovement.VINEYARD_6, NavMovement.VINEYARD_4_0, NavMovement.VINEYARD_2, NavMovement.VINEYARD_1])
+        self.move.navigation([NavMovement.VINEYARD_7, NavMovement.VINEYARD_6, NavMovement.VINEYARD_4_0, NavMovement.VINEYARD_2, NavMovement.VINEYARD_1], ptp=False)
 
     def put_baskets(self):
         # 去放第1个框子
         self.move.navigation([Station.RED_STATION_3.nav_point(Direction.RIGHT)])
-        self.move.rotation_correction(Direction.LEFT)
+        self.move.rotation_correction()
         ArmMovement.grab_basket_from_robot(self.arm, 1)
         ArmMovement.put_basket_to_station(self.arm, Direction.RIGHT)
         ArmMovement.motion(self.arm)
 
         # 去放第2个框子
         self.move.navigation([Station.RED_STATION_2.nav_point(Direction.RIGHT)])
-        self.move.rotation_correction(Direction.LEFT)
+        self.move.rotation_correction()
         ArmMovement.grab_basket_from_robot(self.arm, 2)
         ArmMovement.put_basket_to_station(self.arm, Direction.RIGHT)
         ArmMovement.motion(self.arm)
 
         # 去放第3个框子
         self.move.navigation([NavMovement.CORRECTIVE_POINT_1, Station.RED_STATION_1.nav_point(Direction.LEFT)])
-        self.move.rotation_correction(Direction.LEFT)
+        self.move.rotation_correction()
         ArmMovement.grab_basket_from_robot(self.arm, 3)
         ArmMovement.put_basket_to_station(self.arm, Direction.LEFT)
         ArmMovement.motion(self.arm)

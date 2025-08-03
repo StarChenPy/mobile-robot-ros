@@ -41,7 +41,9 @@ class RobotDataDao(object):
         return Math.average_without_extremes(sonar0), Math.average_without_extremes(sonar1)
 
     def get_ir_left(self) -> float:
-        return self.__robot_data.ir[0] + 0.138
+        rclpy.spin_once(self.__node)
+        return self.__robot_data.ir[0] + 0.145
 
     def get_ir_right(self) -> float:
-        return self.__robot_data.ir[1] + 0.113
+        rclpy.spin_once(self.__node)
+        return self.__robot_data.ir[1] + 0.114

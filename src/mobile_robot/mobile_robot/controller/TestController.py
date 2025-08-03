@@ -28,7 +28,7 @@ class TestController:
 
     def run(self):
         self.robot.with_robot_connect()
-        # self.arm.back_origin()
+        self.arm.back_origin()
 
         # self.vision.show_photo(self.vision.photograph())
 
@@ -46,7 +46,12 @@ class TestController:
         # tree.grab_apple_from_tree()
         # ArmMovement.motion(self.arm)
 
+        ArmMovement.identify_grape(self.arm, Direction.LEFT)
+        wall = GrabGrapeWall(self.node, Direction.LEFT)
+        wall.basket_1 = [FruitType.YELLOW_GRAPE] * 6
         while True:
             input("Press Enter to continue...")
-            print("左墙: ", self.sensor.get_angle_from_wall(Direction.LEFT))
-            print("右墙: ", self.sensor.get_angle_from_wall(Direction.RIGHT))
+
+            fruit = self.vision.find_fruit(FruitType.all())
+            if fruit:
+                wall.grab_grape(fruit)

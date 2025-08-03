@@ -7,6 +7,7 @@ from . import Math
 from .Logger import Logger
 from .Singleton import singleton
 from ..param import ArmMovement
+from ..popo.CorrectivePoint import CorrectivePoint
 from ..popo.Direction import Direction
 from ..popo.FruitType import FruitType
 from ..popo.IdentifyResult import IdentifyResult
@@ -45,18 +46,18 @@ class GrabGrapeWall:
     def grab_grape(self, grape: IdentifyResult):
         center = grape.box.get_rectangle_center()
 
-        distance = 0.32
-        x_distance = 0
+        distance = 0.30
+        x_distance = 0.04
         if self.direction == Direction.LEFT:
             ir = self.sensor.get_ir_left()
-            if 0.2 < ir < 0.35:
+            if 0.2 < ir < 0.4:
                 distance = ir
-            x_distance = Math.pixel_to_horizontal_distance_x_centered(center.x - 320, distance)
+            x_distance += Math.pixel_to_horizontal_distance_x_centered(center.x - 320, distance)
         elif self.direction == Direction.RIGHT:
             ir = self.sensor.get_ir_right()
-            if 0.2 < ir < 0.35:
+            if 0.2 < ir < 0.4:
                 distance = ir
-            x_distance = Math.pixel_to_horizontal_distance_x_centered(320 - center.x, distance)
+            x_distance += Math.pixel_to_horizontal_distance_x_centered(320 - center.x, distance)
         y_distance = Math.pixel_to_distance_from_bottom(center.y, distance)
         self.move.line(x_distance)
 
@@ -137,4 +138,5 @@ class GrabGrapeWall:
 
         ArmMovement.motion(self.arm)
         target_point.yaw = end_yaw
-        self.move.navigation([target_point])
+        if isinstance(target_point, CorrectivePoint):
+            self.move.navigation([target_point])
