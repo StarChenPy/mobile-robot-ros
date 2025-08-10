@@ -4,34 +4,49 @@ from ..popo.Direction import Direction
 from ..popo.NavigationPoint import NavigationPoint
 
 
-START_POINT = CorrectivePoint(0.35, 0.4, 90, [Corrective(Direction.BACK, 0.4), Corrective(Direction.LEFT, 0.35)])
+# 矫正点
+C_START = CorrectivePoint(1.53, 2.5, 90, [Corrective(Direction.BACK, 0.3), Corrective(Direction.RIGHT, 0.3)])
 
-CORRECTIVE_POINT_1 = CorrectivePoint(0.4, 3.7, 0, [Corrective(Direction.BACK, 0.4), Corrective(Direction.LEFT, 0.3)])
-CORRECTIVE_POINT_2 = CorrectivePoint(3.7, 3.6, -90, [Corrective(Direction.BACK, 0.4), Corrective(Direction.LEFT, 0.3)])
+C_1 = CorrectivePoint(0.3, 3.7, -90, [Corrective(Direction.BACK, 0.3), Corrective(Direction.RIGHT, 0.3)])
+C_2 = CorrectivePoint(0.3, 1.0, 0, [Corrective(Direction.BACK, 0.3), Corrective(Direction.RIGHT, 0.38)])
+C_3 = CorrectivePoint(0.92, 2.78, 90, [Corrective(Direction.FRONT, 0.6), Corrective(Direction.RIGHT, 0.3)])
+C_4 = CorrectivePoint(1.52, 1.8, -90, [Corrective(Direction.BACK, 0.38), Corrective(Direction.LEFT, 0.31)])
+C_5 = CorrectivePoint(0.6, 0.3, 180, [Corrective(Direction.FRONT, 0.6), Corrective(Direction.LEFT, 0.3)])
+C_6 = CorrectivePoint(3.4, 0.3, 0, [Corrective(Direction.FRONT, 0.6), Corrective(Direction.RIGHT, 0.3)])
+C_7 = CorrectivePoint(3.7, 0.92, 90, [Corrective(Direction.BACK, 0.3), Corrective(Direction.RIGHT, 0.3)])
+C_8 = CorrectivePoint(3.7, 3.4, -90, [Corrective(Direction.BACK, 0.6), Corrective(Direction.LEFT, 0.3)])
 
-YELLOW_STATION_1 = NavigationPoint(1.0, 3.7, 0)
-RED_STATION_1 = NavigationPoint(1.0, 3.7, 0)
-YELLOW_STATION_2 = NavigationPoint(3.0, 3.7, 0)
-RED_STATION_2 = NavigationPoint(3.0, 3.7, 0)
-YELLOW_STATION_3 = NavigationPoint(3.7, 3.0, -90)
-RED_STATION_3 = NavigationPoint(3.7, 3.0, -90)
+# 站台
+S_Y_1_L = NavigationPoint(0.3, 1.89, 90)
+S_Y_1_R = NavigationPoint(0.3, 2.11, -90)
+S_Y_2_R = NavigationPoint(1.52, 3.7, 180)
+S_Y_3_L = NavigationPoint(1.61, 0.3, 180)
+S_Y_3_R = NavigationPoint(1.39, 0.3, 0)
 
-TREE_1 = NavigationPoint(2.9, 3.0, None)
-TREE_2 = NavigationPoint(2.03, 2.5, None)
-TREE_3 = NavigationPoint(1.05, 2.6, None)
-TREE_4 = NavigationPoint(1.6, 3.5, None)
+S_R_1_L = NavigationPoint(2.48, 3.7, 0)
+S_R_1_R = NavigationPoint(2.7, 3.7, 180)
+S_R_2_R = NavigationPoint(3.7, 1.59, 90)
+S_R_3_L = NavigationPoint(2.51, 0.3, 180)
+S_R_3_R = NavigationPoint(2.29, 0.3, 0)
 
-POINT_A = NavigationPoint(0.4, 3.05, None)
-POINT_B = NavigationPoint(1.46, 3.07, None)
-POINT_D = NavigationPoint(2.19, 3.07, 0)
-POINT_F = NavigationPoint(1.56, 2.55, None)
+# 树
+T_1 = NavigationPoint(3, 1.48, None)
+T_1_G = NavigationPoint(2.89, 0.93, 0)
+T_2 = NavigationPoint(2.45, 2.08, None)
+T_3 = NavigationPoint(3.4, 2.08, None)
 
-VINEYARD_1 = CorrectivePoint(3.6, 1.65, 180, [Corrective(Direction.BACK, 0.4), Corrective(Direction.LEFT, 0.32)])
-VINEYARD_2 = NavigationPoint(2.0, 1.65, 180)
-VINEYARD_3 = CorrectivePoint(1.31, 1.65, 0, [Corrective(Direction.BACK, 0.6), Corrective(Direction.LEFT, 0.32)])
-VINEYARD_4_0 = NavigationPoint(2.0, 0.99, 0)
-VINEYARD_4_180 = NavigationPoint(2.0, 0.99, 180)
-VINEYARD_5 = CorrectivePoint(1.31, 0.99, 0, [Corrective(Direction.BACK, 0.6), Corrective(Direction.RIGHT, 0.32)])
-VINEYARD_6 = NavigationPoint(3.4, 0.99, 0)
-VINEYARD_7 = CorrectivePoint(3.55, 0.33, 180, [Corrective(Direction.BACK, 0.45), Corrective(Direction.LEFT, 0.33)])
-VINEYARD_8 = NavigationPoint(1.31, 0.33, 180)
+# 葡萄园点
+V_1 = NavigationPoint(0.93, 1, 90)
+V_2 = NavigationPoint(1.52, 1.2, -90)
+V_3 = NavigationPoint(1.82, 0.3, 180)
+V_4 = NavigationPoint(2.2, 0.3, 0)
+
+# 中间导航点
+P_1 = NavigationPoint(1.53, 3.7, None)
+P_2 = NavigationPoint(2.73, 3.7, None)
+P_3 = NavigationPoint(2.73, 2.91, -90)
+P_4 = NavigationPoint(2.42, 0.92, None)
+P_5 = NavigationPoint(1.52, 0.3, None)
+P_6 = NavigationPoint(0.93, 1.87, None)
+P_7 = NavigationPoint(2.92, 2.08, None)
+P_8 = NavigationPoint(2.43, 1.48, None)

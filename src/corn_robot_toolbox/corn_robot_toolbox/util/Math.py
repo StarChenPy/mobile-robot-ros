@@ -2,9 +2,8 @@ import math
 
 import numpy as np
 
-from ..popo.NavigationPoint import NavigationPoint
-from ..popo.Point import Point
-from ..popo.Rectangle import Rectangle
+from web_message_transform_ros2.msg import Pose
+from ..type.Rectangle import Rectangle
 
 
 def ease_in_out_interp(start, end, steps):
@@ -61,33 +60,57 @@ def calculate_hypotenuse(a: float, b: float) -> float:
     return math.sqrt(a ** 2 + b ** 2)
 
 
-def get_point_angle(a, b):
+def normalize_angle(angle_deg: float) -> float:
+    """将角度标准化到 [-180, 180]"""
+    if angle_deg >= 180:
+        angle_deg -= 360
+    elif angle_deg < -180:
+        angle_deg += 360
+    return angle_deg
+
+
+def compute_distance(a: Pose, b: Pose) -> float:
     """
-    计算从点 A 到点 B 的方向角，角度以 A 为基准。
+    计算两点之间的欧几里得距离。
+    """
+
+    x0, y0 = a.x, a.y
+    x1, y1 = b.x, b.y
+    return math.hypot(x1 - x0, y1 - y0)
+
+
+def compute_delta_theta(a: Pose, b: Pose):
+    """
+    计算从点 A 到点 B 的方向角（以 A 为基准）。
     坐标系：x 轴朝上，y 轴朝左。
 
-    参数:
-        a: 点 A 的坐标，格式为 (x1, y1)
-        b: 点 B 的坐标，格式为 (x2, y2)
-
     返回:
-        角度（float），范围 [0, 360)，单位为度。
+        角度（float），范围 [-180, 180)，单位为度。
+        正数表示顺时针，负数表示逆时针。
     """
-    dx = b[0] - a[0]
-    dy = b[1] - a[1]
+    dx = b.x - a.x
+    dy = b.y - a.y
 
-    # 坐标轴变换：x 朝上、y 朝左 → 相当于将标准坐标系旋转了 -90°
-    angle_rad = math.atan2(-dy, dx)
+    # 坐标系变换：你的坐标系 → 标准坐标系
+    std_dx = -dy
+    std_dy = dx
+
+    angle_rad = math.atan2(std_dy, std_dx)
     angle_deg = math.degrees(angle_rad)
 
-    # 转换到 0~360 度
-    if angle_deg < 0:
+    # 转换为以“向上”为 0 度的坐标系（因为你定义的是 x 轴朝上）
+    angle_deg = angle_deg - 90
+
+    # 归一化到 [-180, 180)
+    if angle_deg >= 180:
+        angle_deg -= 360
+    elif angle_deg < -180:
         angle_deg += 360
 
     return angle_deg
 
 
-def get_target_coordinate(point: NavigationPoint, dis) -> NavigationPoint:
+def get_target_coordinate(point: Pose, dis) -> Pose:
     """
     根据输入的坐标 (x, y) 和角度 yaw（单位：度），以及前进距离 dis，
     计算沿着 yaw 方向前进 dis 距离后得到的新坐标 (new_x, new_y)
@@ -97,13 +120,13 @@ def get_target_coordinate(point: NavigationPoint, dis) -> NavigationPoint:
     @return NavigationPoint: 新的坐标
     """
     # 将角度转换为弧度
-    yaw_rad = math.radians(point.yaw)
+    yaw_rad = math.radians(point.w)
 
     # 根据三角函数计算新的坐标
     new_x = point.x + dis * math.cos(yaw_rad)
     new_y = point.y + dis * math.sin(yaw_rad)
 
-    return NavigationPoint(new_x, new_y, point.yaw)
+    return Pose(x=new_x, y=new_y, w=point.w)
 
 
 def fit_polar_line_and_get_distance(polar_points: list[tuple[float, float]]):
@@ -147,7 +170,7 @@ def fit_polar_line_and_get_angle(polar_points: list[tuple[float, float]]) -> flo
     return np.degrees(np.arctan(a)).item()
 
 
-def is_behind(point1: NavigationPoint, point2: NavigationPoint, angle_threshold: float) -> bool:
+def is_behind(point1: Pose, point2: Pose, angle_threshold: float) -> bool:
     """
     判断 B 是否在 A 的后方
 
@@ -159,13 +182,13 @@ def is_behind(point1: NavigationPoint, point2: NavigationPoint, angle_threshold:
     if not point1 or not point2:
         return False
 
-    if not point1.yaw or not point2.yaw:
+    if not point1.w or not point2.w:
         return False
 
     dx = point2.x - point1.x
     dy = point2.y - point1.y
 
-    yaw = abs(point1.yaw - point2.yaw)
+    yaw = abs(point1.w - point2.w)
     if yaw > 180:
         yaw = abs(yaw - 360)
     if yaw > angle_threshold * 2:
@@ -180,7 +203,7 @@ def is_behind(point1: NavigationPoint, point2: NavigationPoint, angle_threshold:
     theta_deg = math.degrees(theta_rad)
 
     # 计算yaw1的反方向并规范化到[-180, 180)
-    opposite_angle = (point1.yaw + 180) % 360
+    opposite_angle = (point1.w + 180) % 360
     if opposite_angle > 180:
         opposite_angle -= 360
 
@@ -191,7 +214,7 @@ def is_behind(point1: NavigationPoint, point2: NavigationPoint, angle_threshold:
     return abs(delta) <= angle_threshold
 
 
-def point_to_point(point1: NavigationPoint, point2: NavigationPoint, dis: float) -> list[NavigationPoint]:
+def point_to_point(point1: Pose, point2: Pose, dis: float) -> list[Pose]:
     """
     给定点1和点2，根据给定的距离分割路径
 
@@ -219,7 +242,7 @@ def point_to_point(point1: NavigationPoint, point2: NavigationPoint, dis: float)
         ratio = (k * dis) / L
         x = point1.x + dx * ratio
         y = point1.y + dy * ratio
-        points.append(NavigationPoint(x, y, math.degrees(yaw)))  # 转换为角度存储
+        points.append(Pose(x=x, y=y, w=math.degrees(yaw)))  # 转换为角度存储
 
     points.pop(0)
 
@@ -349,7 +372,7 @@ def pixel_to_distance_from_center(y_pixel: float, camera_height: float) -> float
     return distance
 
 
-def pixel_to_world(point: Point, dis):
+def pixel_to_world(x, y, dis) -> tuple[float, float]:
     """
     将图像像素坐标转换为相对于图像底部中心 (320, 480) 的地面平面坐标。
     参数：
@@ -373,8 +396,8 @@ def pixel_to_world(point: Point, dis):
     cy = img_height  # 底部为 y=480
 
     # 像素偏移
-    dx = point.x - cx
-    dy = cy - point.y  # 注意是向上的为正角度，因此底部为0，向上为负
+    dx = x - cx
+    dy = cy - y  # 注意是向上的为正角度，因此底部为0，向上为负
 
     # 每像素对应的视角（弧度）
     angle_per_pixel_x = math.radians(h_fov_deg) / img_width
@@ -388,7 +411,7 @@ def pixel_to_world(point: Point, dis):
     x_m = math.tan(angle_x) * dis
     y_m = math.tan(angle_y) * dis
 
-    return Point(x_m, y_m)
+    return x_m, y_m
 
 
 def split_rectangle(x1, y1, x2, y2, cols=6, rows=3) -> dict[int: list[Rectangle]]:
@@ -408,21 +431,6 @@ def split_rectangle(x1, y1, x2, y2, cols=6, rows=3) -> dict[int: list[Rectangle]
     return rectangles
 
 
-def find_points_in_squares(points: list[Point], squares: list[Rectangle]):
-    """
-    找出每个正方形中包含的坐标点
-    :param points: 坐标点列表，格式 [(x1, y1), (x2, y2), ...]
-    :param squares: 正方形列表，每个正方形用左上角和右下角表示，格式 [((x_min1, y_min1), (x_max1, y_max1)), ...]
-    :return: 字典，键为正方形索引，值为该正方形包含的点列表
-    """
-    results = []
-    for idx, square in enumerate(squares):
-        for point in points:
-            if square.x1 <= point.x <= square.x2 and square.y1 <= point.y <= square.y2:
-                results.append(point)
-                points.remove(point)  # 确保每个点只被计入一次
-    return results
-
 def round_right_angle(i: float) -> int:
     """
     给定一个角度，向直角逼近
@@ -431,6 +439,6 @@ def round_right_angle(i: float) -> int:
     f = 1 if i > 0 else -1
 
     if abs(i % (90 * f)) >= 45:
-        return  90 * f * (abs(int(i / 90)) + 1)
+        return 90 * f * (abs(int(i / 90)) + 1)
     else:
         return 90 * f * (abs(int(i / 90)))

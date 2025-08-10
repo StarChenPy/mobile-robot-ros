@@ -1,0 +1,7 @@
+# 要矫正的路径点
+string waypoint_name
+
+---
+
+# 是否成功
+bool success

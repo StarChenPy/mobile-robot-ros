@@ -1,0 +1,61 @@
+correction_odom:
+  ros__parameters:
+    use_sim_time: False
+
+    correction_service: /correction_odom
+    robot_data_topic: /web_transform_node/robot_data
+    set_odom_service: /chassis/reset_odom
+    waypoints_topic: /waypoints
+
+pub_waypoints:
+  ros__parameters:
+    use_sim_time: False
+    waypoints_path: 国赛路径点.yaml
+    waypoints_topic: /waypoints
+
+generate_path:
+  ros__parameters:
+    use_sim_time: False
+    waypoints_topic: /waypoints
+    generate_path_service: /generate_path
+
+navigation_to_waypoint:
+  ros__parameters:
+    use_sim_time: False
+
+    robot_data_topic: /web_transform_node/robot_data
+    set_odom_service: /chassis/reset_odom
+    navigation_to_waypoint_action: /navigation_to_waypoint
+    generate_path_service: /generate_path
+    correction_service: /correction_odom
+    waypoints_topic: /waypoints
+    navigation_action: /nav2_ptp_action
+
+    speed: 0.4
+    distance_threshold: 0.10
+    slope_offset: 0.45
+
+robot_motion:
+  ros__parameters:
+    use_sim_time: False
+    robot_motion_action: /robot_motion
+
+    line_kp: 1.8
+    line_ti: 0.0
+    line_td: 0.0
+    line_max_vel: 0.66
+    line_max_acc: 3.0
+    line_low_pass: 0.8
+    line_ek: 0.02
+    line_steady_clk: 5
+
+    rotate_kp: 2.8
+    rotate_ti: 0.0
+    rotate_td: 0.0001
+    rotate_max_vel: 180.0
+    rotate_max_acc: 600.0
+    rotate_low_pass: 0.7
+    rotate_ek: 1.0
+    rotate_steady_clk: 10
+    rotate_planner_acc: 600.0
+    rotate_planner_decel: 300.0

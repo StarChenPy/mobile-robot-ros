@@ -3,6 +3,7 @@ import time
 import rclpy
 
 from web_message_transform_ros2.msg import Pose
+from ..dao.CorrectionOdomDao import CorrectionOdomDao
 from ..dao.LaserRadarDao import LaserRadarDao
 from ..dao.OdomDao import OdomDao
 from ..dao.RobotDataDao import RobotDataDao
@@ -24,6 +25,7 @@ class SensorService:
         self.__radar = LaserRadarDao(node)
         self.__robot_data = RobotDataDao(node)
         self.__odom = OdomDao(node)
+        self.__correction = CorrectionOdomDao(node)
 
     def ping_revise(self, dis: float, is_block=True):
         dis = (dis - 0.24) * 100
@@ -78,3 +80,5 @@ class SensorService:
         time.sleep(1)
         rclpy.spin_once(self.__node)
 
+    def correction(self, waypoint_name: str):
+        self.__correction.send_correction_odom(waypoint_name)

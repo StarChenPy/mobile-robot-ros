@@ -117,25 +117,12 @@ class GrabAppleTree:
             result.append(i)
         return result
 
-    def close_tree(self, distance: float):
-        if not self.direction:
-            raise RuntimeError("没有方向!")
-
-        self.logger.info(f"向果树靠近 {distance} 米")
-
-        """靠近果树"""
-        ArmMovement.motion(self.arm)
-        self.move.rotate(90)
-        if self.direction == Direction.LEFT:
-            self.move.line(distance)
-        if self.direction == Direction.RIGHT:
-            self.move.line(-distance)
-        self.move.rotate(-90)
-
     def grab_apple_from_tree(self):
-        if not self.direction:
-            raise RuntimeError("没有方向!")
+        if self.direction is None:
+            self.logger.error("方向未设置。无法抓苹果!")
+            return
 
+        self.move.rotation_correction()
         ArmMovement.identify_tree_fruit(self.arm, self.direction)
         fruits = self.find_fruits(self.basket_1 + self.basket_2 + self.basket_3)
         prev_move_len = 0
@@ -145,14 +132,8 @@ class GrabAppleTree:
             ArmMovement.motion(self.arm)
             return False
 
-        # 靠近果树
-        min_distance = min(self.find_fruits(), key=lambda fruit: fruit.distance).distance
         max_distance = max(self.find_fruits(), key=lambda fruit: fruit.distance).distance
         piff_dis = 0
-        if max_distance > self.max_grab_distance:
-            piff_dis = min_distance - self.min_grab_distance
-            # piff_dis = max_distance - self.max_grab_distance
-            self.close_tree(piff_dis)
 
         fruits.sort(key=lambda fruit: fruit.box.get_rectangle_center().x)
         for i in fruits:
@@ -164,7 +145,7 @@ class GrabAppleTree:
                 self.logger.warn(f"面积太小，可能有遮挡，跳过{i.class_id}")
                 self.logger.warn(f"面积 {i.box.get_area()}")
 
-            if max_distance - i.distance > 18:
+            if max_distance - i.distance > 22:
                 self.logger.warn(f"与可见的最大深度差值过大，不可抓，跳过{i.class_id}")
                 continue
 
@@ -191,7 +172,7 @@ class GrabAppleTree:
             self.move.line(move_distance - prev_move_len)
             prev_move_len = move_distance
 
-            ArmMovement.grab_apple_on_tree(self.arm, self.direction, (distance - 0.34 - piff_dis) * 100, center.y > 220)
+            ArmMovement.grab_apple_on_tree(self.arm, self.direction, (distance - 0.3 - piff_dis) * 100, center.y > 220)
             for i in range(1, 4):
                 basket = getattr(self, f"basket_{i}")
                 if fruit_type in basket:
@@ -209,3 +190,6 @@ class GrabAppleTree:
             self.move.navigation([p])
             self.direction = d
             self.grab_apple_from_tree()
+            if not self.has_apple():
+                self.logger.info("没有苹果了，结束抓取")
+                break

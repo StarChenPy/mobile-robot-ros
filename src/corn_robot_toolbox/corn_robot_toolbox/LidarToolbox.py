@@ -2,31 +2,27 @@ import math
 import time
 
 import numpy as np
-import rclpy
+import rclpy.node
 import rclpy.qos
 from sensor_msgs.msg import LaserScan
 
-from ..popo.Direction import Direction
-from ..util import Math
-from ..util.Logger import Logger
-from ..util.Singleton import singleton
+from .type.Direction import Direction
+from .util import Math
 
 RADAR_ERROR = 3.3
 
 
-@singleton
-class LaserRadarDao:
+class LidarToolbox:
     def __init__(self, node: rclpy.node.Node):
-        self.__node = node
-        self.__logger = Logger()
+        self.node = node
 
-        self.__radar_data = LaserScan()
+        self.radar_data = LaserScan()
 
         qos_profile = rclpy.qos.QoSProfile(reliability=rclpy.qos.QoSReliabilityPolicy.BEST_EFFORT, depth=10)
         node.create_subscription(LaserScan, '/scan', self.__callback, qos_profile)
 
     def __callback(self, msg: LaserScan):
-        self.__radar_data = msg
+        self.radar_data = msg
 
     def get_radar_data(self, target_angle: float) -> tuple[float, float]:
         """
@@ -38,18 +34,18 @@ class LaserRadarDao:
         返回：
             tuple[float, float]: 距离（米）与实际角度（度）
         """
-        if self.__radar_data is None:
+        if self.radar_data is None:
             return 0.0, 0.0
 
         # 转换并筛选有效数据（非零）
-        ranges = np.array(self.__radar_data.ranges)
+        ranges = np.array(self.radar_data.ranges)
         valid_mask = ranges > 0
         if not np.any(valid_mask):
             return 0.0, 0.0
 
         # 构造角度数组，与 ranges 一一对应
-        angle_min = self.__radar_data.angle_min
-        angle_increment = self.__radar_data.angle_increment
+        angle_min = self.radar_data.angle_min
+        angle_increment = self.radar_data.angle_increment
         indices = np.arange(len(ranges))
         angles = angle_min + indices * angle_increment
 
@@ -78,7 +74,6 @@ class LaserRadarDao:
         elif direction == Direction.LEFT:
             start_angle = 170
 
-        rclpy.spin_once(self.__node)
         for i in range(1, 25):
             angle = start_angle + i
             if angle > 180:
@@ -105,7 +100,7 @@ class LaserRadarDao:
 
     def get_angle_from_wall(self, direction: Direction) -> float:
         if direction == Direction.BACK:
-            self.__logger.error("无法获取角度: 不支持的方向")
+            self.node.get_logger().error("无法获取角度: 不支持的方向")
             return 0
 
         for i in range(10):
@@ -115,21 +110,21 @@ class LaserRadarDao:
 
             if abs(angle_2 - angle_1) < 0.5:
                 angle = (angle_1 + angle_2) / 2
-                self.__logger.debug(f"扫描到的雷达角度为 {angle}")
+                self.node.get_logger().debug(f"扫描到的雷达角度为 {angle}")
                 return angle
             else:
-                self.__logger.warn(f"雷达两次角度获取误差较大 {abs(angle_2 - angle_1)}，重试 {i + 1} 次")
+                self.node.get_logger().warn(f"雷达两次角度获取误差较大 {abs(angle_2 - angle_1)}，重试 {i + 1} 次")
         return 0
 
     def get_distance_from_wall_once(self, direction: Direction) -> float:
-        # 返回距离雷达扫描的5个坐标拟合成的直线的垂直距离
+        # 返回距离雷达扫描的坐标拟合成的直线的垂直距离
         points = self.__get_radar_points(direction)
         distance = Math.fit_polar_line_and_get_distance(points)
 
         # 方差过大，说明扫出墙壁
         var = np.var(distance)
         if var > 0.1:
-            self.__logger.warn(f"{distance} 方差 {var} 过大")
+            self.node.get_logger().warn(f"{distance} 方差 {var} 过大")
             return 0
 
         if direction == Direction.FRONT:
@@ -153,7 +148,7 @@ class LaserRadarDao:
 
     def get_distance_from_wall(self, direction: Direction) -> float:
         if direction == Direction.BACK:
-            self.__logger.error("无法获取距离: 不支持的方向")
+            self.node.get_logger().error("无法获取距离: 不支持的方向")
             return 0
 
         dis = 0
@@ -161,13 +156,13 @@ class LaserRadarDao:
             dis = self.get_distance_from_wall_once(direction)
             if dis > 0:
                 break
-            self.__logger.warn(f"获取 {direction} 方向雷达距离失败, 重试 {i} 次")
+            self.node.get_logger().warn(f"获取 {direction} 方向雷达距离失败, 重试 {i} 次")
             time.sleep(0.2)
 
         if dis != 0:
-            self.__logger.debug(f"{direction} 扫描到的雷达距离为 {dis}")
+            self.node.get_logger().debug(f"{direction} 扫描到的雷达距离为 {dis}")
         else:
-            self.__logger.error(f"雷达无法获取 {direction} 方向的距离!")
+            self.node.get_logger().error(f"雷达无法获取 {direction} 方向的距离!")
 
         # 左、右墙可能有误差，加一下
         if direction == Direction.LEFT:

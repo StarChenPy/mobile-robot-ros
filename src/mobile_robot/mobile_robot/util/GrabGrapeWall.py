@@ -20,11 +20,11 @@ from ..service.VisionService import VisionService
 
 @singleton
 class GrabGrapeWall:
-    def __init__(self, node: rclpy.node.Node, direction: Direction):
+    def __init__(self, node: rclpy.node.Node):
         self.logger = Logger()
         self.node = node
 
-        self.direction = direction
+        self.direction = None
         self.speed = 0.1
         self.basket_1 = []
         self.basket_2 = []
@@ -44,6 +44,10 @@ class GrabGrapeWall:
         return False
 
     def grab_grape(self, grape: IdentifyResult):
+        if self.direction is None:
+            self.logger.error("方向未设置。无法抓葡萄!")
+            return
+
         center = grape.box.get_rectangle_center()
 
         distance = 0.30
@@ -81,41 +85,24 @@ class GrabGrapeWall:
         ArmMovement.close_gripper_grape(self.arm)
         self.arm.telescopic_servo(0)
 
-    def find_grape_and_grab(self, target_point: NavigationPoint):
+    def find_grape_and_grab(self, waypoint_name: str):
+        if self.direction is None:
+            self.logger.error("方向未设置。无法抓葡萄!")
+            return
+
         ArmMovement.identify_grape(self.arm, self.direction)
 
-        start_yaw = Math.round_right_angle(self.sensor.get_odom_data().w)
-        end_yaw = target_point.yaw
-
-        target_point.yaw = start_yaw
-
-        self.move.navigation([target_point], 0.15, False, False)
-        while self.move.get_status():
-            # 如果框子里没有要抓的水果了，直接返回
-            if not self.has_grape():
-                break
-
-            odom = self.sensor.get_odom_data()
-            d = math.sqrt(math.pow((target_point.x - odom.x), 2) + math.pow((target_point.y - odom.y), 2))
-            # 走0.5m 固定矫正一次
-            if d % 0.5 < 0.1:
-                # 矫正角度
-                angle_from_wall = self.sensor.get_angle_from_wall(self.direction.invert())
-                self.logger.info(f"行走了一定距离, 进行角度矫正")
-                if abs(angle_from_wall) < 10:
-                    self.sensor.init_odom_yaw(start_yaw - angle_from_wall)
-                    self.logger.info(f"矫正当前角度为 {start_yaw - angle_from_wall} 度.")
-                else:
-                    self.logger.warn("角度偏差过大，不予置信.")
-
+        self.move.my_navigation(waypoint_name, 0.1, False)
+        while self.move.get_my_status():
             grape = self.vision.find_fruit(self.basket_1 + self.basket_2 + self.basket_3)
             if not grape:
                 continue
 
             # 检测到了，就停下来再看一遍
-            self.move.stop_navigation()
+            self.move.stop_my_navigation()
             grape = self.vision.find_fruit(self.basket_1 + self.basket_2 + self.basket_3)
             if grape:
+                self.logger.info(f"抓取到葡萄: {grape.class_id}")
                 fruit_type = FruitType(grape.class_id)
 
                 for i in range(1, 4):
@@ -126,17 +113,17 @@ class GrabGrapeWall:
                         ArmMovement.put_fruit_to_basket(self.arm, i)
                         break
 
+                # 如果框子里没有要抓的水果了，直接返回
+                if not self.has_grape():
+                    break
+
                 ArmMovement.identify_grape(self.arm, self.direction)
 
-            # 矫正角度
-            angle_from_wall = self.sensor.get_angle_from_wall(self.direction.invert())
-            if abs(angle_from_wall) < 10:
-                self.sensor.init_odom_yaw(start_yaw - angle_from_wall)
+            # 如果框子里没有要抓的水果了，直接返回
+            if not self.has_grape():
+                break
 
             # 继续导航
-            self.move.navigation([target_point], 0.15, False, False)
+            self.move.my_navigation(waypoint_name, 0.1, False)
 
         ArmMovement.motion(self.arm)
-        target_point.yaw = end_yaw
-        if isinstance(target_point, CorrectivePoint):
-            self.move.navigation([target_point])

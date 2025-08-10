@@ -1,50 +1,32 @@
-import geometry_msgs.msg
 import rclpy
 import rclpy.action
 
-from base_nav2_ptp.action import NavPTPCMD
-from ..popo.NavigationPoint import NavigationPoint
+from corn_robot_interfaces.action import NavigationToWaypoint
 from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
 
 @singleton
-class NavigationPtpDao:
+class MyNavigationDao:
     def __init__(self, node: rclpy.node.Node):
         self.__node = node
         self.__logger = Logger()
         self.__is_navigating = False
+        self.__goal_handle = None
 
-        self.__action = rclpy.action.ActionClient(self.__node, NavPTPCMD, '/nav2_ptp_action')
+        self.__action = rclpy.action.ActionClient(node, NavigationToWaypoint, '/navigation_to_waypoint')
 
-    def navigation(self, points: list[NavigationPoint], linear_speed: float, rotation_speed: float, reverse: bool):
+    def navigation(self, waypoint_name: str, speed: float) -> None:
         """
-        路径跟随: 输入路径点、最终角度等参数，发送导航请求
-        @param points 路径坐标点 NavigationPoint(x, y, yaw)
-        @param linear_speed 最大线速度m/s
-        @param rotation_speed 最大旋转速度m/s
-        @param linear_acc 最大线加速度
-        @param rotate_acc 最大旋转减速度
-        @param reverse 倒车模式
+
         """
-        goal_msg = NavPTPCMD.Goal()
+        goal_msg = NavigationToWaypoint.Goal()
 
-        for p in points:
-            pose2d = geometry_msgs.msg.Pose2D(x=float(p.x), y=float(p.y), theta=float(0))
-            goal_msg.points.append(pose2d)
-
-        # 这里要获取导航最后一个点的角度并赋给heading
-        goal_msg.linear_vel = float(linear_speed)
-        goal_msg.rotation_vel = float(rotation_speed)
-        goal_msg.linear_acc = float(0.69)  # 直线加速度
-        goal_msg.linear_decel = float(0.43)  # 直线减加速度
-        goal_msg.rotate_acc = float(2.5)  # 旋转加速度
-        goal_msg.rotate_decel = float(1)  # 旋转减加速度
-        goal_msg.heading = float(points[-1].yaw)
-        goal_msg.back = reverse
+        goal_msg.waypoint_name = waypoint_name
+        goal_msg.speed = speed
 
         self.__action.wait_for_server()
-        self.__logger.info(f"正在发送新的导航请求: {points}, 速度: {linear_speed}")
+        self.__logger.info(f"正在发送新的导航请求")
 
         goal_handle = self.__action.send_goal_async(goal_msg)
         goal_handle.add_done_callback(self.__goal_response_callback)

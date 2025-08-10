@@ -1,16 +1,16 @@
 rotary:
   pin: 4
-  min_value: -190
-  max_value: 190
-  zero_duty: 29.86
-  deg90_duty: 41.67
+  min_value: -120
+  max_value: 180
+  zero_duty: 25.85
+  deg90_duty: 37.8
 
 nod:
   pin: 1
-  min_value: -25
-  max_value: 140
-  zero_duty: 29.75
-  deg90_duty: 41.74
+  min_value: -200
+  max_value: 200
+  zero_duty: 18.576
+  deg90_duty: 30.966
 
 telescopic:
   pin: 2

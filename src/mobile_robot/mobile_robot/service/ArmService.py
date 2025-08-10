@@ -1,4 +1,3 @@
-import threading
 import time
 
 import rclpy
@@ -53,6 +52,17 @@ class ArmService:
     def wait_finish(self):
         self.__lift_motor.wait_finish()
         self.__rotate_motor.wait_finish()
+
+    def grab_slope_basket_from_station(self, direction: Direction):
+        ArmMovement.station_basket_top(self, direction)
+        ArmMovement.open_gripper(self)
+        self.nod_servo(0)
+        distance_from_wall = self.__radar.get_distance_from_wall(direction)
+        self.telescopic_servo((distance_from_wall - 0.25) * 100)
+
+        self.lift(15.5)
+        ArmMovement.close_gripper_basket(self)
+        self.lift(0)
 
     def grab_basket_from_station(self, direction: Direction):
         ArmMovement.station_basket_top(self, direction)
