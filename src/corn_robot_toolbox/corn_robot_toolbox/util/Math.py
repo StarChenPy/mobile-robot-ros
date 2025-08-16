@@ -182,17 +182,11 @@ def is_behind(point1: Pose, point2: Pose, angle_threshold: float) -> bool:
     if not point1 or not point2:
         return False
 
-    if not point1.w or not point2.w:
+    if not point1.w:
         return False
 
     dx = point2.x - point1.x
     dy = point2.y - point1.y
-
-    yaw = abs(point1.w - point2.w)
-    if yaw > 180:
-        yaw = abs(yaw - 360)
-    if yaw > angle_threshold * 2:
-        return False
 
     # 处理两点重合的情况
     if dx == 0 and dy == 0:

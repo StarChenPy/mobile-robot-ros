@@ -9,7 +9,9 @@ from sensor_msgs.msg import LaserScan
 from .type.Direction import Direction
 from .util import Math
 
-RADAR_ERROR = 3.3
+RADAR_ERROR_LEFT = -2.68
+RADAR_ERROR_FRONT = -2.3
+RADAR_ERROR_RIGHT = -2.5
 
 
 class LidarToolbox:
@@ -68,35 +70,43 @@ class LidarToolbox:
         start_angle = 0
 
         if direction == Direction.RIGHT:
-            start_angle = -10
+            start_angle = -30
         elif direction == Direction.FRONT:
-            start_angle = 80
+            start_angle = 75
         elif direction == Direction.LEFT:
-            start_angle = 170
+            start_angle = 180
 
-        for i in range(1, 25):
-            angle = start_angle + i
-            if angle > 180:
-                angle -= 360
-            if angle < -180:
-                angle += 360
+        for i in range(1, 30):
+            angle = Math.normalize_angle(start_angle + i)
             points.append(self.get_radar_data(angle))
 
         return points
 
     def get_angle_from_wall_once(self, direction: Direction) -> float:
-        points = self.__get_radar_points(direction)
-        angle = Math.fit_polar_line_and_get_angle(points)
+        angle_list = []
 
-        if direction == Direction.FRONT:
-            pass
-        else:
-            if angle > 0:
-                angle -= 90
+        for i in range(5):
+            points = self.__get_radar_points(direction)
+            angle = Math.fit_polar_line_and_get_angle(points)
+
+            if direction == Direction.FRONT:
+                angle += RADAR_ERROR_FRONT
             else:
-                angle += 90
+                if angle > 0:
+                    angle -= 90
+                else:
+                    angle += 90
 
-        return angle - RADAR_ERROR
+                if direction == Direction.LEFT:
+                    angle += RADAR_ERROR_LEFT
+                elif direction == Direction.RIGHT:
+                    angle += RADAR_ERROR_RIGHT
+            angle_list.append(angle)
+            time.sleep(0.3)
+
+        self.node.get_logger().debug(f"{direction.name} 扫描到的雷达角度为 {angle_list}")
+
+        return Math.average_without_extremes(angle_list)
 
     def get_angle_from_wall(self, direction: Direction) -> float:
         if direction == Direction.BACK:
@@ -117,7 +127,7 @@ class LidarToolbox:
         return 0
 
     def get_distance_from_wall_once(self, direction: Direction) -> float:
-        # 返回距离雷达扫描的坐标拟合成的直线的垂直距离
+        # 返回距离雷达扫描的5个坐标拟合成的直线的垂直距离
         points = self.__get_radar_points(direction)
         distance = Math.fit_polar_line_and_get_distance(points)
 
@@ -129,12 +139,12 @@ class LidarToolbox:
 
         if direction == Direction.FRONT:
             # 加上从雷达到机器人中心的距离
-            distance += 0.21
+            distance += 0.2
         else:
             # 补偿因倾斜导致的雷达与墙和机器人中心与墙的距离不一致的问题
             angle_from_wall = self.get_angle_from_wall(direction)
 
-            side = Math.calculate_right_angle_side(0.21, abs(angle_from_wall))
+            side = Math.calculate_right_angle_side(0.2, abs(angle_from_wall))
 
             if direction == Direction.LEFT:
                 side = -side

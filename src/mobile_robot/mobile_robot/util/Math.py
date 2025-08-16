@@ -423,6 +423,7 @@ def find_points_in_squares(points: list[Point], squares: list[Rectangle]):
                 points.remove(point)  # 确保每个点只被计入一次
     return results
 
+
 def round_right_angle(i: float) -> int:
     """
     给定一个角度，向直角逼近
@@ -434,3 +435,12 @@ def round_right_angle(i: float) -> int:
         return  90 * f * (abs(int(i / 90)) + 1)
     else:
         return 90 * f * (abs(int(i / 90)))
+
+
+def normalize_angle(angle_deg: float) -> float:
+    """将角度标准化到 [-180, 180]"""
+    if angle_deg >= 180:
+        angle_deg -= 360
+    elif angle_deg < -180:
+        angle_deg += 360
+    return angle_deg

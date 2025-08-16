@@ -5,8 +5,6 @@ import onnxruntime as ort
 from ..popo.IdentifyResult import IdentifyResult
 from ..popo.Rectangle import Rectangle
 
-names = ["red_apple", "green_apple", "yellow_apple", "purple_apple", "purple_grape", "green_grape", "yellow_grape"]
-
 
 def __preprocess(image: np.ndarray, target_size: int = 640) -> tuple[np.ndarray, tuple]:
     """预处理图像并返回处理后的张量和元信息"""
@@ -51,7 +49,7 @@ def __non_max_suppression(boxes: np.ndarray, scores: np.ndarray, iou_threshold: 
         order = order[inds + 1]
     return keep
 
-def infer_onnx_model(onnx_path: str, image: np.ndarray, confidence_threshold: float = 0.5, iou_threshold: float = 0.5) -> list[IdentifyResult]:
+def infer_onnx_model(onnx_path: str, names: list[str], image: np.ndarray, confidence_threshold: float = 0.5, iou_threshold: float = 0.5) -> list[IdentifyResult]:
     session = ort.InferenceSession(onnx_path)
     input_name = session.get_inputs()[0].name
 

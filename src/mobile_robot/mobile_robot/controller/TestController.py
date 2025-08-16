@@ -1,10 +1,7 @@
-import time
-
 import rclpy
 
-from ..dao.MyNavigationDao import MyNavigationDao
 from ..param import ArmMovement
-from ..popo.NavigationPoint import NavigationPoint
+from ..popo.Direction import Direction
 from ..service.ArmService import ArmService
 from ..service.MoveService import MoveService
 from ..service.RobotService import RobotService
@@ -33,5 +30,23 @@ class TestController:
         # ArmMovement.motion(self.arm)
 
         while True:
-            input("Press Enter to start the test...")
-            self.sensor.correction("c_1")
+            input("等待")
+            self.sensor.correction("c_4")
+            input("...")
+            self.move.my_navigation("v_3")
+
+        # import pdb
+        # pdb.set_trace()
+        # ArmMovement.identify_tree_fruit(self.arm, Direction.RIGHT)
+        # ArmMovement.grab_apple_on_tree(self.arm, Direction.RIGHT, -1, False)
+
+        # 抓苹果树测试
+        # tree = GrabAppleTree(self.node)
+        # tree.direction = Direction.RIGHT
+        # tree.basket_1 = [FruitType.GREEN_APPLE, FruitType.GREEN_APPLE]
+        # tree.basket_2 = [FruitType.RED_APPLE, FruitType.RED_APPLE]
+        # tree.basket_3 = [FruitType.GREEN_APPLE, FruitType.RED_APPLE]
+        #
+        # while True:
+        #     self.robot.with_start_button()
+        #     tree.grab_apple_from_tree()

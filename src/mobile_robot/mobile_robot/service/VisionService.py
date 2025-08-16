@@ -26,8 +26,18 @@ class VisionService:
         self.__camera = CameraDao(node)
 
         share_directory = ament_index_python.packages.get_package_share_directory("mobile_robot")
-        self.__weight_path = share_directory + "/weights/best.onnx"
-        self.__names_path = share_directory + "/weights/fruit.names"
+        self.__weight_path = share_directory + "/weights/grape_and_apple.onnx"
+        self.__names = ["red_apple", "green_apple", "yellow_apple", "purple_apple", "purple_grape", "green_grape", "yellow_grape"]
+
+    def set_other_fruit_weight(self):
+        share_directory = ament_index_python.packages.get_package_share_directory("mobile_robot")
+        self.__weight_path = share_directory + "/weights/other_fruit.onnx"
+        self.__names = ["apple", "pomegranate", "lemon", "snow_pear", "kiwifruit", "lotus_fruit", "custard_apple", "tangerine", "peach", "green_pepper"]
+
+    def set_grape_and_apple_weight(self):
+        share_directory = ament_index_python.packages.get_package_share_directory("mobile_robot")
+        self.__weight_path = share_directory + "/weights/other_fruit.onnx"
+        self.__names = ["red_apple", "green_apple", "yellow_apple", "purple_apple", "purple_grape", "green_grape", "yellow_grape"]
 
     def get_mnn_identify_result(self) -> list[IdentifyResult]:
         self.__mnn.start("/home/vmx/WSR_HB_Robot/models/coco_Y3_1900_sim.mnn",
@@ -41,12 +51,12 @@ class VisionService:
         return self.__camera.photograph_color(True)
 
     def show_photo(self, photo) -> None:
-        result = infer_onnx_model(self.__weight_path, photo)
+        result = infer_onnx_model(self.__weight_path, self.__names, photo)
         for r in result:
             cv2.rectangle(photo, (r.box.x1, r.box.y1), (r.box.x2, r.box.y2), (0, 255, 0), 2)
             cv2.putText(photo, '{} {:.3f}'.format(r.class_id, r.confidence), (r.box.x1, r.box.y1), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
         cv2.imshow("123", photo)
-        cv2.waitKey(1)
+        cv2.waitKey(0)
         cv2.destroyAllWindows()
 
     def get_onnx_identify_depth(self, inverted=False, kernel_size=11) -> list[IdentifyResult]:
@@ -57,9 +67,7 @@ class VisionService:
             photo = cv2.rotate(photo, cv2.ROTATE_180)
             depth = cv2.rotate(depth, cv2.ROTATE_180)
 
-        self.show_photo(photo)
-
-        result = infer_onnx_model(self.__weight_path, photo)
+        result = infer_onnx_model(self.__weight_path, self.__names, photo)
 
         for r in result:
             point = r.box.get_rectangle_center()
@@ -86,7 +94,7 @@ class VisionService:
             photo = self.__camera.photograph_color(True)
             if inverted:
                 photo = cv2.rotate(photo, cv2.ROTATE_180)
-            result = infer_onnx_model(self.__weight_path, photo)
+            result = infer_onnx_model(self.__weight_path, self.__names, photo)
             return result
 
     def get_depth_data(self, point: Point) -> float:

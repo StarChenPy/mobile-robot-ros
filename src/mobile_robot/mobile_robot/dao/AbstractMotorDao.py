@@ -72,7 +72,7 @@ class AbstractMotorDao(ABC):
                 break
 
             if future.result().feedback.reached:
-                self.__logger.info("电机运动服务已结束")
+                self.__logger.debug("电机运动服务已结束")
                 return
 
             time.sleep(0.5)

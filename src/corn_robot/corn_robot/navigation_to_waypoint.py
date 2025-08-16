@@ -150,8 +150,11 @@ class NavigationToPoseNode(rclpy.node.Node):
                 in_slope = False
 
             # 是否要倒车
-            if len(waypoints) > 1:
-                if Math.is_behind(waypoints[index - 1].pose, waypoint.pose, 170):
+            if index >= 2:
+                pass
+            elif len(waypoints) > 1:
+                if Math.is_behind(waypoints[index - 1].pose, waypoint.pose, 80):
+                    self.get_logger().info(f"触发了倒车，当前pose: {waypoints[index - 1].pose}, 目标 pose: {waypoint.pose}")
                     if not appended:
                         appended = True
                         path.append(waypoint.pose)
@@ -165,7 +168,8 @@ class NavigationToPoseNode(rclpy.node.Node):
                             return self.create_result(False, '导航到路径点失败', index, T1)
                         path = []
             else:
-                if Math.is_behind(self.odom, waypoint.pose, 170):
+                if Math.is_behind(self.odom, waypoint.pose, 80):
+                    self.get_logger().info(f"触发了倒车，当前pose: {self.odom}, 目标 pose: {waypoint.pose}")
                     if not appended:
                         appended = True
                         path.append(waypoint.pose)
@@ -199,6 +203,7 @@ class NavigationToPoseNode(rclpy.node.Node):
                     self.get_logger().info("导航已被取消")
                     goal_handle.canceled()
                     return self.create_result(False, '导航已被取消', index, T1)
+                time.sleep(1)
                 result = await self.correction_client.call_async(CorrectionOdom.Request(waypoint_name=waypoint.name))
                 if result is None or not result.success:
                     goal_handle.abort()
@@ -272,10 +277,11 @@ class NavigationToPoseNode(rclpy.node.Node):
         # 这里要获取导航最后一个点的角度并赋给heading
         goal_msg.linear_vel = self.speed
         goal_msg.rotation_vel = self.speed * 5.0
-        goal_msg.linear_acc = float(0.69)  # 直线加速度
-        goal_msg.linear_decel = float(0.43)  # 直线减加速度
+        # goal_msg.linear_acc = float(0.69)  # 直线加速度
+        goal_msg.linear_acc = float(3)  # 直线加速度
+        goal_msg.linear_decel = float(0.53)  # 直线减加速度
         goal_msg.rotate_acc = float(2.5)  # 旋转加速度
-        goal_msg.rotate_decel = float(1)  # 旋转减加速度
+        goal_msg.rotate_decel = float(1.0)  # 旋转减加速度
         goal_msg.heading = float(poses[-1].w)
         goal_msg.back = reverse
 
@@ -291,7 +297,6 @@ class NavigationToPoseNode(rclpy.node.Node):
         if not self.waypoints.waypoints:
             self.get_logger().error('路径点数据为空!')
             return Waypoint()
-        print(self.odom)
         min_point: Waypoint = min(self.waypoints.waypoints,
                                   key=lambda wp: math.hypot(wp.pose.x - self.odom.x, wp.pose.y - self.odom.y))
         self.get_logger().info(f"检查当前点可能是 {min_point.name}, 距离: "

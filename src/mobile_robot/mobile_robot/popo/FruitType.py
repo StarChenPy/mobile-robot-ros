@@ -10,6 +10,17 @@ class FruitType(enum.Enum):
     YELLOW_GRAPE = "yellow_grape"
     PURPLE_GRAPE = "purple_grape"
 
+    APPLE = "apple"
+    POMEGRANATE = "pomegranate"
+    LEMON = "lemon"
+    SNOW_PEAR = "snow_pear"
+    KIWIFRUIT = "kiwifruit"
+    LOTUS_FRUIT = "lotus_fruit"
+    CUSTARD_APPLE = "custard_apple"
+    TANGERINE = "tangerine"
+    PEACH = "peach"
+    GREEN_PEPPER = "green_pepper"
+
     @classmethod
     def apples(cls):
         return [
@@ -28,5 +39,10 @@ class FruitType(enum.Enum):
         ]
 
     @classmethod
+    def others(cls):
+        return [cls.APPLE, cls.POMEGRANATE, cls.LEMON, cls.SNOW_PEAR, cls.KIWIFRUIT, cls.LOTUS_FRUIT,
+                cls.CUSTARD_APPLE, cls.TANGERINE, cls.PEACH, cls.GREEN_PEPPER]
+
+    @classmethod
     def all(cls):
-        return cls.apples() + cls.grapes()
+        return cls.apples() + cls.grapes() + cls.others()

@@ -44,7 +44,7 @@ class ArmService:
             self.__lift_motor.wait_finish()
 
     def rotate(self, target: float, speed = 70, is_block=True):
-        target += 2  # 调整偏差
+        target += 1  # 调整偏差
         self.__rotate_motor.ctrl_motor(target, speed)
         if is_block:
             self.__rotate_motor.wait_finish()
@@ -174,7 +174,7 @@ class ArmService:
 
         prev_duty = self.__robot_ctrl.read_pwm(pin)
         if prev_duty != duty:
-            self.__logger.info(f'设置 {type_name} 舵机: {value} (duty: {duty})')
+            self.__logger.debug(f'设置 {type_name} 舵机: {value} (duty: {duty})')
 
             if decelerate > 0 and prev_duty != 0:
                 difference = abs(prev_duty - duty)

@@ -37,7 +37,7 @@ class RotateMotorDao(AbstractMotorDao):
 
         # 调用电机服务
         super()._call_service(MotorCmd.SET_POSITION, target_pulses, speed)
-        self.__logger.info(f"已请求旋转电机服务, 目标值 {target}")
+        self.__logger.debug(f"已请求旋转电机服务, 目标值 {target}")
 
     def _get_motor_config(self):
         return Config().get_rotate_motor_config()

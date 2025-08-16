@@ -10,7 +10,7 @@ class DebugModule(Node):
     def __init__(self):
         super().__init__("debug_module")
 
-        Logger().set_ros_logger(self.get_logger(), LoggingSeverity.INFO)
+        Logger().set_ros_logger(self.get_logger(), LoggingSeverity.DEBUG)
 
         controller = DebugController(self)
 

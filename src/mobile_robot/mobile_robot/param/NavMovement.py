@@ -32,7 +32,7 @@ S_R_3_R = NavigationPoint(2.29, 0.3, 0)
 # 树
 T_1 = NavigationPoint(3, 1.48, None)
 T_1_G = NavigationPoint(2.89, 0.93, 0)
-T_2 = NavigationPoint(2.45, 2.08, None)
+T_2 = NavigationPoint(2.48, 2.08, None)
 T_3 = NavigationPoint(3.4, 2.08, None)
 
 # 葡萄园点

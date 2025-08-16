@@ -42,7 +42,8 @@ class TaskEController:
         self.grab_grapes()
         self.put_baskets()
 
-        self.move.navigation([NavMovement.CORRECTIVE_POINT_1, NavMovement.START_POINT])
+        self.move.my_navigation("c_start")
+        self.arm.nod_servo(90)
         self.robot.set_start_led(False)
 
         end_time = time.time()
@@ -50,21 +51,18 @@ class TaskEController:
         self.logger.info(f"执行时间：{int(use_time / 60)} 分 {use_time % 60}秒")
 
     def grab_baskets(self):
-        self.move.navigation([NavMovement.START_POINT, NavMovement.CORRECTIVE_POINT_1, Station.YELLOW_STATION_1.nav_point(Direction.LEFT)])
-        Station.YELLOW_STATION_1.revise(self.node, Direction.BACK)
-        self.arm.grab_basket_from_station(Direction.LEFT)
+        self.move.my_navigation("s_y_2_r")
+        self.arm.grab_basket_from_station(Direction.RIGHT)
         ArmMovement.put_basket_to_robot(self.arm, 1)
         ArmMovement.motion(self.arm)
 
-        self.move.navigation([NavMovement.POINT_B, NavMovement.POINT_D, Station.YELLOW_STATION_2.nav_point(Direction.LEFT)])
-        Station.YELLOW_STATION_2.revise(self.node, Direction.FRONT)
-        self.arm.grab_basket_from_station(Direction.LEFT)
+        self.move.my_navigation("s_y_1_r")
+        self.arm.grab_basket_from_station(Direction.RIGHT)
         ArmMovement.put_basket_to_robot(self.arm, 2)
         ArmMovement.motion(self.arm)
 
-        self.move.navigation([NavMovement.CORRECTIVE_POINT_2, Station.YELLOW_STATION_3.nav_point(Direction.LEFT)])
-        Station.YELLOW_STATION_3.revise(self.node, Direction.BACK)
-        self.arm.grab_basket_from_station(Direction.LEFT)
+        self.move.my_navigation("s_y_3_r")
+        self.arm.grab_basket_from_station(Direction.RIGHT)
         ArmMovement.put_basket_to_robot(self.arm, 3)
         ArmMovement.motion(self.arm)
 
@@ -74,31 +72,27 @@ class TaskEController:
         grab_apple_tree.basket_2 = [FruitType.GREEN_APPLE] * 2
         grab_apple_tree.basket_3 = [FruitType.RED_APPLE, FruitType.GREEN_APPLE]
 
-        self.move.navigation([NavMovement.CORRECTIVE_POINT_2])
-        grab_apple_tree.grab_tree(NavMovement.TREE_1, [Direction.FRONT, Direction.LEFT, Direction.BACK])
+        self.move.my_navigation("c_8")
+        self.move.my_navigation("p_9")
+        grab_apple_tree.grab_tree(NavMovement.T_1, [Direction.FRONT, Direction.LEFT, Direction.BACK])
         if not grab_apple_tree.has_apple():
-            self.move.navigation([NavMovement.YELLOW_STATION_2, NavMovement.CORRECTIVE_POINT_2])
             return
 
-        self.move.navigation([NavMovement.YELLOW_STATION_2, NavMovement.CORRECTIVE_POINT_2, NavMovement.YELLOW_STATION_2, NavMovement.POINT_D])
-        grab_apple_tree.grab_tree(NavMovement.TREE_2, [Direction.LEFT, Direction.BACK])
+        self.move.my_navigation("c_8")
+        self.move.my_navigation("p_9")
+        grab_apple_tree.grab_tree(NavMovement.T_2, [Direction.LEFT, Direction.BACK])
         if not grab_apple_tree.has_apple():
-            self.move.navigation([NavMovement.POINT_F, NavMovement.POINT_B, NavMovement.POINT_D, NavMovement.YELLOW_STATION_2, NavMovement.CORRECTIVE_POINT_2])
             return
 
-        self.move.navigation([NavMovement.POINT_F, NavMovement.POINT_B, NavMovement.CORRECTIVE_POINT_1])
-        grab_apple_tree.grab_tree(NavMovement.TREE_3, [Direction.BACK, Direction.LEFT, Direction.FRONT])
+        self.move.my_navigation("")
+        grab_apple_tree.grab_tree(NavMovement.T_3, [Direction.BACK, Direction.LEFT, Direction.FRONT])
         if not grab_apple_tree.has_apple():
-            self.move.navigation([NavMovement.POINT_F, NavMovement.POINT_B, NavMovement.POINT_D, NavMovement.YELLOW_STATION_2, NavMovement.CORRECTIVE_POINT_2])
             return
 
-        self.move.navigation([NavMovement.POINT_F, NavMovement.POINT_B, NavMovement.CORRECTIVE_POINT_1])
-        grab_apple_tree.grab_tree(NavMovement.TREE_4, [Direction.BACK, Direction.RIGHT, Direction.FRONT])
+        self.move.my_navigation("")
+        grab_apple_tree.grab_tree(NavMovement.T_3, [Direction.BACK, Direction.RIGHT, Direction.FRONT])
         if not grab_apple_tree.has_apple():
-            self.move.navigation([NavMovement.YELLOW_STATION_2, NavMovement.CORRECTIVE_POINT_2])
             return
-
-        self.move.navigation([NavMovement.YELLOW_STATION_2, NavMovement.CORRECTIVE_POINT_2])
 
     def grab_grapes(self):
         grab_grape_wall = GrabGrapeWall(self.node, Direction.RIGHT)

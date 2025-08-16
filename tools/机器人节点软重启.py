@@ -29,7 +29,7 @@ def system_command(ip='', cmd=''):
         else:
             print('命令:{} 执行失败! {}'.format(cmd, stderr.read().decode()))
     except Exception as e:
-        print('命令执行错误')
+        print('命令执行错误', e)
     finally:
         ssh.close()
     return success

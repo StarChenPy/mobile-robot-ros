@@ -28,7 +28,7 @@ class SensorService:
         self.__correction = CorrectionOdomDao(node)
 
     def ping_revise(self, dis: float, is_block=True):
-        dis = (dis - 0.24) * 100
+        dis = (dis - 0.225) * 100
         self.__sensor.ping_revise(dis)
         self.__logger.info("开始超声修正")
         if is_block:

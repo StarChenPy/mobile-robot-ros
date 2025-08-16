@@ -61,7 +61,7 @@ class WaypointAStar(AStar[WaypointWrapper]):
     def distance_between(self, n1: WaypointWrapper, n2: WaypointWrapper) -> float:
         cost = manhattan(n1, n2)
         if n2.on_slope:
-            cost += 1
+            cost += 3
         return cost
 
     def neighbors(self, node: WaypointWrapper) -> List[WaypointWrapper]:

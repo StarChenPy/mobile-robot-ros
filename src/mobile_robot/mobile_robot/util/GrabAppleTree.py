@@ -19,27 +19,27 @@ def create_tree_path(tree_point: NavigationPoint, tree_dir: list[Direction]) -> 
     根据树的位置和方向来计算识别点坐标点
     """
 
-    identify_distance = 0.57
-    identify_offset = 0.34
+    identify_distance = 0.58
+    identify_offset = 0.32
     min_x, max_x = 0.0, 4.0
     min_y, max_y = 0.0, 4.0
 
     direction_deltas = {
-        Direction.LEFT:   (0,  identify_distance),
-        Direction.RIGHT:  (0, -identify_distance),
-        Direction.FRONT:  (identify_distance, 0),
-        Direction.BACK:  (-identify_distance, 0),
+        Direction.LEFT: (0, identify_distance),
+        Direction.RIGHT: (0, -identify_distance),
+        Direction.FRONT: (identify_distance, 0),
+        Direction.BACK: (-identify_distance, 0),
     }
 
     offset_map = {
-        (Direction.LEFT,  Direction.FRONT):  (identify_offset, 0, 180, Direction.LEFT),
-        (Direction.LEFT,  Direction.BACK):  (-identify_offset, 0, 0, Direction.RIGHT),
-        (Direction.RIGHT, Direction.FRONT):  (identify_offset, 0, 180, Direction.RIGHT),
-        (Direction.RIGHT, Direction.BACK):  (-identify_offset, 0, 0, Direction.LEFT),
-        (Direction.FRONT, Direction.LEFT):   (0, identify_offset, -90, Direction.RIGHT),
-        (Direction.FRONT, Direction.RIGHT):  (0, -identify_offset, 90, Direction.LEFT),
-        (Direction.BACK,  Direction.LEFT):   (0, identify_offset, -90, Direction.LEFT),
-        (Direction.BACK,  Direction.RIGHT):  (0, -identify_offset, 90, Direction.RIGHT),
+        (Direction.LEFT, Direction.FRONT): (identify_offset, 0, 180, Direction.LEFT),
+        (Direction.LEFT, Direction.BACK): (-identify_offset, 0, 0, Direction.RIGHT),
+        (Direction.RIGHT, Direction.FRONT): (identify_offset, 0, 180, Direction.RIGHT),
+        (Direction.RIGHT, Direction.BACK): (-identify_offset, 0, 0, Direction.LEFT),
+        (Direction.FRONT, Direction.LEFT): (0, identify_offset, -90, Direction.RIGHT),
+        (Direction.FRONT, Direction.RIGHT): (0, -identify_offset, 90, Direction.LEFT),
+        (Direction.BACK, Direction.LEFT): (0, identify_offset, -90, Direction.LEFT),
+        (Direction.BACK, Direction.RIGHT): (0, -identify_offset, 90, Direction.RIGHT),
     }
 
     nav_points = []
@@ -84,8 +84,7 @@ class GrabAppleTree:
         self.node = node
 
         self.direction = None
-        self.max_move_distance = 0.68
-        self.max_grab_distance = 0.46
+        self.max_grab_distance = 0.52
         self.min_grab_distance = 0.27
 
         self.basket_1 = []
@@ -105,14 +104,14 @@ class GrabAppleTree:
         return False
 
     def find_fruits(self, fruit=None) -> List[IdentifyResult]:
-        identify = self.vision.get_onnx_identify_depth()
+        identify = self.vision.get_onnx_identify_depth(True)
 
         result = []
         for i in identify:
             if fruit:
                 if FruitType(i.class_id) not in fruit:
                     continue
-            if i.distance > self.max_move_distance:
+            if i.distance > self.max_grab_distance:
                 continue
             result.append(i)
         return result
@@ -133,9 +132,8 @@ class GrabAppleTree:
             return False
 
         max_distance = max(self.find_fruits(), key=lambda fruit: fruit.distance).distance
-        piff_dis = 0
 
-        fruits.sort(key=lambda fruit: fruit.box.get_rectangle_center().x)
+        fruits.sort(key=lambda fruit: fruit.distance)
         for i in fruits:
             if i.distance == -1:
                 self.logger.warn(f"没有深度信息，跳过{i.class_id}")
@@ -152,32 +150,32 @@ class GrabAppleTree:
             center = i.box.get_rectangle_center()
             fruit_type = FruitType(i.class_id)
 
-            distance = 0.3
+            depth_distance = 0.3
             if i.distance != -1:
-                distance = i.distance + 0.04
-                self.logger.info(f"抓取苹果使用深度信息 {distance}")
+                depth_distance = i.distance + 0.04
+                self.logger.info(f"抓取苹果使用深度信息 {depth_distance}")
             else:
-                self.logger.warn(f"深度相机没有深度信息，使用默认值 {distance}")
+                self.logger.warn(f"深度相机没有深度信息，使用默认值 {depth_distance}")
 
             if self.direction == Direction.LEFT:
-                move_distance = Math.pixel_to_horizontal_distance_x_centered(center.x - 320, distance)
+                move_distance = Math.pixel_to_horizontal_distance_x_centered(center.x - 320, depth_distance)
             elif self.direction == Direction.RIGHT:
-                move_distance = Math.pixel_to_horizontal_distance_x_centered(320 - center.x, distance)
+                move_distance = Math.pixel_to_horizontal_distance_x_centered(320 - center.x, depth_distance)
             else:
                 raise ValueError()
             move_distance = move_distance + 0.215
 
-            self.arm.lift(0)
-            ArmMovement.open_half_gripper(self.arm)
-            self.move.line(move_distance - prev_move_len)
-            prev_move_len = move_distance
+            self.move.line(move_distance - prev_move_len, is_block=False)
+            # 补偿一些误差
+            prev_move_len = move_distance + 0.01
 
-            ArmMovement.grab_apple_on_tree(self.arm, self.direction, (distance - 0.3 - piff_dis) * 100, center.y > 220)
-            for i in range(1, 4):
-                basket = getattr(self, f"basket_{i}")
+            ArmMovement.grab_apple_on_tree(self.arm, self.direction, (depth_distance - 0.36) * 100, center.y > 160)
+            for j in range(1, 4):
+                basket = getattr(self, f"basket_{j}")
                 if fruit_type in basket:
-                    ArmMovement.put_fruit_to_basket(self.arm, i)
+                    ArmMovement.put_fruit_to_basket(self.arm, j)
                     basket.remove(fruit_type)
+                    self.arm.lift(0)
                     break
 
         ArmMovement.motion(self.arm)
