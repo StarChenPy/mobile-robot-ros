@@ -2,11 +2,14 @@ import rclpy
 
 from ..param import ArmMovement
 from ..popo.Direction import Direction
+from ..popo.FruitType import FruitType
+from ..popo.NavigationPoint import NavigationPoint
 from ..service.ArmService import ArmService
 from ..service.MoveService import MoveService
 from ..service.RobotService import RobotService
 from ..service.SensorService import SensorService
 from ..service.VisionService import VisionService
+from ..util.GrabAppleTree import GrabAppleTree
 from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
@@ -29,11 +32,17 @@ class TestController:
         #
         # ArmMovement.motion(self.arm)
 
-        while True:
-            input("等待")
-            self.sensor.correction("c_4")
-            input("...")
-            self.move.my_navigation("v_3")
+        # while True:
+        #     self.move.line(int(input("输入数字: ")), 0.6)
+
+        # dao = RobotDataDao(self.node)
+        # while len(dao.imu_data) < 20:
+        #     rclpy.spin_once(self.node)
+        #     time.sleep(0.1)
+        #
+        # with open("/Users/starchen/Desktop/静态数据记录.txt", 'a') as f:
+        #     for imu in dao.imu_data:
+        #         f.write(str(imu) + "\n")
 
         # import pdb
         # pdb.set_trace()
@@ -41,12 +50,12 @@ class TestController:
         # ArmMovement.grab_apple_on_tree(self.arm, Direction.RIGHT, -1, False)
 
         # 抓苹果树测试
-        # tree = GrabAppleTree(self.node)
-        # tree.direction = Direction.RIGHT
-        # tree.basket_1 = [FruitType.GREEN_APPLE, FruitType.GREEN_APPLE]
-        # tree.basket_2 = [FruitType.RED_APPLE, FruitType.RED_APPLE]
-        # tree.basket_3 = [FruitType.GREEN_APPLE, FruitType.RED_APPLE]
-        #
-        # while True:
-        #     self.robot.with_start_button()
-        #     tree.grab_apple_from_tree()
+        tree = GrabAppleTree(self.node)
+        tree.direction = Direction.LEFT
+        tree.basket_1 = [FruitType.GREEN_APPLE, FruitType.GREEN_APPLE]
+        tree.basket_2 = [FruitType.RED_APPLE, FruitType.RED_APPLE]
+        tree.basket_3 = [FruitType.GREEN_APPLE, FruitType.RED_APPLE]
+
+        while True:
+            input("Press Enter to continue...")
+            tree.close_tree()

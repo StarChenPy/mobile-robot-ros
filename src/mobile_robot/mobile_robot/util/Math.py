@@ -84,7 +84,7 @@ def get_point_angle(a, b):
     if angle_deg < 0:
         angle_deg += 360
 
-    return angle_deg
+    return normalize_angle(angle_deg)
 
 
 def get_target_coordinate(point: NavigationPoint, dis) -> NavigationPoint:
@@ -124,6 +124,15 @@ def fit_polar_line_and_get_distance(polar_points: list[tuple[float, float]]):
 
     # 计算原点 (0,0) 到直线的垂直距离：d = |b| / sqrt(a^2 + 1) 并返回
     return (np.abs(b) / np.sqrt(a ** 2 + 1)).item()
+
+
+def polar_to_cartesian(polar_point: tuple[float, float]) -> tuple[float, float]:
+    # 将极坐标转换为直角坐标（输入角度转换为弧度）
+    r, theta = polar_point
+    x = r * np.cos(np.radians(theta))
+    y = r * np.sin(np.radians(theta))
+
+    return x, y
 
 
 def fit_polar_line_and_get_angle(polar_points: list[tuple[float, float]]) -> float:

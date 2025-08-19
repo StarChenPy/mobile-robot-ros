@@ -131,7 +131,7 @@ class DebugController:
             if i == "q":
                 break
             try:
-                self.arm.rotate(float(i), 40, True)
+                self.arm.rotate(float(i), 70, True)
             except ValueError:
                 print("输入无效，请输入一个数字。")
 

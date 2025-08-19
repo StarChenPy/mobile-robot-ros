@@ -1,5 +1,6 @@
 import time
 
+from ..dao.RobotDataDao import RobotDataDao
 from ..param import NavMovement, ArmMovement
 from ..popo.Direction import Direction
 from ..popo.FruitType import FruitType
@@ -63,6 +64,7 @@ class TaskBController:
     def task_1(self):
         # 去黄站台2识别水果
         self.move.my_navigation("s_y_2_r")
+        self.vision.set_other_fruit_weight()
         ArmMovement.identify_station_fruit(self.arm, Direction.RIGHT)
         yellow_station = None
         while yellow_station is None:
@@ -187,7 +189,6 @@ class TaskBController:
             return
 
         self.move.my_navigation("v_3")
-        self.move.rotation_correction()
         while count < 3:
             if self.grab_ground_fruit("c_5"):
                 count += 1

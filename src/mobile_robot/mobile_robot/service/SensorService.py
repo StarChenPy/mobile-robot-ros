@@ -41,6 +41,14 @@ class SensorService:
             time.sleep(1)
             self.__sensor.wait_finish()
 
+    def get_lidar_data(self, start: float, end: float) -> list[tuple[float, float]]:
+        l = []
+        if start > end:
+            start, end = end, start
+        for i in range(start, end):
+            l.append(self.__radar.get_radar_data(Math.normalize_angle(i)))
+        return l
+
     def get_distance_from_wall(self, direction: Direction) -> float:
         return self.__radar.get_distance_from_wall(direction)
 
@@ -57,9 +65,6 @@ class SensorService:
         sonar = self.__robot_data.get_sonar()
         distance_from_wall = Math.distance_from_origin(-5, sonar[0], 5, sonar[1]) + 0.226
         return distance_from_wall
-
-    def get_radar_data(self, target_angle: float) -> tuple[float, float]:
-        return self.__radar.get_radar_data(target_angle)
 
     def get_odom_data(self) -> Pose:
         rclpy.spin_once(self.__node)

@@ -33,9 +33,9 @@ class MoveService:
         self.__robot_data = RobotDataDao(node)
 
     def rotation_correction(self, set_odom=False):
-        angle_by_front = self.__radar.get_angle_from_wall(Direction.FRONT)
-        angle_by_right = self.__radar.get_angle_from_wall(Direction.RIGHT)
-        angle_by_left = self.__radar.get_angle_from_wall(Direction.LEFT)
+        angle_by_front = self.__radar.get_angle_from_wall_once(Direction.FRONT)
+        angle_by_right = self.__radar.get_angle_from_wall_once(Direction.RIGHT)
+        angle_by_left = self.__radar.get_angle_from_wall_once(Direction.LEFT)
         angles = [angle_by_front, angle_by_right, angle_by_left]
         if 0 in angles:
             angles.remove(0)

@@ -43,6 +43,8 @@ class LaserRadarDao:
         if self.__radar_data is None:
             return 0.0, 0.0
 
+        rclpy.spin_once(self.__node)
+
         # 转换并筛选有效数据（非零）
         ranges = np.array(self.__radar_data.ranges)
         valid_mask = ranges > 0

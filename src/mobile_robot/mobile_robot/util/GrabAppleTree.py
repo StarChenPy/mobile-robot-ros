@@ -1,3 +1,5 @@
+import math
+
 import rclpy.node
 
 from typing import List
@@ -11,6 +13,7 @@ from ..popo.IdentifyResult import IdentifyResult
 from ..popo.NavigationPoint import NavigationPoint
 from ..service.ArmService import ArmService
 from ..service.MoveService import MoveService
+from ..service.SensorService import SensorService
 from ..service.VisionService import VisionService
 
 
@@ -94,6 +97,7 @@ class GrabAppleTree:
         self.move = MoveService(node)
         self.arm = ArmService(node)
         self.vision = VisionService(node)
+        self.sensor = SensorService(node)
 
     def has_apple(self):
         apple_types = set(FruitType.apples())
@@ -119,8 +123,9 @@ class GrabAppleTree:
     def grab_apple_from_tree(self):
         if self.direction is None:
             self.logger.error("方向未设置。无法抓苹果!")
-            return
+            return False
 
+        self.close_tree()
         self.move.rotation_correction()
         ArmMovement.identify_tree_fruit(self.arm, self.direction)
         fruits = self.find_fruits(self.basket_1 + self.basket_2 + self.basket_3)
@@ -180,6 +185,31 @@ class GrabAppleTree:
 
         ArmMovement.motion(self.arm)
         return True
+
+    def close_tree(self):
+        if not self.direction:
+            self.logger.warn("方向未设置。无法靠近苹果树!")
+            return
+
+        # 获取指定角度范围内距离最小点
+        start_angle = 180 if self.direction == Direction.LEFT else 90
+        radar_data = self.sensor.get_lidar_data(start_angle, start_angle - 90)
+        min_tree = min(radar_data, key=lambda i: i[0])
+
+        if not min_tree[0] or not min_tree[1]:
+            self.logger.warn("无雷达数据!")
+            return
+        x, y = Math.polar_to_cartesian(min_tree)
+        x -= -0.56 if self.direction == Direction.LEFT else 0.56
+        y -= 0.11
+
+        angle = Math.get_point_angle((0, 0), (-y, x))
+        angle = Math.normalize_angle(angle - 360) if y < 0 else angle
+        self.move.rotate(angle)
+        l = math.hypot(x, y)
+        l = -l if y < 0 < x else l
+        self.move.line(l)
+        self.move.rotate(-angle)
 
     def grab_tree(self, tree_point: NavigationPoint, tree_dir: list[Direction]):
         path = create_tree_path(tree_point, tree_dir)

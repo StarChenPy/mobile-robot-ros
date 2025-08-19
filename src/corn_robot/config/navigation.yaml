@@ -33,4 +33,4 @@ navigation_to_waypoint:
 
     speed: 0.4
     distance_threshold: 0.10
-    slope_offset: 0.3
+    slope_offset: 0.25
