@@ -32,8 +32,8 @@ class TestController:
         #
         # ArmMovement.motion(self.arm)
 
-        # while True:
-        #     self.move.line(int(input("输入数字: ")), 0.6)
+        while True:
+            print(self.robot.with_start_button())
 
         # dao = RobotDataDao(self.node)
         # while len(dao.imu_data) < 20:
@@ -50,12 +50,12 @@ class TestController:
         # ArmMovement.grab_apple_on_tree(self.arm, Direction.RIGHT, -1, False)
 
         # 抓苹果树测试
-        tree = GrabAppleTree(self.node)
-        tree.direction = Direction.LEFT
-        tree.basket_1 = [FruitType.GREEN_APPLE, FruitType.GREEN_APPLE]
-        tree.basket_2 = [FruitType.RED_APPLE, FruitType.RED_APPLE]
-        tree.basket_3 = [FruitType.GREEN_APPLE, FruitType.RED_APPLE]
-
-        while True:
-            input("Press Enter to continue...")
-            tree.close_tree()
+        # tree = GrabAppleTree(self.node)
+        # tree.direction = Direction.LEFT
+        # tree.basket_1 = [FruitType.GREEN_APPLE, FruitType.GREEN_APPLE]
+        # tree.basket_2 = [FruitType.RED_APPLE, FruitType.RED_APPLE]
+        # tree.basket_3 = [FruitType.GREEN_APPLE, FruitType.RED_APPLE]
+        #
+        # while True:
+        #     input("Press Enter to continue...")
+        #     tree.close_tree()
