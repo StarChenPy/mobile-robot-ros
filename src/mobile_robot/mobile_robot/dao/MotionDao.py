@@ -66,7 +66,7 @@ class MotionDao:
         rclpy.spin_until_future_complete(self.__node, future, timeout_sec=10)
 
         if not future.done():
-            self.__logger.warn("请求旋转运动服务超时.")
+            self.__logger.warn("请求直线运动服务超时.")
             return
 
         if not future.result().success:

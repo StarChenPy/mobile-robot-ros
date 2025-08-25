@@ -12,11 +12,11 @@ def open_gripper(arm: 'ArmService'):
 
 
 def open_half_gripper(arm: 'ArmService'):
-    arm.gripper_servo(14)
+    arm.gripper_servo(13)
 
 
-def open_one_third_gripper(arm: 'ArmService'):
-    arm.gripper_servo(8)
+def open_grape_gripper(arm: 'ArmService'):
+    arm.gripper_servo(10)
 
 
 def close_gripper_apple(arm: 'ArmService'):
@@ -88,8 +88,8 @@ def end(arm: 'ArmService'):
 def motion(arm: 'ArmService'):
     arm.lift(0)
     arm.rotate(0, is_block=False)
-    arm.rotary_servo(0)
     arm.nod_servo(-20)
+    arm.rotary_servo(0)
     arm.telescopic_servo(0)
     open_half_gripper(arm)
     arm.wait_finish()
@@ -134,21 +134,22 @@ def identify_station_fruit(arm: 'ArmService', direction: Direction):
     arm.nod_servo(90)
     open_gripper(arm)
     arm.wait_finish()
-    arm.nod_servo(60)
+    arm.nod_servo(50)
     time.sleep(1)
 
 
 def identify_grape(arm: 'ArmService', direction: Direction):
+    arm.nod_servo(-20)
     if direction == Direction.LEFT:
-        arm.rotate(190)
-        arm.rotary_servo(-96)
+        arm.rotate(200)
+        arm.rotary_servo(-108)
     elif direction == Direction.RIGHT:
-        arm.rotate(-190)
-        arm.rotary_servo(100)
+        arm.rotate(-200)
+        arm.rotary_servo(114)
     arm.telescopic_servo(0)
+    arm.nod_servo(5)
+    arm.lift(29)
     open_gripper(arm)
-    arm.nod_servo(10)
-    arm.lift(35)
     arm.telescopic_servo(10)
 
 
@@ -195,27 +196,28 @@ def put_basket_to_robot(arm: 'ArmService', num):
         arm.telescopic_servo(5.5)
         arm.rotary_servo(69)
         arm.wait_finish()
-        arm.lift(1)
+        arm.lift(2)
         arm.nod_servo(90)
     elif num == 2:
         arm.rotate(0)
         arm.rotary_servo(-85)
         arm.telescopic_servo(2)
         arm.wait_finish()
-        arm.lift(1)
+        arm.lift(2)
         arm.nod_servo(95)
     elif num == 3:
-        arm.rotate(-23)
-        arm.rotary_servo(-65)
+        arm.rotate(-20)
+        arm.rotary_servo(-68)
         arm.telescopic_servo(5)
         arm.wait_finish()
-        arm.lift(1)
+        arm.lift(2)
         arm.nod_servo(90)
     else:
         raise ValueError("不正确的框子位置")
 
     time.sleep(0.5)
     arm.lift(0)
+    time.sleep(0.5)
     arm.lift(10)
     open_gripper(arm)
     arm.lift(0)
@@ -239,13 +241,13 @@ def identify_tree_fruit(arm: 'ArmService', direction: Direction):
     arm.nod_servo(0)
     if direction == Direction.LEFT:
         arm.rotate(180)
-        arm.rotary_servo(90)
+        arm.rotary_servo(-90)
     elif direction == Direction.RIGHT:
         arm.rotate(-180)
-        arm.rotary_servo(-90)
+        arm.rotary_servo(90)
     else:
         raise ValueError("不支持的方向")
-    arm.nod_servo(180)
+    arm.nod_servo(0)
     arm.lift(22, is_block=False)
     arm.telescopic_servo(0)
     open_gripper(arm)
@@ -253,9 +255,12 @@ def identify_tree_fruit(arm: 'ArmService', direction: Direction):
     time.sleep(2)
 
 
-def put_fruit_to_basket(arm: 'ArmService', num):
+def put_fruit_to_basket(arm: 'ArmService', num, pressed_in=False):
     arm.lift(0)
     robot_basket_top(arm, num)
+    if pressed_in:
+        arm.lift(5)
+        arm.lift(0)
     open_gripper(arm)
 
 
@@ -277,7 +282,7 @@ def grab_apple_on_tree(arm: 'ArmService', direction: Direction, telescopic: floa
         raise ValueError("不支持的方向")
 
     # 抬升高度
-    lift_height = 30 if is_low else 21
+    lift_height = 30 if is_low else 18
 
     # 初始姿态
     arm.lift(0, is_block=False)
@@ -285,31 +290,20 @@ def grab_apple_on_tree(arm: 'ArmService', direction: Direction, telescopic: floa
     arm.telescopic_servo(0)
     open_half_gripper(arm)
 
-    if telescopic < 0:
-        arm.nod_servo(90)
-        arm.rotary_servo(180)
-        arm.nod_servo(180)
-    else:
-        arm.nod_servo(0)
-        arm.rotary_servo(0)
+    arm.nod_servo(0)
+    arm.rotary_servo(0)
     arm.wait_finish()
     arm.lift(lift_height)
 
     # 伸出夹爪准备夹取
-    if telescopic < 0:
-        arm.nod_servo(180)
-    else:
-        arm.nod_servo(0)
+    arm.nod_servo(0)
     arm.telescopic_servo(telescopic)
     close_gripper_apple(arm)
     time.sleep(0.2)
 
     # 收回机械臂
     if is_low:
-        if telescopic < 0:
-            arm.nod_servo(120)
-        else:
-            arm.nod_servo(60)
+        arm.nod_servo(60)
         arm.telescopic_servo(0)
         arm.lift(23)
         arm.nod_servo(90)

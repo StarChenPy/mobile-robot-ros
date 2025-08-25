@@ -48,39 +48,38 @@ class GrabGrapeWall:
             self.logger.error("方向未设置。无法抓葡萄!")
             return
 
+        if not grape:
+            self.logger.error("识别结果为空!")
+            return
+
         center = grape.box.get_rectangle_center()
 
-        distance = 0.25
-        x_distance = 0.03
+        distance = 0.30
+
+        x_distance = 0.04 if self.direction == Direction.LEFT else 0.02
         if self.direction == Direction.LEFT:
-            ir = self.sensor.get_ir_left()
-            if 0.2 < ir < 0.4:
-                distance = ir - 0.05
             x_distance += Math.pixel_to_horizontal_distance_x_centered(center.x - 320, distance)
         elif self.direction == Direction.RIGHT:
-            ir = self.sensor.get_ir_right()
-            if 0.2 < ir < 0.4:
-                distance = ir - 0.05
             x_distance += Math.pixel_to_horizontal_distance_x_centered(320 - center.x, distance)
         y_distance = Math.pixel_to_distance_from_bottom(center.y, distance)
         self.move.line(x_distance)
 
-        # distance 要减去夹爪5cm, x_distance要加上从夹爪到旋转中心的34cm
-        angle = Math.calculate_right_triangle_angle(distance, 0.34)
+        # distance要加上夹爪的5cm, x_distance要加上从夹爪到旋转中心的34cm
+        angle = Math.calculate_right_triangle_angle(distance - 0.1, 0.34)
 
-        lift_height = 30 - (y_distance * 100)
+        lift_height = 34 - (y_distance * 100)
         self.arm.lift(lift_height, is_block=False)
         self.arm.nod_servo(90)
 
-        ArmMovement.open_one_third_gripper(self.arm)
+        ArmMovement.open_grape_gripper(self.arm)
         if self.direction == Direction.LEFT:
             self.arm.rotary_servo(-(90 - angle))
             self.arm.rotate(180 - angle)
         if self.direction == Direction.RIGHT:
-            self.arm.rotary_servo(90 - angle)
+            self.arm.rotary_servo((90 - angle))
             self.arm.rotate(-180 + angle)
 
-        self.arm.nod_servo(50)
+        self.arm.nod_servo(60)
         self.arm.wait_finish()
         time.sleep(0.3)
         ArmMovement.close_gripper_grape(self.arm)
@@ -100,14 +99,16 @@ class GrabGrapeWall:
 
         self.move.my_navigation(waypoint_name, 0.1, False)
         while self.move.get_my_status():
-            grape = self.vision.find_fruit(self.basket_1 + self.basket_2 + self.basket_3)
+            grape = self.vision.find_fruit(self.basket_1 + self.basket_2 + self.basket_3, True)
             if not grape:
                 continue
 
             # 检测到了，就停下来再看一遍
             self.move.stop_my_navigation()
-            time.sleep(1)
-            grape = self.vision.find_fruit(self.basket_1 + self.basket_2 + self.basket_3)
+            time.sleep(0.5)
+            self.move.rotation_correction(Direction.FRONT, True, 10)
+            time.sleep(0.5)
+            grape = self.vision.find_fruit(self.basket_1 + self.basket_2 + self.basket_3, True)
             if grape:
                 self.logger.info(f"抓取到葡萄: {grape.class_id}")
                 fruit_type = FruitType(grape.class_id)
@@ -117,19 +118,19 @@ class GrabGrapeWall:
                     if fruit_type in basket:
                         basket.remove(fruit_type)
                         self.grab_grape(grape)
-                        ArmMovement.put_fruit_to_basket(self.arm, i)
+                        ArmMovement.put_fruit_to_basket(self.arm, i, True)
                         break
 
                 # 如果框子里没有要抓的水果了，直接返回
                 if not self.has_grape():
                     break
 
-                self.move.rotation_correction()
-
+                self.move.rotation_correction(Direction.FRONT, True, 10)
                 ArmMovement.identify_grape(self.arm, self.direction)
 
-            # 如果框子里没有要抓的水果了，直接返回
+        # 如果框子里没有要抓的水果了，直接返回
             if not self.has_grape():
+                self.logger.info("框子里没有要抓的葡萄了，停止抓取。")
                 break
 
             # 继续导航

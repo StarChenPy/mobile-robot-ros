@@ -20,25 +20,24 @@ class CmdVelBridge(Node):
             10  
         )
         
-        self.get_logger().info('CmdVelBridge节点已启动，正在转发/cmd_vel到/chassis/cmd_vel...')
+        self.get_logger().info('正在转发 /cmd_vel 到 /chassis/cmd_vel')
 
     def cmd_vel_callback(self, msg):
-
         self.publisher.publish(msg)
-        # self.get_logger().info(f"转发速度指令: 线速度={msg.linear.x}, 角速度={msg.angular.z}")
 
-def main(args=None):
-    rclpy.init(args=args)
-    cmd_vel_bridge = CmdVelBridge()
-    
+def main():
+    rclpy.init()
+
+    node = CmdVelBridge()
+
     try:
-        rclpy.spin(cmd_vel_bridge)
+        rclpy.spin(node)
     except KeyboardInterrupt:
-        cmd_vel_bridge.get_logger().info('用户中断，正在关闭节点...')
+        pass
     finally:
-        cmd_vel_bridge.destroy_node()
-        rclpy.shutdown()
+        node.destroy_node()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 if __name__ == '__main__':
     main()
-    

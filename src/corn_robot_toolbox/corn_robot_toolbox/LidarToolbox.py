@@ -9,9 +9,9 @@ from sensor_msgs.msg import LaserScan
 from .type.Direction import Direction
 from .util import Math
 
-RADAR_ERROR_LEFT = -2.68
-RADAR_ERROR_FRONT = -2.3
-RADAR_ERROR_RIGHT = -2.5
+RADAR_ERROR_LEFT = 1.457
+RADAR_ERROR_FRONT = 1.5
+RADAR_ERROR_RIGHT = 0.31
 
 
 class LidarToolbox:
@@ -70,11 +70,11 @@ class LidarToolbox:
         start_angle = 0
 
         if direction == Direction.RIGHT:
-            start_angle = -30
+            start_angle = 0
         elif direction == Direction.FRONT:
             start_angle = 75
         elif direction == Direction.LEFT:
-            start_angle = 180
+            start_angle = 150
 
         for i in range(1, 30):
             angle = Math.normalize_angle(start_angle + i)
@@ -82,7 +82,7 @@ class LidarToolbox:
 
         return points
 
-    def get_angle_from_wall_once(self, direction: Direction) -> float:
+    def get_angle_from_wall(self, direction: Direction) -> float:
         angle_list = []
 
         for i in range(5):
@@ -102,31 +102,14 @@ class LidarToolbox:
                 elif direction == Direction.RIGHT:
                     angle += RADAR_ERROR_RIGHT
             angle_list.append(angle)
-            time.sleep(0.3)
-
-        self.node.get_logger().debug(f"{direction.name} 扫描到的雷达角度为 {angle_list}")
-
-        return Math.average_without_extremes(angle_list)
-
-    def get_angle_from_wall(self, direction: Direction) -> float:
-        if direction == Direction.BACK:
-            self.node.get_logger().error("无法获取角度: 不支持的方向")
-            return 0
-
-        for i in range(10):
-            angle_1 = self.get_angle_from_wall_once(direction)
             time.sleep(0.2)
-            angle_2 = self.get_angle_from_wall_once(direction)
 
-            if abs(angle_2 - angle_1) < 0.5:
-                angle = (angle_1 + angle_2) / 2
-                self.node.get_logger().debug(f"扫描到的雷达角度为 {angle}")
-                return angle
-            else:
-                self.node.get_logger().warn(f"雷达两次角度获取误差较大 {abs(angle_2 - angle_1)}，重试 {i + 1} 次")
-        return 0
+        extremes = Math.average_without_extremes(angle_list)
+        self.node.get_logger().debug(f"{direction.name} 扫描到的雷达角度为 {extremes}")
 
-    def get_distance_from_wall_once(self, direction: Direction) -> float:
+        return extremes
+
+    def get_distance_from_wall(self, direction: Direction) -> float:
         # 返回距离雷达扫描的5个坐标拟合成的直线的垂直距离
         points = self.__get_radar_points(direction)
         distance = Math.fit_polar_line_and_get_distance(points)
@@ -155,29 +138,3 @@ class LidarToolbox:
                 distance -= side
 
         return distance
-
-    def get_distance_from_wall(self, direction: Direction) -> float:
-        if direction == Direction.BACK:
-            self.node.get_logger().error("无法获取距离: 不支持的方向")
-            return 0
-
-        dis = 0
-        for i in range(5):
-            dis = self.get_distance_from_wall_once(direction)
-            if dis > 0:
-                break
-            self.node.get_logger().warn(f"获取 {direction} 方向雷达距离失败, 重试 {i} 次")
-            time.sleep(0.2)
-
-        if dis != 0:
-            self.node.get_logger().debug(f"{direction} 扫描到的雷达距离为 {dis}")
-        else:
-            self.node.get_logger().error(f"雷达无法获取 {direction} 方向的距离!")
-
-        # 左、右墙可能有误差，加一下
-        if direction == Direction.LEFT:
-            dis -= 0.0
-        elif direction == Direction.RIGHT:
-            dis -= 0.00
-
-        return dis

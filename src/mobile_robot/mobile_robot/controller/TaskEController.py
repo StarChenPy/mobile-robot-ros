@@ -1,6 +1,6 @@
 import time
 
-from ..param import NavMovement, ArmMovement
+from ..param import ArmMovement
 from ..popo.Direction import Direction
 from ..popo.FruitType import FruitType
 from ..service.ArmService import ArmService
@@ -12,7 +12,6 @@ from ..util.GrabAppleTree import GrabAppleTree
 from ..util.GrabGrapeWall import GrabGrapeWall
 from ..util.Logger import Logger
 from ..util.Singleton import singleton
-from ..util.StationEnum import Station
 
 
 @singleton
@@ -52,93 +51,125 @@ class TaskEController:
 
     def grab_baskets(self):
         self.move.my_navigation("s_y_2_r")
-        self.arm.grab_basket_from_station(Direction.RIGHT)
+        self.move.rotation_correction(Direction.RIGHT, True)
+        self.sensor.lidar_revise(1.52)
+        self.arm.grab_slope_basket_from_station(Direction.RIGHT)
         ArmMovement.put_basket_to_robot(self.arm, 1)
         ArmMovement.motion(self.arm)
 
         self.move.my_navigation("s_y_1_r")
+        self.move.rotation_correction(Direction.RIGHT, True)
         self.arm.grab_basket_from_station(Direction.RIGHT)
         ArmMovement.put_basket_to_robot(self.arm, 2)
         ArmMovement.motion(self.arm)
 
-        self.move.my_navigation("s_y_3_r")
+        self.move.my_navigation("s_y_3_l")
+        self.move.rotation_correction(Direction.LEFT, True)
+        self.sensor.lidar_revise(1.52)
         self.arm.grab_basket_from_station(Direction.RIGHT)
         ArmMovement.put_basket_to_robot(self.arm, 3)
         ArmMovement.motion(self.arm)
 
     def grab_apples(self):
         grab_apple_tree = GrabAppleTree(self.node)
-        grab_apple_tree.basket_1 = [FruitType.RED_APPLE] * 2
-        grab_apple_tree.basket_2 = [FruitType.GREEN_APPLE] * 2
-        grab_apple_tree.basket_3 = [FruitType.RED_APPLE, FruitType.GREEN_APPLE]
+        grab_apple_tree.basket_1 = [FruitType.RED_APPLE, FruitType.GREEN_APPLE]
+        grab_apple_tree.basket_2 = [FruitType.GREEN_APPLE, FruitType.YELLOW_APPLE]
+        grab_apple_tree.basket_3 = [FruitType.YELLOW_APPLE, FruitType.PURPLE_APPLE]
 
+        # 抓果树 1 后面
+        self.move.my_navigation("c_7")
+        self.move.my_navigation("t_1_b")
+        grab_apple_tree.direction = Direction.LEFT
+        grab_apple_tree.grab_apple_from_tree()
+        if not grab_apple_tree.has_apple():
+            return
+
+        # 抓果树 3 右面
+        self.move.my_navigation("c_7")
+        self.move.my_navigation("t_3_r")
+        grab_apple_tree.direction = Direction.RIGHT
+        grab_apple_tree.grab_apple_from_tree()
+        if not grab_apple_tree.has_apple():
+            return
+
+        # 抓果树 1 前面
+        self.move.my_navigation("c_7")
+        self.move.my_navigation("t_1_f")
+        grab_apple_tree.direction = Direction.RIGHT
+        if not grab_apple_tree.has_apple():
+            return
+
+        # 抓果树 2 右面
+        self.move.my_navigation("c_7")
+        self.move.my_navigation("t_2_r")
+        grab_apple_tree.direction = Direction.LEFT
+        grab_apple_tree.grab_apple_from_tree()
+        if not grab_apple_tree.has_apple():
+            return
+
+        # 抓果树 2 左面
+        self.move.my_navigation("c_7")
         self.move.my_navigation("c_8")
-        self.move.my_navigation("p_9")
-        grab_apple_tree.grab_tree(NavMovement.T_1, [Direction.FRONT, Direction.LEFT, Direction.BACK])
+        self.move.my_navigation("t_2_l")
+        grab_apple_tree.direction = Direction.LEFT
+        grab_apple_tree.grab_apple_from_tree()
         if not grab_apple_tree.has_apple():
             return
 
+        # 抓果树 3 左面
         self.move.my_navigation("c_8")
-        self.move.my_navigation("p_9")
-        grab_apple_tree.grab_tree(NavMovement.T_2, [Direction.LEFT, Direction.BACK])
-        if not grab_apple_tree.has_apple():
-            return
+        self.move.my_navigation("t_3_l")
+        grab_apple_tree.direction = Direction.RIGHT
+        grab_apple_tree.grab_apple_from_tree()
 
-        self.move.my_navigation("")
-        grab_apple_tree.grab_tree(NavMovement.T_3, [Direction.BACK, Direction.LEFT, Direction.FRONT])
-        if not grab_apple_tree.has_apple():
-            return
-
-        self.move.my_navigation("")
-        grab_apple_tree.grab_tree(NavMovement.T_3, [Direction.BACK, Direction.RIGHT, Direction.FRONT])
-        if not grab_apple_tree.has_apple():
-            return
 
     def grab_grapes(self):
-        grab_grape_wall = GrabGrapeWall(self.node, Direction.RIGHT)
-        grab_grape_wall.basket_1 = [FruitType.PURPLE_GRAPE] * 3
-        grab_grape_wall.basket_2 = [FruitType.GREEN_GRAPE] * 1
-        grab_grape_wall.basket_3 = [FruitType.YELLOW_GRAPE] * 2
+        grab_grape_wall = GrabGrapeWall(self.node)
+        grab_grape_wall.basket_1 = [FruitType.PURPLE_GRAPE] * 6
+        grab_grape_wall.basket_2 = [FruitType.GREEN_GRAPE] * 6
+        grab_grape_wall.basket_3 = [FruitType.YELLOW_GRAPE] * 6
 
-        # 抓第一个走廊
-        self.move.navigation([NavMovement.VINEYARD_1])
-        grab_grape_wall.find_grape_and_grab(NavMovement.VINEYARD_3)
+        self.move.my_navigation("c_2")
+        grab_grape_wall.direction = Direction.LEFT
+        grab_grape_wall.find_grape_and_grab("c_3")
         if not grab_grape_wall.has_grape():
-            self.move.navigation([NavMovement.VINEYARD_1])
             return
 
-        # 抓第二个走廊的一半
-        self.move.navigation([NavMovement.VINEYARD_2, NavMovement.VINEYARD_4_180])
-        grab_grape_wall.find_grape_and_grab(NavMovement.VINEYARD_5)
-        if not grab_grape_wall.has_grape():
-            self.move.navigation([NavMovement.VINEYARD_4_0, NavMovement.VINEYARD_2, NavMovement.VINEYARD_1])
-            return
-
-        # 抓第三个走廊
-        self.move.navigation([NavMovement.VINEYARD_6, NavMovement.VINEYARD_7])
+        self.move.my_navigation("c_4")
         grab_grape_wall.direction = Direction.RIGHT
-        grab_grape_wall.find_grape_and_grab(NavMovement.VINEYARD_8)
+        grab_grape_wall.find_grape_and_grab("v_2")
+        if not grab_grape_wall.has_grape():
+            return
 
-        # 回到第一个走廊
-        self.move.navigation([NavMovement.VINEYARD_7, NavMovement.VINEYARD_6, NavMovement.VINEYARD_4_0, NavMovement.VINEYARD_2, NavMovement.VINEYARD_1])
+        self.move.my_navigation("c_4")
+        self.move.my_navigation("v_3")
+        grab_grape_wall.direction = Direction.RIGHT
+        grab_grape_wall.find_grape_and_grab("c_5")
+        if not grab_grape_wall.has_grape():
+            return
+
+        self.move.my_navigation("v_4")
+        grab_grape_wall.direction = Direction.LEFT
+        grab_grape_wall.find_grape_and_grab("c_6")
 
     def put_baskets(self):
         # 去放第1个框子
-        self.move.navigation([Station.RED_STATION_3.nav_point(Direction.RIGHT)])
+        self.move.my_navigation("s_r_3_r")
         self.move.rotation_correction()
         ArmMovement.grab_basket_from_robot(self.arm, 1)
         ArmMovement.put_basket_to_station(self.arm, Direction.RIGHT)
         ArmMovement.motion(self.arm)
 
         # 去放第2个框子
-        self.move.navigation([NavMovement.CORRECTIVE_POINT_2, Station.RED_STATION_2.nav_point(Direction.RIGHT)])
+        self.move.my_navigation("s_r_2_r")
         self.move.rotation_correction()
         ArmMovement.grab_basket_from_robot(self.arm, 2)
         ArmMovement.put_basket_to_station(self.arm, Direction.RIGHT)
         ArmMovement.motion(self.arm)
 
         # 去放第3个框子
-        self.move.navigation([NavMovement.POINT_D, NavMovement.POINT_B, NavMovement.CORRECTIVE_POINT_1, Station.RED_STATION_1.nav_point(Direction.LEFT)])
+        self.move.my_navigation("c_8")
+        self.move.my_navigation("s_r_1_l")
         self.move.rotation_correction()
         ArmMovement.grab_basket_from_robot(self.arm, 3)
         ArmMovement.put_basket_to_station(self.arm, Direction.LEFT)

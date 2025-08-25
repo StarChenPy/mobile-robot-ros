@@ -61,32 +61,6 @@ def calculate_hypotenuse(a: float, b: float) -> float:
     return math.sqrt(a ** 2 + b ** 2)
 
 
-def get_point_angle(a, b):
-    """
-    计算从点 A 到点 B 的方向角，角度以 A 为基准。
-    坐标系：x 轴朝上，y 轴朝左。
-
-    参数:
-        a: 点 A 的坐标，格式为 (x1, y1)
-        b: 点 B 的坐标，格式为 (x2, y2)
-
-    返回:
-        角度（float），范围 [0, 360)，单位为度。
-    """
-    dx = b[0] - a[0]
-    dy = b[1] - a[1]
-
-    # 坐标轴变换：x 朝上、y 朝左 → 相当于将标准坐标系旋转了 -90°
-    angle_rad = math.atan2(-dy, dx)
-    angle_deg = math.degrees(angle_rad)
-
-    # 转换到 0~360 度
-    if angle_deg < 0:
-        angle_deg += 360
-
-    return normalize_angle(angle_deg)
-
-
 def get_target_coordinate(point: NavigationPoint, dis) -> NavigationPoint:
     """
     根据输入的坐标 (x, y) 和角度 yaw（单位：度），以及前进距离 dis，
@@ -127,12 +101,48 @@ def fit_polar_line_and_get_distance(polar_points: list[tuple[float, float]]):
 
 
 def polar_to_cartesian(polar_point: tuple[float, float]) -> tuple[float, float]:
-    # 将极坐标转换为直角坐标（输入角度转换为弧度）
     r, theta = polar_point
-    x = r * np.cos(np.radians(theta))
-    y = r * np.sin(np.radians(theta))
+    x_std = r * np.cos(np.radians(theta))  # 标准系
+    y_std = r * np.sin(np.radians(theta))
 
-    return x, y
+    # 转换为机器人坐标系 (x 向上, y 向左)
+    x_robot = y_std
+    y_robot = -x_std
+    return x_robot, y_robot
+
+
+def cartesian_to_polar(a: tuple[float, float], b: tuple[float, float]) -> tuple[float, float]:
+    """
+    将直角坐标系中的两点 (a, b) 转换为以 a 为基准的极坐标 (r, θ)
+
+    坐标系：x 轴朝上，y 轴朝左。
+    θ 范围：[-180, 180)，0° = 朝上。
+
+    参数:
+        a: 基准点 (x1, y1)
+        b: 目标点 (x2, y2)
+
+    返回:
+        (r, θ) : 半径 r（float），角度 θ（float，度数制）
+    """
+    dx = b[0] - a[0]
+    dy = b[1] - a[1]
+
+    # 半径
+    r = math.hypot(dx, dy)
+
+    # 转换为标准坐标系 (x 向右, y 向上)
+    std_dx = -dy
+    std_dy = dx
+
+    # atan2 得到角度（标准坐标系，0°=向右）
+    angle_rad = math.atan2(std_dy, std_dx)
+    angle_deg = math.degrees(angle_rad)
+
+    # 转换为“机器人坐标系”（0°=朝上）
+    theta = angle_deg - 90
+
+    return r, normalize_angle(theta)
 
 
 def fit_polar_line_and_get_angle(polar_points: list[tuple[float, float]]) -> float:

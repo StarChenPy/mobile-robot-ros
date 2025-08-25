@@ -32,32 +32,29 @@ class MoveService:
         self.__radar = LaserRadarDao(node)
         self.__robot_data = RobotDataDao(node)
 
-    def rotation_correction(self, set_odom=False):
-        angle_by_front = self.__radar.get_angle_from_wall_once(Direction.FRONT)
-        angle_by_right = self.__radar.get_angle_from_wall_once(Direction.RIGHT)
-        angle_by_left = self.__radar.get_angle_from_wall_once(Direction.LEFT)
-        angles = [angle_by_front, angle_by_right, angle_by_left]
-        if 0 in angles:
-            angles.remove(0)
-
-        min_angle = min(angles, key=lambda x: (abs(x), -x))
-        while abs(min_angle) > 0.5:
-            min_angle *= 1.2
-
-            self.__logger.info(f"直角矫正, 度数 {min_angle}")
-            self.rotate(min_angle)
-
-            angle_by_front = self.__radar.get_angle_from_wall(Direction.FRONT)
-            angle_by_right = self.__radar.get_angle_from_wall(Direction.RIGHT)
-            angle_by_left = self.__radar.get_angle_from_wall(Direction.LEFT)
+    def rotation_correction(self, direction: Direction = None, set_odom=False, scan_angle=30):
+        if not direction:
+            angle_by_front = self.__radar.get_angle_from_wall(Direction.FRONT, scan_angle)
+            angle_by_right = self.__radar.get_angle_from_wall(Direction.RIGHT, scan_angle)
+            angle_by_left = self.__radar.get_angle_from_wall(Direction.LEFT, scan_angle)
             angles = [angle_by_front, angle_by_right, angle_by_left]
             if 0 in angles:
                 angles.remove(0)
 
-            min_angle = min(angles, key=lambda x: (abs(x), -x))
+            angle = min(angles, key=lambda x: (abs(x), -x))
+        else:
+            angle = self.__radar.get_angle_from_wall(direction, scan_angle)
+
+        odom_w = self.__robot_data.get_robot_data().odom.w
+        if abs(angle) > 15:
+            self.__logger.warn(f"角度过大，放弃矫正: {angle}")
+        else:
+            self.rotate(angle)
+            self.__logger.info(f"直角矫正, 度数 {angle}")
+
         if set_odom:
-            right_angle = Math.round_right_angle(self.__robot_data.get_robot_data().odom.w)
-            self.__odom.init_yaw(right_angle)
+            new_angle = odom_w + angle
+            self.__odom.init_yaw(new_angle)
 
     def lidar_correction(self, distance: float):
         from_wall = self.__radar.get_distance_from_wall(Direction.FRONT)

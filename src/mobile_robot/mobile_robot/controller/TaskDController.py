@@ -29,6 +29,7 @@ class TaskDController:
         self.robot.with_robot_connect()
         self.arm.back_origin()
         ArmMovement.motion(self.arm)
+        self.sensor.correction("c_start")
         self.robot.set_start_led(False)
 
         self.robot.with_start_button()
@@ -50,63 +51,71 @@ class TaskDController:
 
     def grab_baskets(self):
         self.move.my_navigation("s_y_2_r")
-        self.arm.grab_basket_from_station(Direction.RIGHT)
+        self.move.rotation_correction(Direction.RIGHT, True)
+        self.sensor.lidar_revise(1.52)
+        self.arm.grab_slope_basket_from_station(Direction.RIGHT)
         ArmMovement.put_basket_to_robot(self.arm, 1)
         ArmMovement.motion(self.arm)
 
         self.move.my_navigation("s_y_1_r")
+        self.move.rotation_correction(Direction.RIGHT, True)
         self.arm.grab_basket_from_station(Direction.RIGHT)
         ArmMovement.put_basket_to_robot(self.arm, 2)
         ArmMovement.motion(self.arm)
 
-        self.move.my_navigation("s_y_3_r")
+        self.move.my_navigation("s_y_3_l")
+        self.move.rotation_correction(Direction.LEFT, True)
+        self.sensor.lidar_revise(1.52)
         self.arm.grab_basket_from_station(Direction.RIGHT)
         ArmMovement.put_basket_to_robot(self.arm, 3)
         ArmMovement.motion(self.arm)
 
     def grab_grapes(self):
-        grab_grape_wall = GrabGrapeWall(self.node, Direction.RIGHT)
+        grab_grape_wall = GrabGrapeWall(self.node)
         grab_grape_wall.basket_1 = [FruitType.PURPLE_GRAPE] * 6
         grab_grape_wall.basket_2 = [FruitType.GREEN_GRAPE] * 6
         grab_grape_wall.basket_3 = [FruitType.YELLOW_GRAPE] * 6
 
-        self.move.my_navigation("")
-        self.move.rotation_correction()
-        grab_grape_wall.find_grape_and_grab("")
-        if not grab_grape_wall.has_grape():
-            return
-
-        self.move.my_navigation("")
-        grab_grape_wall.find_grape_and_grab("")
-        if not grab_grape_wall.has_grape():
-            return
-
-        self.move.my_navigation("")
+        self.move.my_navigation("c_2")
         grab_grape_wall.direction = Direction.LEFT
-        grab_grape_wall.find_grape_and_grab("")
+        grab_grape_wall.find_grape_and_grab("c_3")
         if not grab_grape_wall.has_grape():
             return
 
-        self.move.my_navigation("")
+        self.move.my_navigation("c_4")
         grab_grape_wall.direction = Direction.RIGHT
-        grab_grape_wall.find_grape_and_grab("")
+        grab_grape_wall.find_grape_and_grab("v_2")
+        if not grab_grape_wall.has_grape():
+            return
+
+        self.move.my_navigation("c_4")
+        self.move.my_navigation("v_3")
+        grab_grape_wall.direction = Direction.RIGHT
+        grab_grape_wall.find_grape_and_grab("c_5")
+        if not grab_grape_wall.has_grape():
+            return
+
+        self.move.my_navigation("v_4")
+        grab_grape_wall.direction = Direction.LEFT
+        grab_grape_wall.find_grape_and_grab("c_6")
 
     def put_baskets(self):
         # 去放第1个框子
-        self.move.my_navigation("s_r_3_l")
+        self.move.my_navigation("s_r_3_r")
         self.move.rotation_correction()
         ArmMovement.grab_basket_from_robot(self.arm, 1)
-        ArmMovement.put_basket_to_station(self.arm, Direction.LEFT)
+        ArmMovement.put_basket_to_station(self.arm, Direction.RIGHT)
         ArmMovement.motion(self.arm)
 
         # 去放第2个框子
-        self.move.my_navigation("s_r_3_r")
+        self.move.my_navigation("s_r_2_r")
         self.move.rotation_correction()
         ArmMovement.grab_basket_from_robot(self.arm, 2)
         ArmMovement.put_basket_to_station(self.arm, Direction.RIGHT)
         ArmMovement.motion(self.arm)
 
         # 去放第3个框子
+        self.move.my_navigation("c_8")
         self.move.my_navigation("s_r_1_l")
         self.move.rotation_correction()
         ArmMovement.grab_basket_from_robot(self.arm, 3)

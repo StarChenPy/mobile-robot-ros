@@ -34,7 +34,7 @@ setup(
     entry_points={
         'console_scripts': [
             'fixed_nav_service = my_navigation_py.fixed_nav_service:main',
-
+            'cmd_vel_bridge = my_navigation_py.cmd_vel_bridge:main',
         ],
     },
 )

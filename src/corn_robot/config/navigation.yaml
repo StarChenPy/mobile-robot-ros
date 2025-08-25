@@ -10,7 +10,7 @@ correction_odom:
 pub_waypoints:
   ros__parameters:
     use_sim_time: False
-    waypoints_path: 国赛路径点.yaml
+    waypoints_path: 国赛路径点b.yaml
     waypoints_topic: /waypoints
 
 generate_path:
@@ -32,5 +32,6 @@ navigation_to_waypoint:
     navigation_action: /nav2_ptp_action
 
     speed: 0.4
-    distance_threshold: 0.10
-    slope_offset: 0.25
+    uphill_offset: 0.17
+    reverse_uphill: True
+    distance_threshold: 0.05

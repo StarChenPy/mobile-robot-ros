@@ -5,6 +5,7 @@ import rclpy
 from web_message_transform_ros2.msg import Pose
 from ..dao.CorrectionOdomDao import CorrectionOdomDao
 from ..dao.LaserRadarDao import LaserRadarDao
+from ..dao.MotionDao import MotionDao
 from ..dao.OdomDao import OdomDao
 from ..dao.RobotDataDao import RobotDataDao
 from ..dao.SensorDao import SensorDao
@@ -26,6 +27,7 @@ class SensorService:
         self.__robot_data = RobotDataDao(node)
         self.__odom = OdomDao(node)
         self.__correction = CorrectionOdomDao(node)
+        self.__motion = MotionDao(node)
 
     def ping_revise(self, dis: float, is_block=True):
         dis = (dis - 0.225) * 100
@@ -41,7 +43,14 @@ class SensorService:
             time.sleep(1)
             self.__sensor.wait_finish()
 
-    def get_lidar_data(self, start: float, end: float) -> list[tuple[float, float]]:
+    def lidar_revise(self, dis: float, is_block=True):
+        from_wall = self.__radar.get_distance_from_wall(Direction.FRONT, 10)
+
+        self.__motion.line(from_wall - dis, 0.2)
+        if is_block:
+            self.__motion.wait_finish()
+
+    def get_lidar_data(self, start: int, end: int) -> list[tuple[float, float]]:
         l = []
         if start > end:
             start, end = end, start

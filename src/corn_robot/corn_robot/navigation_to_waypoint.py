@@ -19,6 +19,11 @@ from corn_robot_toolbox.util import Math
 from web_message_transform_ros2.msg import Pose, RobotData
 
 
+def is_correcter_point(waypoint: Waypoint) -> bool:
+    data = waypoint.corrected_data
+    return data.front or data.back or data.left or data.right
+
+
 class NavigationToPoseNode(rclpy.node.Node):
     def __init__(self):
         super().__init__('navigation_to_waypoint')
@@ -50,9 +55,11 @@ class NavigationToPoseNode(rclpy.node.Node):
         self.declare_parameter('navigation_action', '/nav2_ptp_action')
         navigation_action = self.get_parameter('navigation_action').value
 
+        self.declare_parameter("reverse_uphill", False)
+
         self.declare_parameter('speed', 0.4)
-        self.declare_parameter('distance_threshold', 0.05)
-        self.declare_parameter('slope_offset', 0.35)
+        self.declare_parameter('uphill_offset', 0.35)
+        self.declare_parameter("distance_threshold", 0.05)
 
         # 缓存参数
         self.speed = self.get_parameter('speed').value
@@ -100,6 +107,10 @@ class NavigationToPoseNode(rclpy.node.Node):
                 if waypoint.on_slope:
                     in_slope = True
                 continue
+            elif index == 0 and self.get_parameter("distance_threshold").value > 0:
+                distance = math.hypot(waypoint.pose.x - self.odom.x, waypoint.pose.y - self.odom.y)
+                if distance < self.get_parameter("distance_threshold").value:
+                    continue
 
             if goal_handle.status == GoalStatus.STATUS_CANCELING:
                 self.get_logger().info("导航已被取消")
@@ -111,15 +122,17 @@ class NavigationToPoseNode(rclpy.node.Node):
             # 判断是否为坡道点
             if waypoint.on_slope:
                 if not in_slope:
-                    self.get_logger().info(f"上坡，额外行走 {self.get_parameter('slope_offset').value} m")
+                    self.get_logger().info(f"上坡，额外行走 {self.get_parameter('uphill_offset').value} m")
                     in_slope = True
 
                     if waypoint.pose.w != 0:
                         w_back = waypoint.pose.w
-                    else:
+                    elif index < len(waypoints) - 1:
                         w_back = Math.compute_delta_theta(waypoint.pose, waypoints[index + 1].pose)
+                    else:
+                        w_back = 0
                     waypoint.pose.w = Math.compute_delta_theta(waypoints[index - 1].pose, waypoint.pose)
-                    offset_pose = Math.get_target_coordinate(waypoint.pose, self.get_parameter('slope_offset').value)
+                    offset_pose = Math.get_target_coordinate(waypoint.pose, self.get_parameter('uphill_offset').value)
                     offset_pose.w = w_back
                     waypoint.pose.w = w_back
                     if not appended:
@@ -129,7 +142,7 @@ class NavigationToPoseNode(rclpy.node.Node):
                             self.get_logger().info("导航已被取消")
                             goal_handle.canceled()
                             return self.create_result(False, '导航已被取消', index, T1)
-                        result = await self.navigation(path)
+                        result = await self.navigation(path, self.get_parameter("reverse_uphill").value)
                         if result is None or not result.success:
                             goal_handle.abort()
                             return self.create_result(False, '导航到路径点失败', index, T1)
@@ -162,6 +175,9 @@ class NavigationToPoseNode(rclpy.node.Node):
                             self.get_logger().info("导航已被取消")
                             goal_handle.canceled()
                             return self.create_result(False, '导航已被取消', index, T1)
+                        # 如果不是最后一个点，并且不是矫正点，则朝向下一个点的角度
+                        if index < len(waypoints) - 1 and not is_correcter_point(waypoint):
+                            waypoint.pose.w = Math.compute_delta_theta(waypoint.pose, waypoints[index + 1].pose)
                         result = await self.navigation(path, True)
                         if result is None or not result.success:
                             goal_handle.abort()
@@ -184,8 +200,7 @@ class NavigationToPoseNode(rclpy.node.Node):
                         path = []
 
             # 是否为矫正点
-            corr_data = waypoint.corrected_data
-            if corr_data.front or corr_data.back or corr_data.left or corr_data.right:
+            if is_correcter_point(waypoint):
                 if not appended:
                     appended = True
                     path.append(waypoint.pose)
@@ -274,7 +289,6 @@ class NavigationToPoseNode(rclpy.node.Node):
             pose2d = Pose2D(x=float(p.x), y=float(p.y), theta=float(0))
             goal_msg.points.append(pose2d)
 
-        # 这里要获取导航最后一个点的角度并赋给heading
         goal_msg.linear_vel = self.speed
         goal_msg.rotation_vel = self.speed * 5.0
         # goal_msg.linear_acc = float(0.69)  # 直线加速度
@@ -282,6 +296,7 @@ class NavigationToPoseNode(rclpy.node.Node):
         goal_msg.linear_decel = float(0.53)  # 直线减加速度
         goal_msg.rotate_acc = float(2.5)  # 旋转加速度
         goal_msg.rotate_decel = float(1.0)  # 旋转减加速度
+        # 这里要获取导航最后一个点的角度并赋给heading
         goal_msg.heading = float(poses[-1].w)
         goal_msg.back = reverse
 
@@ -295,12 +310,39 @@ class NavigationToPoseNode(rclpy.node.Node):
 
     def find_nearest_waypoint(self) -> Waypoint:
         if not self.waypoints.waypoints:
-            self.get_logger().error('路径点数据为空!')
+            self.get_logger().error("路径点数据为空!")
             return Waypoint()
-        min_point: Waypoint = min(self.waypoints.waypoints,
-                                  key=lambda wp: math.hypot(wp.pose.x - self.odom.x, wp.pose.y - self.odom.y))
-        self.get_logger().info(f"检查当前点可能是 {min_point.name}, 距离: "
-                               f"{math.hypot(min_point.pose.x - self.odom.x, min_point.pose.y - self.odom.y)}")
+
+        # 阈值统一用度30°
+        ANGLE_THRESHOLD = 30
+
+        # 候选点生成器：朝向相近的点
+        candidates = (
+            wp for wp in self.waypoints.waypoints
+            if abs(Math.normalize_angle(wp.pose.w - self.odom.w)) < ANGLE_THRESHOLD
+        )
+
+        try:
+            # 找出距离最近的点
+            min_point = min(
+                candidates,
+                key=lambda wp: math.hypot(wp.pose.x - self.odom.x, wp.pose.y - self.odom.y)
+            )
+        except ValueError:  # candidates 为空
+            self.get_logger().warning("未找到符合朝向的点，退回到全局最近点")
+            min_point = min(
+                self.waypoints.waypoints,
+                key=lambda wp: math.hypot(wp.pose.x - self.odom.x, wp.pose.y - self.odom.y)
+            )
+
+        # 计算距离只做一次
+        dx, dy = min_point.pose.x - self.odom.x, min_point.pose.y - self.odom.y
+        dist = math.hypot(dx, dy)
+
+        self.get_logger().info(
+            f"检查当前点 ({self.odom.x:.2f}, {self.odom.y:.2f}) "
+            f"可能是 {min_point.name}, 距离: {dist:.2f}"
+        )
         return min_point
 
 

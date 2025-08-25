@@ -50,7 +50,9 @@ class VisionService:
     def photograph(self):
         return self.__camera.photograph_color(True)
 
-    def show_photo(self, photo) -> None:
+    def show_photo(self, photo, inverted=False) -> None:
+        if inverted:
+            photo = cv2.rotate(photo, cv2.ROTATE_180)
         result = infer_onnx_model(self.__weight_path, self.__names, photo)
         for r in result:
             cv2.rectangle(photo, (r.box.x1, r.box.y1), (r.box.x2, r.box.y2), (0, 255, 0), 2)
@@ -107,8 +109,8 @@ class VisionService:
         distance = depth[int(point.y), int(point.x)] / 1000
         return distance.item()
 
-    def find_fruit(self, fruit=None):
-        identify = self.get_onnx_identify_depth()
+    def find_fruit(self, fruit: list[FruitType]=None, inverted=False) -> IdentifyResult | None:
+        identify = self.get_onnx_identify_depth(inverted)
         if not fruit:
             return None
 

@@ -29,9 +29,7 @@ def generate_launch_description():
         DeclareLaunchArgument('map_file', default_value=map_file, description='地图文件路径'),
         DeclareLaunchArgument('use_sim_time', default_value=use_sim_time, description='是否使用仿真时间'),
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                os.path.join(FindPackageShare('nav2_bringup').find('nav2_bringup'), 'launch', 'bringup_launch.py')
-            ),
+            PathJoinSubstitution([nav2_bringup_pkg, 'launch', 'bringup_launch.py']),
             launch_arguments={
                 'params_file': params_file,
                 'map': map_file,
@@ -47,7 +45,13 @@ def generate_launch_description():
             output='screen',
             parameters=[{'use_sim_time': use_sim_time}]
         ),
-        
 
+        Node(
+            package='my_navigation_py',
+            executable='cmd_vel_bridge',
+            name='cmd_vel_bridge',
+            output='screen',
+            parameters=[{'use_sim_time': use_sim_time}]
+        ),
 
     ])

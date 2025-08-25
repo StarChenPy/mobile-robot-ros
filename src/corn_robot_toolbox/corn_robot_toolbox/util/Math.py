@@ -101,13 +101,7 @@ def compute_delta_theta(a: Pose, b: Pose):
     # 转换为以“向上”为 0 度的坐标系（因为你定义的是 x 轴朝上）
     angle_deg = angle_deg - 90
 
-    # 归一化到 [-180, 180)
-    if angle_deg >= 180:
-        angle_deg -= 360
-    elif angle_deg < -180:
-        angle_deg += 360
-
-    return angle_deg
+    return normalize_angle(angle_deg)
 
 
 def get_target_coordinate(point: Pose, dis) -> Pose:

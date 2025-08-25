@@ -17,69 +17,6 @@ from ..service.SensorService import SensorService
 from ..service.VisionService import VisionService
 
 
-def create_tree_path(tree_point: NavigationPoint, tree_dir: list[Direction]) -> list[tuple[NavigationPoint, Direction]]:
-    """
-    根据树的位置和方向来计算识别点坐标点
-    """
-
-    identify_distance = 0.58
-    identify_offset = 0.32
-    min_x, max_x = 0.0, 4.0
-    min_y, max_y = 0.0, 4.0
-
-    direction_deltas = {
-        Direction.LEFT: (0, identify_distance),
-        Direction.RIGHT: (0, -identify_distance),
-        Direction.FRONT: (identify_distance, 0),
-        Direction.BACK: (-identify_distance, 0),
-    }
-
-    offset_map = {
-        (Direction.LEFT, Direction.FRONT): (identify_offset, 0, 180, Direction.LEFT),
-        (Direction.LEFT, Direction.BACK): (-identify_offset, 0, 0, Direction.RIGHT),
-        (Direction.RIGHT, Direction.FRONT): (identify_offset, 0, 180, Direction.RIGHT),
-        (Direction.RIGHT, Direction.BACK): (-identify_offset, 0, 0, Direction.LEFT),
-        (Direction.FRONT, Direction.LEFT): (0, identify_offset, -90, Direction.RIGHT),
-        (Direction.FRONT, Direction.RIGHT): (0, -identify_offset, 90, Direction.LEFT),
-        (Direction.BACK, Direction.LEFT): (0, identify_offset, -90, Direction.LEFT),
-        (Direction.BACK, Direction.RIGHT): (0, -identify_offset, 90, Direction.RIGHT),
-    }
-
-    nav_points = []
-
-    for i in tree_dir:
-        dx, dy = direction_deltas[i]
-        x = tree_point.x + dx
-        y = tree_point.y + dy
-
-        if not (min_x <= x <= max_x):
-            raise RuntimeError(f"{i} 无法推出路径点，x超出边界: {x}")
-        if not (min_y <= y <= max_y):
-            raise RuntimeError(f"{i} 无法推出路径点，y超出边界: {y}")
-
-        # 找到匹配的 offset 方向组合
-        for j in tree_dir:
-            if i == j:
-                continue
-            key = (i, j)
-            if key in offset_map:
-                odx, ody, yaw, identify_dir = offset_map[key]
-                x2 = x + odx
-                y2 = y + ody
-
-                if not (min_x <= x2 <= max_x):
-                    raise RuntimeError(f"{i}->{j} 无法推出路径点，x超出边界: {x2}")
-                if not (min_y <= y2 <= max_y):
-                    raise RuntimeError(f"{i}->{j} 无法推出路径点，y超出边界: {y2}")
-
-                nav_points.append((NavigationPoint(x2, y2, yaw), identify_dir))
-                break
-        else:
-            raise ValueError(f"{i} 无法推出路径点, 需要相邻的方向来推算!")
-
-    return nav_points
-
-
 @singleton
 class GrabAppleTree:
     def __init__(self, node: rclpy.node.Node):
@@ -135,6 +72,8 @@ class GrabAppleTree:
             self.logger.warn("没有检测到水果!")
             ArmMovement.motion(self.arm)
             return False
+        else:
+            self.logger.info(f"检测到 {len(fruits)} 个水果")
 
         max_distance = max(self.find_fruits(), key=lambda fruit: fruit.distance).distance
 
@@ -145,36 +84,30 @@ class GrabAppleTree:
                 continue
 
             if i.box.get_area() < 2000:
-                self.logger.warn(f"面积太小，可能有遮挡，跳过{i.class_id}")
-                self.logger.warn(f"面积 {i.box.get_area()}")
+                self.logger.warn(f"面积 {i.box.get_area()} 太小，可能有遮挡，跳过 {i.class_id}")
 
-            if max_distance - i.distance > 22:
-                self.logger.warn(f"与可见的最大深度差值过大，不可抓，跳过{i.class_id}")
+            if max_distance - i.distance > 20:
+                self.logger.warn(f"与可见的最大深度差值过大，不可抓，跳过 {i.class_id}")
                 continue
 
             center = i.box.get_rectangle_center()
             fruit_type = FruitType(i.class_id)
 
-            depth_distance = 0.3
-            if i.distance != -1:
-                depth_distance = i.distance + 0.04
-                self.logger.info(f"抓取苹果使用深度信息 {depth_distance}")
-            else:
-                self.logger.warn(f"深度相机没有深度信息，使用默认值 {depth_distance}")
-
             if self.direction == Direction.LEFT:
-                move_distance = Math.pixel_to_horizontal_distance_x_centered(center.x - 320, depth_distance)
+                move_distance = Math.pixel_to_horizontal_distance_x_centered(center.x - 320, i.distance)
             elif self.direction == Direction.RIGHT:
-                move_distance = Math.pixel_to_horizontal_distance_x_centered(320 - center.x, depth_distance)
+                move_distance = Math.pixel_to_horizontal_distance_x_centered(320 - center.x, i.distance)
             else:
                 raise ValueError()
             move_distance = move_distance + 0.215
 
-            self.move.line(move_distance - prev_move_len, is_block=False)
-            # 补偿一些误差
-            prev_move_len = move_distance + 0.01
+            self.logger.info(f"准备抓取: {i.class_id}, 距离: {i.distance}, 移动: {move_distance}")
 
-            ArmMovement.grab_apple_on_tree(self.arm, self.direction, (depth_distance - 0.36) * 100, center.y > 160)
+            self.move.line(move_distance - prev_move_len, is_block=False)
+            # # 补偿一些误差
+            # prev_move_len = move_distance + 0.01
+
+            ArmMovement.grab_apple_on_tree(self.arm, self.direction, (i.distance - 0.28) * 100, center.y > 160)
             for j in range(1, 4):
                 basket = getattr(self, f"basket_{j}")
                 if fruit_type in basket:
@@ -183,41 +116,37 @@ class GrabAppleTree:
                     self.arm.lift(0)
                     break
 
+            if not self.has_apple():
+                self.logger.info("全部抓取完成，停止抓取")
+                break
+
         ArmMovement.motion(self.arm)
         return True
 
     def close_tree(self):
+        """
+        使用激光雷达找树，并靠近到想要的位置
+        """
+
         if not self.direction:
             self.logger.warn("方向未设置。无法靠近苹果树!")
             return
 
         # 获取指定角度范围内距离最小点
-        start_angle = 180 if self.direction == Direction.LEFT else 90
-        radar_data = self.sensor.get_lidar_data(start_angle, start_angle - 90)
+        start_angle = 180 if self.direction == Direction.LEFT else 45
+        radar_data = self.sensor.get_lidar_data(start_angle - 45, start_angle)
         min_tree = min(radar_data, key=lambda i: i[0])
 
         if not min_tree[0] or not min_tree[1]:
             self.logger.warn("无雷达数据!")
             return
         x, y = Math.polar_to_cartesian(min_tree)
-        x -= -0.56 if self.direction == Direction.LEFT else 0.56
-        y -= 0.11
+        print(f"雷达数据: {min_tree}, 转换为坐标: ({x}, {y})")
+        x -= 0.11
+        y -= 0.52 if self.direction == Direction.LEFT else -0.52
 
-        angle = Math.get_point_angle((0, 0), (-y, x))
-        angle = Math.normalize_angle(angle - 360) if y < 0 else angle
+        l, angle = Math.cartesian_to_polar((0, 0), (x, y))
+        print(f"计算角度: {angle}. 计算距离: {l}")
         self.move.rotate(angle)
-        l = math.hypot(x, y)
-        l = -l if y < 0 < x else l
         self.move.line(l)
         self.move.rotate(-angle)
-
-    def grab_tree(self, tree_point: NavigationPoint, tree_dir: list[Direction]):
-        path = create_tree_path(tree_point, tree_dir)
-
-        for p, d in path:
-            self.move.navigation([p])
-            self.direction = d
-            self.grab_apple_from_tree()
-            if not self.has_apple():
-                self.logger.info("没有苹果了，结束抓取")
-                break

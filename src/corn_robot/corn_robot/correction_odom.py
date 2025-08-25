@@ -70,45 +70,36 @@ class CorrectionOdomNode(rclpy.node.Node):
         if corrected_data.front:
             distance_from_wall = self.lidar.get_distance_from_wall(Direction.FRONT)
             if distance_from_wall:
-                angle_from_wall = self.lidar.get_angle_from_wall_once(Direction.FRONT)
+                angle_from_wall = self.lidar.get_angle_from_wall(Direction.FRONT)
                 x_buffer = distance_from_wall - corrected_data.front
 
         if corrected_data.back:
-            for i in range(10):
-                sonar_1 = self.robot_data.sonar
-                time.sleep(0.2)
-                sonar_2 = self.robot_data.sonar
-
-                if not sonar_2 and not sonar_1:
-                    continue
-
-                if abs(sonar_1[0] - sonar_2[0]) < 0.02 and abs(sonar_1[1] - sonar_2[1]) < 0.02:
-                    sonar_l = (sonar_1[0] + sonar_2[0]) / 2
-                    sonar_r = (sonar_1[1] + sonar_2[1]) / 2
-                    self.get_logger().debug(f"扫描到的超声距离为 sonar_l: {sonar_l} sonar_r: {sonar_r}")
-                    distance_from_wall = Math.distance_from_origin(-5, sonar_l, 5, sonar_r) + 0.222
-                    x_buffer = distance_from_wall - corrected_data.back
-                    break
-                else:
-                    self.get_logger().warn(f"超声两次距离获取误差较大 sonar_l: {sonar_1[0] - sonar_2[0]} "
-                                           f"sonar_r: {abs(sonar_1[1] - sonar_2[1])}，重试 {i + 1} 次")
+            sonar_l = self.robot_data.sonar[0]
+            sonar_r = self.robot_data.sonar[1]
+            self.get_logger().debug(f"扫描到的超声距离为 sonar_l: {sonar_l} sonar_r: {sonar_r}")
+            distance_from_wall = Math.distance_from_origin(-5, sonar_l, 5, sonar_r) + 0.222
+            x_buffer = distance_from_wall - corrected_data.back
 
         if corrected_data.left:
             distance_from_wall = self.lidar.get_distance_from_wall(Direction.LEFT)
             if distance_from_wall:
-                angle_from_wall = self.lidar.get_angle_from_wall_once(Direction.LEFT)
+                angle_from_wall = self.lidar.get_angle_from_wall(Direction.LEFT)
                 y_buffer = corrected_data.left - distance_from_wall
 
         if corrected_data.right:
             distance_from_wall = self.lidar.get_distance_from_wall(Direction.RIGHT)
             if distance_from_wall:
-                angle_from_wall = self.lidar.get_angle_from_wall_once(Direction.RIGHT)
+                angle_from_wall = self.lidar.get_angle_from_wall(Direction.RIGHT)
                 y_buffer = distance_from_wall - corrected_data.right
 
         odom_data = self.robot_data.odom
         pose = waypoint.pose
         yaw = pose.w
-        if angle_from_wall != 0:
+        if angle_from_wall == 0:
+            self.get_logger().warn("无法获取到墙面角度，跳过矫正角度!")
+        elif angle_from_wall > 20:
+            self.get_logger().warn(f"墙面角度过大，不可信，跳过矫正角度! angle_from_wall: {angle_from_wall}")
+        else:
             yaw = pose.w - angle_from_wall
             yaw = Math.normalize_angle(yaw)
 

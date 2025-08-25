@@ -32,7 +32,7 @@ class RotateMotorDao(AbstractMotorDao):
             self.__logger.warn(f"目标角度 {target} 低于最小值 {min_val}")
             target = min_val
 
-        enc_ppi = 1750.0 * 4
+        enc_ppi = 1755.0 * 4
         target_pulses = target * (enc_ppi / 360.0)
 
         # 调用电机服务
