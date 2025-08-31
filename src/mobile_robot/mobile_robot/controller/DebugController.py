@@ -3,7 +3,6 @@ from ..param import ArmMovement
 from ..service.ArmService import ArmService
 from ..service.MoveService import MoveService
 from ..service.RobotService import RobotService
-from ..service.SowerServoService import SowerServoService
 from ..util.Logger import Logger
 
 
@@ -13,7 +12,6 @@ class DebugController:
         self.logger = Logger()
         self.arm = ArmService(node)
         self.robot = RobotService(node)
-        self.sower = SowerServoService(node)
         self.robot_data = RobotDataDao(node)
         self.move = MoveService(node)
 

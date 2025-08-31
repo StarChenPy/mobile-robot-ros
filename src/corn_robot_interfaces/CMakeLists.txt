@@ -17,6 +17,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
     "msg/CorrectedData.msg"
     "srv/GeneratePath.srv"
     "srv/CorrectionOdom.srv"
+    "srv/FindNearestWaypoint.srv"
     "action/NavigationToWaypoint.action"
     DEPENDENCIES geometry_msgs web_message_transform_ros2
 )

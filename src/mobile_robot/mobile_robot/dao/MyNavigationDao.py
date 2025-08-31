@@ -16,13 +16,14 @@ class MyNavigationDao:
 
         self.__action = rclpy.action.ActionClient(node, NavigationToWaypoint, '/navigation_to_waypoint')
 
-    def navigation(self, waypoint_name: str, speed: float) -> None:
+    def navigation(self, waypoint_name: str, speed: float, start_name: str="") -> None:
         """
 
         """
         goal_msg = NavigationToWaypoint.Goal()
 
-        goal_msg.waypoint_name = waypoint_name
+        goal_msg.goal_name = waypoint_name
+        goal_msg.start_name = start_name
         goal_msg.speed = speed
 
         self.__action.wait_for_server()

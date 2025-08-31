@@ -13,8 +13,8 @@ from rclpy.executors import MultiThreadedExecutor
 from base_nav2_ptp.action import NavPTPCMD
 from chassis_msgs.srv import ResetOdom
 from corn_robot_interfaces.action import NavigationToWaypoint
-from corn_robot_interfaces.msg import WaypointArray, Waypoint
-from corn_robot_interfaces.srv import GeneratePath, CorrectionOdom
+from corn_robot_interfaces.msg import Waypoint
+from corn_robot_interfaces.srv import GeneratePath, CorrectionOdom, FindNearestWaypoint
 from corn_robot_toolbox.util import Math
 from web_message_transform_ros2.msg import Pose, RobotData
 
@@ -30,7 +30,6 @@ class NavigationToPoseNode(rclpy.node.Node):
         self.get_logger().info('路径点导航节点 正在初始化.')
 
         self.goal_handle = None
-        self.waypoints = WaypointArray()
         self.odom = Pose()
 
         # 参数
@@ -49,8 +48,8 @@ class NavigationToPoseNode(rclpy.node.Node):
         self.declare_parameter('correction_service', '/correction_odom')
         correction_service = self.get_parameter('correction_service').value
 
-        self.declare_parameter('waypoints_topic', '/waypoints')
-        waypoints_topic = self.get_parameter('waypoints_topic').value
+        self.declare_parameter('find_nearest_waypoint_service', '/find_nearest_waypoint')
+        find_nearest_waypoint_service = self.get_parameter('find_nearest_waypoint_service').value
 
         self.declare_parameter('navigation_action', '/nav2_ptp_action')
         navigation_action = self.get_parameter('navigation_action').value
@@ -58,7 +57,7 @@ class NavigationToPoseNode(rclpy.node.Node):
         self.declare_parameter("reverse_uphill", False)
 
         self.declare_parameter('speed', 0.4)
-        self.declare_parameter('uphill_offset', 0.35)
+        self.declare_parameter('uphill_offset', 0.1)
         self.declare_parameter("distance_threshold", 0.05)
 
         # 缓存参数
@@ -68,17 +67,14 @@ class NavigationToPoseNode(rclpy.node.Node):
         self.action_server = ActionServer(self, NavigationToWaypoint, nav2wp_action,
                                           execute_callback=self.execute_callback,
                                           cancel_callback=self.cancel_callback)
+        self.navigation_action_client = ActionClient(self, NavPTPCMD, navigation_action)
         self.generate_path_client = self.create_client(GeneratePath, generate_path_service)
         self.correction_client = self.create_client(CorrectionOdom, correction_service)
-        self.navigation_action = ActionClient(self, NavPTPCMD, navigation_action)
+        self.find_nearest_waypoint_client = self.create_client(FindNearestWaypoint, find_nearest_waypoint_service)
         self.set_odom_client = self.create_client(ResetOdom, set_odom_service)
-        self.waypoints_sub = self.create_subscription(WaypointArray, waypoints_topic, self.waypoints_callback, 10)
         self.robot_data_sub = self.create_subscription(RobotData, robot_data_topic, self.robot_data_callback, 10)
 
         self.get_logger().info('路径点导航节点 已启动.')
-
-    def waypoints_callback(self, msg: WaypointArray):
-        self.waypoints = msg
 
     def robot_data_callback(self, msg: RobotData):
         self.odom = msg.odom
@@ -92,11 +88,11 @@ class NavigationToPoseNode(rclpy.node.Node):
 
     async def execute_callback(self, goal_handle: ServerGoalHandle) -> NavigationToWaypoint.Result:
         goal: NavigationToWaypoint.Goal = goal_handle.request
-        self.get_logger().info(f'接收到导航到路径点请求: {goal.waypoint_name}')
+        self.get_logger().info(f'接收到导航到路径点请求: {goal.goal_name}')
         T1 = time.process_time()
 
         self.speed = goal.speed if goal.speed > 0 else self.get_parameter('speed').value
-        waypoints = await self.generate_path(goal.waypoint_name)
+        waypoints = await self.generate_path(goal.start_name, goal.goal_name)
         if not waypoints:
             return self.create_result(False, '生成路径失败', -1, T1)
 
@@ -130,7 +126,7 @@ class NavigationToPoseNode(rclpy.node.Node):
                     elif index < len(waypoints) - 1:
                         w_back = Math.compute_delta_theta(waypoint.pose, waypoints[index + 1].pose)
                     else:
-                        w_back = 0
+                        w_back = 0.0
                     waypoint.pose.w = Math.compute_delta_theta(waypoints[index - 1].pose, waypoint.pose)
                     offset_pose = Math.get_target_coordinate(waypoint.pose, self.get_parameter('uphill_offset').value)
                     offset_pose.w = w_back
@@ -224,6 +220,7 @@ class NavigationToPoseNode(rclpy.node.Node):
                     goal_handle.abort()
                     msg = result.message if result else '机器人矫正Odom失败!'
                     return self.create_result(False, msg, index, T1)
+                time.sleep(1)
 
             if not appended:
                 path.append(waypoint.pose)
@@ -263,12 +260,16 @@ class NavigationToPoseNode(rclpy.node.Node):
         result.final_pose = self.odom
         return result
 
-    async def generate_path(self, goal_name: str) -> list[Waypoint]:
+    async def generate_path(self, start_name: str, goal_name: str) -> list[Waypoint]:
         """
         调用生成路径服务，获取从当前位置到目标路径点的路径。
         """
-        start_waypoint = self.find_nearest_waypoint()
-        request = GeneratePath.Request(start=start_waypoint.name, goal=goal_name)
+        # 寻找当前点位
+        if not start_name:
+            waypoint_request = await self.find_nearest_waypoint_client.call_async(FindNearestWaypoint.Request())
+            start_name = waypoint_request.waypoint.name
+        # 寻找路径
+        request = GeneratePath.Request(start=start_name, goal=goal_name)
         response = await self.generate_path_client.call_async(request)
         if not response:
             self.get_logger().error(f'生成路径服务调用失败')
@@ -301,49 +302,12 @@ class NavigationToPoseNode(rclpy.node.Node):
         goal_msg.back = reverse
 
         try:
-            handle: ClientGoalHandle = await self.navigation_action.send_goal_async(goal_msg)
+            handle: ClientGoalHandle = await self.navigation_action_client.send_goal_async(goal_msg)
             self.goal_handle = handle
             return (await handle.get_result_async()).result
         except Exception as e:
             self.get_logger().error(f'发送导航目标失败: {e}')
             return None
-
-    def find_nearest_waypoint(self) -> Waypoint:
-        if not self.waypoints.waypoints:
-            self.get_logger().error("路径点数据为空!")
-            return Waypoint()
-
-        # 阈值统一用度30°
-        ANGLE_THRESHOLD = 30
-
-        # 候选点生成器：朝向相近的点
-        candidates = (
-            wp for wp in self.waypoints.waypoints
-            if abs(Math.normalize_angle(wp.pose.w - self.odom.w)) < ANGLE_THRESHOLD
-        )
-
-        try:
-            # 找出距离最近的点
-            min_point = min(
-                candidates,
-                key=lambda wp: math.hypot(wp.pose.x - self.odom.x, wp.pose.y - self.odom.y)
-            )
-        except ValueError:  # candidates 为空
-            self.get_logger().warning("未找到符合朝向的点，退回到全局最近点")
-            min_point = min(
-                self.waypoints.waypoints,
-                key=lambda wp: math.hypot(wp.pose.x - self.odom.x, wp.pose.y - self.odom.y)
-            )
-
-        # 计算距离只做一次
-        dx, dy = min_point.pose.x - self.odom.x, min_point.pose.y - self.odom.y
-        dist = math.hypot(dx, dy)
-
-        self.get_logger().info(
-            f"检查当前点 ({self.odom.x:.2f}, {self.odom.y:.2f}) "
-            f"可能是 {min_point.name}, 距离: {dist:.2f}"
-        )
-        return min_point
 
 
 def main():

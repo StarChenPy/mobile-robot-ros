@@ -59,19 +59,20 @@ def robot_basket_top(arm: 'ArmService', num):
         raise ValueError("不正确的框子位置")
 
 
-def station_basket_top(arm: 'ArmService', direction: Direction):
+def station_basket_top(arm: 'ArmService', direction: Direction, telescopic, rotate_offset):
     if direction == Direction.LEFT:
         rotate = 90
     elif direction == Direction.RIGHT:
         rotate = -90
     else:
         raise ValueError("不支持的方向!")
+    rotate -= rotate_offset
 
     arm.lift(0)
     arm.rotate(rotate, is_block=False)
     arm.nod_servo(0)
     arm.rotary_servo(0)
-    arm.telescopic_servo(5)
+    arm.telescopic_servo(telescopic)
     arm.wait_finish()
 
 
@@ -88,7 +89,7 @@ def end(arm: 'ArmService'):
 def motion(arm: 'ArmService'):
     arm.lift(0)
     arm.rotate(0, is_block=False)
-    arm.nod_servo(-20)
+    arm.nod_servo(-30)
     arm.rotary_servo(0)
     arm.telescopic_servo(0)
     open_half_gripper(arm)
@@ -126,31 +127,58 @@ def top_180(arm: 'ArmService'):
 
 def identify_station_fruit(arm: 'ArmService', direction: Direction):
     arm.lift(0, is_block=False)
-    if direction == Direction.LEFT:
-        arm.rotate(90, is_block=False)
-    elif direction == Direction.RIGHT:
-        arm.rotate(-90, is_block=False)
+    arm.rotate(90 if direction == Direction.LEFT else -90, is_block=False)
     arm.telescopic_servo(0)
-    arm.nod_servo(90)
-    open_gripper(arm)
+    arm.nod_servo(10)
     arm.wait_finish()
-    arm.nod_servo(50)
     time.sleep(1)
 
 
 def identify_grape(arm: 'ArmService', direction: Direction):
-    arm.nod_servo(-20)
+    arm.nod_servo(-30)
+    arm.telescopic_servo(0)
     if direction == Direction.LEFT:
         arm.rotate(200)
         arm.rotary_servo(-108)
     elif direction == Direction.RIGHT:
         arm.rotate(-200)
-        arm.rotary_servo(114)
-    arm.telescopic_servo(0)
-    arm.nod_servo(5)
+        arm.rotary_servo(112)
+    arm.nod_servo(-25)
+    open_half_gripper(arm)
     arm.lift(29)
-    open_gripper(arm)
     arm.telescopic_servo(10)
+    time.sleep(2)
+
+
+def identify_ground_fruit(arm: 'ArmService'):
+    open_half_gripper(arm)
+    arm.nod_servo(0)
+    arm.lift(5, is_block=False)
+    time.sleep(1)
+    arm.rotate(180, is_block=False)
+    arm.telescopic_servo(3)
+    arm.wait_finish()
+    arm.nod_servo(60)
+    arm.rotary_servo(180)
+    time.sleep(2)
+
+
+def identify_tree_fruit(arm: 'ArmService', direction: Direction):
+    arm.lift(0)
+    arm.nod_servo(0)
+    if direction == Direction.LEFT:
+        arm.rotate(180)
+        arm.rotary_servo(-90)
+    elif direction == Direction.RIGHT:
+        arm.rotate(-180)
+        arm.rotary_servo(90)
+    else:
+        raise ValueError("不支持的方向")
+    arm.nod_servo(-30)
+    arm.lift(22, is_block=False)
+    arm.telescopic_servo(0)
+    arm.wait_finish()
+    time.sleep(2)
 
 
 def grab_basket_from_robot(arm: 'ArmService', num: int):
@@ -166,16 +194,16 @@ def grab_basket_from_robot(arm: 'ArmService', num: int):
     arm.nod_servo(0)
 
 
-def grab_fruit_from_station(arm: 'ArmService'):
-    arm.rotate(90, is_block=False)
-    arm.lift(4, is_block=False)
+def grab_fruit_from_station(arm: 'ArmService', direction: Direction, low=True):
+    arm.rotate(90 if direction == Direction.LEFT else -90, is_block=False)
+    arm.lift(6 if low else 0, is_block=False)
     arm.nod_servo(0)
     arm.rotary_servo(90)
-    arm.telescopic_servo(14)
+    arm.telescopic_servo(18)
     open_gripper(arm)
     arm.wait_finish()
 
-    arm.nod_servo(90)
+    arm.nod_servo(70)
     time.sleep(0.2)
     close_gripper_apple(arm)
 
@@ -188,7 +216,7 @@ def grab_fruit_from_station(arm: 'ArmService'):
 def put_basket_to_robot(arm: 'ArmService', num):
     arm.rotary_servo(0)
     arm.nod_servo(0)
-    arm.gripper_servo(16)
+    close_gripper_basket(arm)
 
     arm.lift(0, is_block=False)
     if num == 1:
@@ -223,53 +251,17 @@ def put_basket_to_robot(arm: 'ArmService', num):
     arm.lift(0)
 
 
-def identify_ground_fruit(arm: 'ArmService'):
-    arm.nod_servo(0)
+def put_fruit_to_basket(arm: 'ArmService', num, down=False):
     arm.lift(0, is_block=False)
-    time.sleep(1)
-    arm.rotate(180, is_block=False)
-    arm.rotary_servo(0)
-    arm.telescopic_servo(3)
-    open_gripper(arm)
-    arm.wait_finish()
-    arm.nod_servo(90)
-    time.sleep(1)
-
-
-def identify_tree_fruit(arm: 'ArmService', direction: Direction):
-    arm.lift(0)
-    arm.nod_servo(0)
-    if direction == Direction.LEFT:
-        arm.rotate(180)
-        arm.rotary_servo(-90)
-    elif direction == Direction.RIGHT:
-        arm.rotate(-180)
-        arm.rotary_servo(90)
-    else:
-        raise ValueError("不支持的方向")
-    arm.nod_servo(0)
-    arm.lift(22, is_block=False)
     arm.telescopic_servo(0)
-    open_gripper(arm)
     arm.wait_finish()
-    time.sleep(2)
-
-
-def put_fruit_to_basket(arm: 'ArmService', num, pressed_in=False):
-    arm.lift(0)
     robot_basket_top(arm, num)
-    if pressed_in:
-        arm.lift(5)
+    if down:
+        arm.lift(10)
+        open_half_gripper(arm)
         arm.lift(0)
-    open_gripper(arm)
-
-
-def put_basket_to_station(arm: 'ArmService', direction: Direction):
-    station_basket_top(arm, direction)
-
-    arm.lift(7)
-    open_gripper(arm)
-    arm.lift(0)
+    else:
+        open_gripper(arm)
 
 
 def grab_apple_on_tree(arm: 'ArmService', direction: Direction, telescopic: float, is_low: bool):
@@ -282,11 +274,11 @@ def grab_apple_on_tree(arm: 'ArmService', direction: Direction, telescopic: floa
         raise ValueError("不支持的方向")
 
     # 抬升高度
-    lift_height = 30 if is_low else 18
+    lift_height = 30 if is_low else 18.5
 
     # 初始姿态
     arm.lift(0, is_block=False)
-    arm.rotate(rotate_angle, 40, is_block=False)
+    arm.rotate(rotate_angle, is_block=False)
     arm.telescopic_servo(0)
     open_half_gripper(arm)
 

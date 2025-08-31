@@ -1,4 +1,3 @@
-import datetime
 import time
 
 import rclpy
@@ -14,10 +13,6 @@ class RobotDataDao(object):
         self.__node = node
         self.__robot_data = None
 
-        self.imu_data = []
-        self.flag = True
-        self.start_time = datetime.datetime.now()
-
         node.create_subscription(
             web_message_transform_ros2.msg.RobotData,
             '/web_transform_node/robot_data',
@@ -28,16 +23,7 @@ class RobotDataDao(object):
     def __robot_data_callback(self, msg: web_message_transform_ros2.msg.RobotData):
         self.__robot_data = msg
 
-        # if (datetime.datetime.now() - self.start_time).seconds % 2 == 0:
-        #     if self.flag:
-        #         self.imu_data.append(msg.imu)
-        #         self.flag = False
-        # else:
-        #     self.flag = True
-
     def get_robot_data(self) -> web_message_transform_ros2.msg.RobotData:
-        rclpy.spin_once(self.__node)
-        rclpy.spin_once(self.__node)
         rclpy.spin_once(self.__node)
         return self.__robot_data
 

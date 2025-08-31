@@ -83,6 +83,7 @@ class VisionService:
 
             roi = depth[y1:y2, x1:x2]
             valid_depths = roi[roi > 0]  # 自动忽略0深度
+            valid_depths = valid_depths[valid_depths < 1000]  # 自动忽略大于1000的深度
 
             if valid_depths.size > 0:
                 r.distance = float(np.median(valid_depths)) / 1000  # 使用中位数，避免离群值
@@ -99,18 +100,37 @@ class VisionService:
             result = infer_onnx_model(self.__weight_path, self.__names, photo)
             return result
 
-    def get_depth_data(self, point: Point) -> float:
+    def get_depth_data(self, point: Point, inverted=False, kernel_size=11) -> float:
         """
         @param point: 图像的坐标点
+        @param inverted: 图像是否倒置
+        @param kernel_size: 用于计算深度的感兴趣区域大小，必须为奇数
+
         @return float: 深度距离，单位 cm
         """
-
         depth = self.__camera.photograph_depth(True)
-        distance = depth[int(point.y), int(point.x)] / 1000
-        return distance.item()
+        if inverted:
+            depth = cv2.rotate(depth, cv2.ROTATE_180)
 
-    def find_fruit(self, fruit: list[FruitType]=None, inverted=False) -> IdentifyResult | None:
-        identify = self.get_onnx_identify_depth(inverted)
+        half_k = kernel_size // 2
+        cx, cy = int(point.x), int(point.y)
+
+        # 定义感兴趣区域（ROI），考虑图像边界
+        x1 = max(0, cx - half_k)
+        x2 = min(depth.shape[1], cx + half_k + 1)
+        y1 = max(0, cy - half_k)
+        y2 = min(depth.shape[0], cy + half_k + 1)
+
+        roi = depth[y1:y2, x1:x2]
+        valid_depths = roi[roi > 0]  # 自动忽略0深度
+
+        if valid_depths.size > 0:
+            return float(np.median(valid_depths)) / 1000  # 使用中位数，避免离群值
+        else:
+            return -1
+
+    def find_fruit(self, fruit: list[FruitType]=None, inverted=False, kernel_size=17) -> IdentifyResult | None:
+        identify = self.get_onnx_identify_depth(inverted, kernel_size)
         if not fruit:
             return None
 

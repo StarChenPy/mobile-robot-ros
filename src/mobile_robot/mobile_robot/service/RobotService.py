@@ -33,6 +33,7 @@ class RobotService:
         """
 
         self.logger.info("正在等待开始按钮按下...")
+        self.__robot_ctrl.write_do(0, False)
         while self.__robot_data.get_robot_data().di[1]:
             rclpy.spin_once(self.__node)
             time.sleep(0.1)

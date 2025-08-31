@@ -1,0 +1,6 @@
+image: map.png     # 文件名保持和PNG一致
+resolution: 0.01      # 每像素0.01米 → 1厘米
+origin: [-0.02, -0.02, 0.0]
+negate: 0             # 黑色为障碍（你这张图是黑白线条，推荐用0）
+occupied_thresh: 0.65
+free_thresh: 0.2

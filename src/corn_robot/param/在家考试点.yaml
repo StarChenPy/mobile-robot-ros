@@ -1,0 +1,571 @@
+c_start:
+  pose:
+    x: 1.54
+    y: 2.41
+    yaw: 90
+  corrective_data:
+    back: 0.3
+    left: 0.3
+  connected_nodes:
+    - "p_1"
+
+c_1:
+  pose:
+    x: 0.3
+    y: 3.7
+    yaw: -90
+  corrective_data:
+    back: 0.3
+    right: 0.3
+  connected_nodes:
+    - "p_2"
+    - "p_10"
+    - "s_y_3_r"
+    - "s_y_2_r"
+    - "s_r_2_l"
+    - "c_8"
+
+c_2:
+  pose:
+    x: 0.91
+    y: 0.92
+    yaw: 90
+  corrective_data:
+    back: 0.3
+    left: 0.9
+  connected_nodes:
+    - "p_6"
+    - "p_10"
+    - "c_3"
+
+c_3:
+  pose:
+    x: 0.91
+    y: 2.69
+    yaw: 90
+  corrective_data:
+    front: 0.6
+    right: 0.3
+  connected_nodes:
+    - "p_6"
+    - "c_2"
+    - "v_1"
+
+c_4:
+  pose:
+    x: 1.52
+    y: 1.81
+    yaw: -90
+  corrective_data:
+    back: 0.3
+    left: 0.3
+  connected_nodes:
+    - "p_6"
+    - "v_1"
+    - "v_2"
+    - "v_3"
+    - "v_6"
+    - "v_7"
+
+c_5:
+  pose:
+    x: 0.6
+    y: 0.3
+    yaw: 180
+  corrective_data:
+    front: 0.6
+    left: 0.3
+  connected_nodes:
+    - "v_3"
+    - "v_4"
+    - "v_6"
+    - "c_6"
+    - "s_y_1_l"
+    - "s_r_3_l"
+    - "s_r_3_r"
+
+c_6:
+  pose:
+    x: 3.4
+    y: 0.3
+    yaw: 0
+  corrective_data:
+    front: 0.6
+    right: 0.3
+  connected_nodes:
+    - "v_3"
+    - "v_4"
+    - "v_6"
+    - "c_5"
+    - "s_r_3_r"
+
+c_7:
+  pose:
+    x: 3.7
+    y: 0.92
+    yaw: 90
+  corrective_data:
+    back: 0.3
+    right: 0.3
+  connected_nodes:
+    - "p_4"
+    - "p_12"
+    - "p_15"
+    - "s_r_1_r"
+    - "t_1_g"
+    - "t_1_f"
+    - "t_3_r"
+
+c_8:
+  pose:
+    x: 3.7
+    y: 3.7
+    yaw: -90
+  corrective_data:
+    back: 0.3
+    left: 0.3
+  connected_nodes:
+    - "p_2"
+    - "p_9"
+    - "p_11"
+    - "c_1"
+    - "s_r_2_l"
+    - "s_r_2_r"
+    - "s_y_2_r"
+    - "t_3_l"
+
+s_y_3_l:
+  pose:
+    x: 0.3
+    y: 1.89
+    yaw: 90
+  connected_nodes:
+    - "p_10"
+    - "c_1"
+    - "s_y_3_r"
+
+s_y_3_r:
+  pose:
+    x: 0.3
+    y: 2.11
+    yaw: -90
+  connected_nodes:
+    - "p_10"
+    - "c_1"
+    - "s_y_3_l"
+
+s_y_2_r:
+  pose:
+    x: 1.52
+    y: 3.7
+    yaw: 180
+  on_slope: true
+  connected_nodes:
+    - "p_2"
+    - "c_1"
+    - "c_8"
+    - "s_r_2_l"
+    - "s_r_2_r"
+
+s_y_1_l:
+  pose:
+    x: 1.63
+    y: 0.3
+    yaw: 180
+  connected_nodes:
+    - "c_5"
+    - "c_6"
+    - "v_3"
+    - "v_4"
+    - "v_6"
+    - "s_r_3_l"
+    - "s_r_3_r"
+
+s_r_2_l:
+  pose:
+    x: 2.48
+    y: 3.7
+    yaw: 0
+  on_slope: true
+  connected_nodes:
+    - "p_2"
+    - "c_1"
+    - "c_8"
+    - "s_y_2_r"
+    - "s_r_2_r"
+
+s_r_2_r:
+  pose:
+    x: 2.7
+    y: 3.7
+    yaw: 180
+  on_slope: true
+  connected_nodes:
+    - "p_2"
+    - "c_1"
+    - "c_8"
+    - "s_y_2_r"
+    - "s_r_2_l"
+
+s_r_1_r:
+  pose:
+    x: 3.7
+    y: 1.59
+    yaw: 90
+  connected_nodes:
+    - "c_7"
+
+s_r_3_l:
+  pose:
+    x: 2.51
+    y: 0.3
+    yaw: 180
+  connected_nodes:
+    - "c_5"
+    - "c_6"
+    - "v_3"
+    - "v_4"
+    - "v_6"
+    - "s_y_1_l"
+    - "s_r_3_r"
+
+s_r_3_r:
+  pose:
+    x: 2.29
+    y: 0.3
+    yaw: 0
+  connected_nodes:
+    - "p_4"
+    - "c_5"
+    - "c_6"
+    - "v_3"
+    - "v_4"
+    - "v_6"
+    - "s_y_1_l"
+    - "s_r_3_l"
+
+t_1_g:
+  pose:
+    x: 3.11
+    y: 0.89
+    yaw: 180
+  connected_nodes:
+    - "p_4"
+    - "c_7"
+
+t_1_f:
+  pose:
+    x: 3.55
+    y: 1.16
+    yaw: 90
+  connected_nodes:
+    - "c_7"
+    - "t_3_r"
+
+t_1_b:
+  pose:
+    x: 2.45
+    y: 1.16
+    yaw: 90
+  connected_nodes:
+    - "p_4"
+    - "p_8"
+    - "t_2_r"
+
+t_2_l:
+  pose:
+    x: 2.77
+    y: 2.63
+    yaw: 180
+  connected_nodes:
+    - "p_3"
+    - "p_9"
+    - "t_3_l"
+
+t_2_r:
+  pose:
+    x: 2.13
+    y: 1.53
+    yaw: 0
+  connected_nodes:
+    - "p_4"
+    - "p_8"
+    - "t_1_b"
+
+t_3_l:
+  pose:
+    x: 3.08
+    y: 2.63
+    yaw: 0
+  connected_nodes:
+    - "p_3"
+    - "p_9"
+    - "c_8"
+
+t_3_r:
+  pose:
+    x: 3.72
+    y: 1.53
+    yaw: 180
+  connected_nodes:
+    - "c_7"
+    - "t_1_f"
+
+v_1:
+  pose:
+    x: 1.12
+    y: 1.82
+    yaw: 180
+  connected_nodes:
+    - "p_6"
+    - "c_4"
+    - "v_1"
+
+v_2:
+  pose:
+    x: 1.52
+    y: 1.19
+    yaw: -90
+  connected_nodes:
+    - "c_4"
+    - "v_3"
+
+v_5:
+  pose:
+    x: 1.52
+    y: 0.86
+    yaw: 90
+  connected_nodes:
+    - "c_4"
+    - "v_3"
+    - "v_6"
+    - "v_7"
+
+v_3:
+  pose:
+    x: 1.54
+    y: 0.3
+    yaw: 180
+  connected_nodes:
+    - "c_4"
+    - "c_5"
+    - "c_6"
+    - "v_2"
+    - "v_4"
+    - "v_5"
+    - "v_6"
+    - "v_7"
+    - "s_y_1_l"
+    - "s_r_3_l"
+    - "s_r_3_r"
+
+v_4:
+  pose:
+    x: 2.2
+    y: 0.3
+    yaw: 0
+  connected_nodes:
+    - "p_4"
+    - "p_8"
+    - "c_5"
+    - "c_6"
+    - "v_3"
+    - "v_6"
+    - "s_y_1_l"
+    - "s_r_3_l"
+    - "s_r_3_r"
+
+v_6:
+  pose:
+    x: 1.54
+    y: 0.3
+    yaw: 90
+  connected_nodes:
+    - "v_3"
+    - "v_4"
+    - "v_5"
+    - "v_7"
+    - "c_4"
+    - "c_5"
+    - "c_6"
+    - "s_y_1_l"
+    - "s_r_3_l"
+    - "s_r_3_r"
+
+v_7:
+  pose:
+    x: 1.52
+    y: 1.81
+    yaw: 180
+  connected_nodes:
+    - "p_6"
+    - "c_4"
+    - "v_3"
+    - "v_1"
+    - "v_5"
+    - "v_6"
+
+p_1:
+  pose:
+    x: 1.54
+    y: 2.99
+    yaw: 0
+  connected_nodes:
+    - "p_3"
+    - "p_9"
+    - "p_13"
+    - "c_start"
+
+p_2:
+  pose:
+    x: 2.73
+    y: 3.7
+    yaw: 0
+  on_slope: true
+  connected_nodes:
+    - "c_1"
+    - "c_8"
+    - "s_y_2_r"
+    - "s_r_2_l"
+    - "s_r_2_r"
+
+p_3:
+  pose:
+    x: 2.73
+    y: 2.91
+    yaw: -90
+  connected_nodes:
+    - "p_1"
+    - "p_2"
+    - "p_7"
+    - "p_9"
+    - "p_13"
+    - "s_r_2_r"
+    - "t_2_l"
+    - "t_3_l"
+
+p_4:
+  pose:
+    x: 2.42
+    y: 0.92
+    yaw: 0
+  connected_nodes:
+    - "p_8"
+    - "p_14"
+    - "c_7"
+    - "v_3"
+    - "v_4"
+    - "t_1_g"
+    - "t_1_b"
+    - "t_2_r"
+
+p_6:
+  pose:
+    x: 0.95
+    y: 1.69
+    yaw: 0
+  connected_nodes:
+    - "c_2"
+    - "c_3"
+    - "c_4"
+    - "v_1"
+    - "v_7"
+
+p_7:
+  pose:
+    x: 2.92
+    y: 2.08
+    yaw: 0
+  connected_nodes:
+    - "p_3"
+    - "p_8"
+    - "p_9"
+    - "p_12"
+
+p_8:
+  pose:
+    x: 2.43
+    y: 1.48
+    yaw: 0
+  connected_nodes:
+    - "p_4"
+    - "p_7"
+    - "p_14"
+    - "v_4"
+    - "t_1_b"
+    - "t_2_r"
+
+p_9:
+  pose:
+    x: 3.44
+    y: 2.91
+    yaw: -90
+  connected_nodes:
+    - "p_1"
+    - "p_3"
+    - "p_7"
+    - "p_11"
+    - "p_13"
+    - "c_8"
+    - "t_2_l"
+    - "t_3_l"
+
+p_10:
+  pose:
+    x: 0.3
+    y: 0.92
+    yaw: 0
+  connected_nodes:
+    - "c_1"
+    - "c_2"
+    - "s_y_3_l"
+    - "s_y_3_r"
+
+p_11:
+  pose:
+    x: 3.77
+    y: 2.43
+    yaw: 0
+  connected_nodes:
+    - "p_9"
+    - "p_15"
+    - "c_8"
+
+p_12:
+  pose:
+    x: 3.57
+    y: 1.48
+    yaw: 0
+  connected_nodes:
+    - "p_7"
+    - "c_7"
+
+p_13:
+  pose:
+    x: 2.09
+    y: 2.99
+    yaw: 0
+  connected_nodes:
+    - "p_1"
+    - "p_3"
+    - "p_9"
+    - "p_14"
+
+p_14:
+  pose:
+    x: 2.09
+    y: 1.69
+    yaw: 0
+  connected_nodes:
+    - "p_4"
+    - "p_8"
+    - "p_13"
+    - "v_4"
+
+p_15:
+  pose:
+    x: 3.77
+    y: 1.48
+    yaw: 0
+  connected_nodes:
+    - "p_11"

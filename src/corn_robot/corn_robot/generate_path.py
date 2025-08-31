@@ -36,6 +36,10 @@ class WaypointWrapper:
     def on_slope(self):
         return self.msg.on_slope
 
+    @property
+    def corrected_data(self):
+        return self.msg.corrected_data
+
 
 def manhattan(wp1: WaypointWrapper, wp2: WaypointWrapper) -> float:
     x1, y1 = wp1.pose.x, wp1.pose.y

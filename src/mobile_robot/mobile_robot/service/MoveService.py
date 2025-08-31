@@ -2,6 +2,7 @@ import time
 
 import rclpy
 
+from ..dao.JXNav2Dao import JXNav2Dao
 from ..dao.LaserRadarDao import LaserRadarDao
 from ..dao.MotionDao import MotionDao
 from ..dao.MyNavigationDao import MyNavigationDao
@@ -31,8 +32,9 @@ class MoveService:
         self.__odom = OdomDao(node)
         self.__radar = LaserRadarDao(node)
         self.__robot_data = RobotDataDao(node)
+        self.__jx_nav2 = JXNav2Dao(node)
 
-    def rotation_correction(self, direction: Direction = None, set_odom=False, scan_angle=30):
+    def rotation_correction(self, direction: Direction = None, set_odom=False, scan_angle=30, block=True):
         if not direction:
             angle_by_front = self.__radar.get_angle_from_wall(Direction.FRONT, scan_angle)
             angle_by_right = self.__radar.get_angle_from_wall(Direction.RIGHT, scan_angle)
@@ -49,27 +51,21 @@ class MoveService:
         if abs(angle) > 15:
             self.__logger.warn(f"角度过大，放弃矫正: {angle}")
         else:
-            self.rotate(angle)
+            self.rotate(angle, is_block=block)
             self.__logger.info(f"直角矫正, 度数 {angle}")
 
-        if set_odom:
-            new_angle = odom_w + angle
-            self.__odom.init_yaw(new_angle)
+            if set_odom:
+                new_angle = Math.normalize_angle(Math.round_right_angle(odom_w))
+                self.__odom.init_yaw(new_angle)
+                self.__logger.info(f"重置里程计角度, 角度 {new_angle}")
 
-    def lidar_correction(self, distance: float):
-        from_wall = self.__radar.get_distance_from_wall(Direction.FRONT)
-        i = from_wall - distance
-        while abs(i) > 0.02:
-            print("from_wall", from_wall)
-            print("i", i)
-            self.line(i)
-            from_wall = self.__radar.get_distance_from_wall(Direction.FRONT)
-            i = from_wall - distance
-
-    def my_navigation(self, waypoint: str, speed=0.6, block=True):
-        self.__navigation.navigation(waypoint, speed)
+    def my_navigation(self, waypoint: str, speed=0.6, start_name: str="", block=True):
+        self.__navigation.navigation(waypoint, speed, start_name)
         if block:
             self.__navigation.wait_finish()
+
+    def wait_navigation_finish(self):
+        self.__navigation.wait_finish()
 
     def navigation(self, path: list[NavigationPoint], speed=0.6, block=True):
         """
@@ -81,6 +77,9 @@ class MoveService:
         self.__ptp_navigation.navigation(path, speed, speed * 5, False)
         if block:
             self.__ptp_navigation.wait_finish()
+
+    def jx_nav2(self):
+        self.__jx_nav2.call_service()
 
     def line(self, distance: float, speed: float = 0.2, is_block=True):
         self.__motion.line(distance, speed)

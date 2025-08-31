@@ -1,6 +1,6 @@
 import rclpy
 
-import web_message_transform_ros2.msg
+from web_message_transform_ros2.msg import RobotCtrl
 from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
@@ -11,12 +11,10 @@ class RobotCtrlDao(object):
         self.__node = node
         self.__logger = Logger()
 
-        self.__topic = node.create_publisher(
-            web_message_transform_ros2.msg.RobotCtrl,
-            '/web_transform_node/robot_ctrl',
-            10)
+        # self.service = self.__node.create_client(RobotCtrlSrv, '/web_transform_node/robot_ctrl_srv')
+        self.__topic = node.create_publisher(RobotCtrl, '/web_transform_node/robot_ctrl', 10)
 
-        self.__robot_ctrl = web_message_transform_ros2.msg.RobotCtrl()
+        self.__robot_ctrl = RobotCtrl()
         self.__robot_ctrl.do0 = False
         self.__robot_ctrl.do1 = False
         self.__robot_ctrl.do2 = False
@@ -28,20 +26,7 @@ class RobotCtrlDao(object):
 
         self.__topic.publish(self.__robot_ctrl)
 
-    # 设置DO输出(端口: 0-2, 电平: T/F)
-    def write_do(self, port, state: bool):
-        self.__logger.debug(f"操作DO端口 {port} 为 {state}")
-        match port:
-            case 0:
-                self.__robot_ctrl.do0 = state
-            case 1:
-                self.__robot_ctrl.do1 = state
-            case 2:
-                self.__robot_ctrl.do2 = state
-        self.__topic.publish(self.__robot_ctrl)
-
-    # 设置 pwm (端口: 0-4, duty: 0-100%)
-    def write_pwm(self, port, duty):
+    def write_pwm_no_pub(self, port: int, duty: float):
         duty = float(min(max(duty, 0), 100))
         if duty > 100:
             self.__logger.warn(f"操作PWM端口 {port} 占空比为 {duty} 超过最大值!")
@@ -63,10 +48,29 @@ class RobotCtrlDao(object):
                 self.__robot_ctrl.pwm3 = duty
             case 4:
                 self.__robot_ctrl.pwm4 = duty
+
+    def publish(self):
         self.__topic.publish(self.__robot_ctrl)
         rclpy.spin_once(self.__node)
 
-    def read_pwm(self, port):
+    # 设置DO输出(端口: 0-2, 电平: T/F)
+    def write_do(self, port: int, state: bool):
+        self.__logger.debug(f"操作DO端口 {port} 为 {state}")
+        match port:
+            case 0:
+                self.__robot_ctrl.do0 = state
+            case 1:
+                self.__robot_ctrl.do1 = state
+            case 2:
+                self.__robot_ctrl.do2 = state
+        self.publish()
+
+    # 设置 pwm (端口: 0-4, duty: 0-100%)
+    def write_pwm(self, port: int, duty: float):
+        self.write_pwm_no_pub(port, duty)
+        self.publish()
+
+    def read_pwm(self, port: int) -> float:
         """
         读取指定PWM端口的占空比
         @param port: PWM端口 (0-4)

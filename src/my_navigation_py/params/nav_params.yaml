@@ -16,11 +16,11 @@ amcl:
     lambda_short: 0.1  # 激光束短距离权重参数
     laser_likelihood_max_dist: 2.0  # 激光束最大似然距离
     laser_max_range: 3.5 # 激光雷达最大测量距离
-    laser_min_range: 0.12  # 激光雷达最小测量距离（-1表示使用传感器默认值）
+    laser_min_range: 0.11  # 激光雷达最小测量距离（-1表示使用传感器默认值）
     laser_model_type: "likelihood_field"  # 激光模型类型，用于计算粒子权重（beam、likelihood_field、likelihood_field_prob）
     max_beams: 200  # 每次更新使用的最大激光束数量
-    max_particles: 2000  # 最大粒子数量
-    min_particles: 500  # 最小粒子数量
+    max_particles: 5000  # 最大粒子数量
+    min_particles: 2000  # 最小粒子数量
     odom_frame_id: "odom"  # 里程计坐标系 
     pf_err: 0.02  # 粒子滤波器的误差参数
     pf_z: 0.85  # 粒子滤波器的参数，影响粒子权重
@@ -41,10 +41,10 @@ amcl:
     scan_topic: "/scan"  # 激光雷达话题名称
 
     set_initial_pose: True
-    initial_pose.x: 1.35
+    initial_pose.x: 0.9
     initial_pose.y: 0.3
     initial_pose.z: 0.0
-    initial_pose.yaw: 3.14
+    initial_pose.yaw: 0.0
 
 
 
@@ -146,31 +146,31 @@ controller_server:
     min_x_velocity_threshold: 0.001
     min_y_velocity_threshold: 0.0
     min_theta_velocity_threshold: 0.001
-    controller_plugins: ["FollowPath", "Spin"]
+    controller_plugins: ["FollowPath"]
     
     # DWB parameters
     FollowPath:
       # cmd_vel_topic: "/chassis/cmd_vel"
       plugin: "dwb_core::DWBLocalPlanner"
       debug_trajectory_details: True
-      min_vel_x: 0.05
+      min_vel_x: 0.0
       min_vel_y: 0.0
-      max_vel_x: 0.22
+      max_vel_x: 0.25
       max_vel_y: 0.0
       max_vel_theta: 0.6
       min_speed_xy: 0.0
       max_speed_xy: 1.0
-      min_speed_theta: 0.05
+      min_speed_theta: 0.03
       acc_lim_x: 2.5
       acc_lim_y: 0.0
-      acc_lim_theta: 2.0  
+      acc_lim_theta: 0.8
       decel_lim_x: -2.5
       decel_lim_y: 0.0
-      decel_lim_theta: -2.0
-      vx_samples: 20
+      decel_lim_theta: -0.8
+      vx_samples: 30 # 20
       vy_samples: 0
-      vtheta_samples: 40
-      sim_time: 3.0
+      vtheta_samples: 60 # 40
+      sim_time: 4.0
       linear_granularity: 0.05
       angular_granularity: 0.025
       transform_tolerance: 1.0
@@ -179,32 +179,32 @@ controller_server:
       short_circuit_trajectory_evaluation: False
       stateful: True
       critics: ["BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist", "RotateToGoal"]
-      BaseObstacle.scale: 0.02
-      PathAlign.scale: 32.0
+      BaseObstacle.scale: 0.05
+      PathAlign.scale: 32.0 #32
       PathAlign.forward_point_distance: 0.1
       GoalAlign.scale: 24.0
       GoalAlign.forward_point_distance: 0.1
       PathDist.scale: 32.0
       GoalDist.scale: 24.0
-      RotateToGoal.scale: 32.0
+      RotateToGoal.scale: 24.0
       RotateToGoal.slowing_factor: 5.0
       RotateToGoal.lookahead_time: -1.0
 
-
-    # 旋转控制器
-    Spin:
-      plugin: "nav2_rotation_shim_controller::RotationShimController"
-      primary_controller: "dwb_core::DWBLocalPlanner"
-      angular_dist_threshold: 0.785  # 45度
-      forward_sampling_distance: 0.3
-      rotate_to_heading_angular_vel: 0.6
-      max_angular_accel: 2.0
-      simulate_ahead_time: 1.0
-
-      critics: [ "RotateToGoal" ]   # 必须加 critics，否则会报错
-      RotateToGoal.scale: 32.0
-      RotateToGoal.slowing_factor: 5.0
-      RotateToGoal.lookahead_time: -1.0
+#
+#    # 旋转控制器
+#    Spin:
+#      plugin: "nav2_rotation_shim_controller::RotationShimController"
+#      primary_controller: "dwb_core::DWBLocalPlanner"
+#      angular_dist_threshold: 0.785  # 45度
+#      forward_sampling_distance: 0.3
+#      rotate_to_heading_angular_vel: 0.6
+#      max_angular_accel: 2.0
+#      simulate_ahead_time: 1.0
+#
+#      critics: [ "RotateToGoal" ]   # 必须加 critics，否则会报错
+#      RotateToGoal.scale: 32.0
+#      RotateToGoal.slowing_factor: 5.0
+#      RotateToGoal.lookahead_time: -1.0
 
 controller_server_rclcpp_node:
   ros__parameters:
@@ -223,11 +223,12 @@ local_costmap:
       height: 4
       resolution: 0.02
       footprint: "[ [0.245, 0.19], [0.245, -0.19], [-0.245, -0.19], [-0.245, 0.19] ]"
+      # footprint: "[ [0.245, 0.24], [0.245, -0.24], [-0.245, -0.24], [-0.245, 0.24] ]"
       plugins: ["obstacle_layer", "voxel_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        inflation_radius: 0.26
-        cost_scaling_factor: 5.0
+        inflation_radius: 0.45 # 膨胀距离
+        cost_scaling_factor: 6.0
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         track_unknown_space: false  
@@ -274,6 +275,7 @@ global_costmap:
       robot_base_frame: base_link
       use_sim_time: False
       footprint: "[ [0.245, 0.19], [0.245, -0.19], [-0.245, -0.19], [-0.245, 0.19] ]"
+     # footprint: "[ [0.245, 0.24], [0.245, -0.24], [-0.245, -0.24], [-0.245, 0.24] ]"
       resolution: 0.02
       plugins: ["static_layer", "obstacle_layer", "voxel_layer", "inflation_layer"]
       obstacle_layer:
@@ -308,8 +310,8 @@ global_costmap:
         map_subscribe_transient_local: True
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 5.0
-        inflation_radius: 0.2
+        cost_scaling_factor: 6.0
+        inflation_radius: 0.45
       always_send_full_costmap: True
   global_costmap_client:
     ros__parameters:

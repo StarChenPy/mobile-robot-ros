@@ -12,18 +12,24 @@ class CorrectionOdomDao:
         self.__logger = Logger()
 
         self.__service = node.create_client(CorrectionOdom, '/correction_odom')
+        self.future = None
 
     def send_correction_odom(self, waypoint_name: str):
-        future = self.__service.call_async(CorrectionOdom.Request(waypoint_name=waypoint_name))
+        self.future = self.__service.call_async(CorrectionOdom.Request(waypoint_name=waypoint_name))
+
+    def wait_finish(self):
+        if not self.future:
+            self.__logger.warn("没有发起的矫正请求")
+            return
 
         while rclpy.ok():
             rclpy.spin_once(self.__node)
 
-            if not future.done():
+            if not self.future.done():
                 continue
 
-            if future.result().success:
-                self.__logger.info(f"校正Odom成功, 路径点: {waypoint_name}")
+            if self.future.result().success:
+                self.__logger.info(f"校正Odom成功")
             else:
                 self.__logger.error(f"校正Odom失败.")
 

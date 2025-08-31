@@ -1,7 +1,7 @@
 import enum
 
 
-class Servo(enum.Enum):
+class Servo(enum.IntEnum):
     NOD = 1  # 卡爪舵机 点头(角度)
     TELESCOPIC = 2  # 卡爪舵机 伸缩
     GRIPPER = 3  # 卡爪舵机 夹合

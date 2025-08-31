@@ -23,6 +23,13 @@ def generate_launch_description():
                               output='screen',
                               parameters=[LaunchConfiguration('navigation_params_file')])
 
+    find_nearest_waypoint = Node(package=package_name,
+                                       executable='find_nearest_waypoint',
+                                       name='find_nearest_waypoint',
+                                       emulate_tty=True,
+                                       output='screen',
+                                       parameters=[LaunchConfiguration('navigation_params_file')])
+
     generate_path_node = Node(package=package_name,
                               executable='generate_path',
                               name='generate_path',
@@ -44,8 +51,14 @@ def generate_launch_description():
                                 output='screen',
                                 parameters=[LaunchConfiguration('navigation_params_file')])
 
+    urdf_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(os.path.join(package_dir, 'launch', 'urdf.launch.py'))
+    )
+
     return LaunchDescription([
         navigation_params,
+        urdf_launch,
+        find_nearest_waypoint,
         correction_odom_node,
         pub_waypoints_node,
         generate_path_node,

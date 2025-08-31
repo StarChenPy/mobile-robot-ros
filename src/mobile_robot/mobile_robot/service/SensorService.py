@@ -48,6 +48,7 @@ class SensorService:
 
         self.__motion.line(from_wall - dis, 0.2)
         if is_block:
+            time.sleep(1)
             self.__motion.wait_finish()
 
     def get_lidar_data(self, start: int, end: int) -> list[tuple[float, float]]:
@@ -63,6 +64,9 @@ class SensorService:
 
     def get_angle_from_wall(self, direction: Direction) -> float:
         return self.__radar.get_angle_from_wall(direction)
+
+    def get_distance_and_angle_from_wall(self, direction: Direction) -> tuple[float, float]:
+        return self.__radar.get_distance_and_angle(direction)
 
     def get_ir_left(self) -> float:
         return self.__robot_data.get_ir_left()
@@ -94,5 +98,10 @@ class SensorService:
         time.sleep(1)
         rclpy.spin_once(self.__node)
 
-    def correction(self, waypoint_name: str):
+    def correction(self, waypoint_name: str, block=True):
         self.__correction.send_correction_odom(waypoint_name)
+        if block:
+            self.__correction.wait_finish()
+
+    def wait_correction_finish(self):
+        self.__correction.wait_finish()

@@ -1,4 +1,3 @@
-import math
 import time
 
 import rclpy
@@ -7,11 +6,9 @@ from . import Math
 from .Logger import Logger
 from .Singleton import singleton
 from ..param import ArmMovement
-from ..popo.CorrectivePoint import CorrectivePoint
 from ..popo.Direction import Direction
 from ..popo.FruitType import FruitType
 from ..popo.IdentifyResult import IdentifyResult
-from ..popo.NavigationPoint import NavigationPoint
 from ..service.ArmService import ArmService
 from ..service.MoveService import MoveService
 from ..service.SensorService import SensorService
@@ -54,9 +51,10 @@ class GrabGrapeWall:
 
         center = grape.box.get_rectangle_center()
 
-        distance = 0.30
+        distance = grape.distance if grape.distance != -1 else 0.30
+        self.logger.info(f"抓取葡萄，距离: {distance}m, 像素坐标: ({center.x}, {center.y})")
 
-        x_distance = 0.04 if self.direction == Direction.LEFT else 0.02
+        x_distance = 0.07 if self.direction == Direction.LEFT else 0.02
         if self.direction == Direction.LEFT:
             x_distance += Math.pixel_to_horizontal_distance_x_centered(center.x - 320, distance)
         elif self.direction == Direction.RIGHT:
@@ -65,11 +63,12 @@ class GrabGrapeWall:
         self.move.line(x_distance)
 
         # distance要加上夹爪的5cm, x_distance要加上从夹爪到旋转中心的34cm
-        angle = Math.calculate_right_triangle_angle(distance - 0.1, 0.34)
+        angle = Math.calculate_right_triangle_angle(distance, 0.34)
 
-        lift_height = 34 - (y_distance * 100)
+        lift_height = 33 - (y_distance * 100)
         self.arm.lift(lift_height, is_block=False)
         self.arm.nod_servo(90)
+        self.arm.telescopic_servo(0)
 
         ArmMovement.open_grape_gripper(self.arm)
         if self.direction == Direction.LEFT:
@@ -79,6 +78,7 @@ class GrabGrapeWall:
             self.arm.rotary_servo((90 - angle))
             self.arm.rotate(-180 + angle)
 
+        self.arm.telescopic_servo(10)
         self.arm.nod_servo(60)
         self.arm.wait_finish()
         time.sleep(0.3)
@@ -90,15 +90,18 @@ class GrabGrapeWall:
         elif self.direction == Direction.RIGHT:
             self.arm.rotate(-180)
 
-    def find_grape_and_grab(self, waypoint_name: str):
+    def find_grape_and_grab(self, start_name: str, gaol_name: str):
         if self.direction is None:
             self.logger.error("方向未设置。无法抓葡萄!")
             return
 
+        self.move.my_navigation(start_name)
+
         ArmMovement.identify_grape(self.arm, self.direction)
 
-        self.move.my_navigation(waypoint_name, 0.1, False)
+        self.move.my_navigation(gaol_name, 0.1, gaol_name, block=False)
         while self.move.get_my_status():
+            # 因为葡萄的深度比较难以检测，所以扩大深度获取的范围
             grape = self.vision.find_fruit(self.basket_1 + self.basket_2 + self.basket_3, True)
             if not grape:
                 continue
@@ -108,7 +111,7 @@ class GrabGrapeWall:
             time.sleep(0.5)
             self.move.rotation_correction(Direction.FRONT, True, 10)
             time.sleep(0.5)
-            grape = self.vision.find_fruit(self.basket_1 + self.basket_2 + self.basket_3, True)
+            grape = self.vision.find_fruit(self.basket_1 + self.basket_2 + self.basket_3, True, 75)
             if grape:
                 self.logger.info(f"抓取到葡萄: {grape.class_id}")
                 fruit_type = FruitType(grape.class_id)
@@ -134,6 +137,6 @@ class GrabGrapeWall:
                 break
 
             # 继续导航
-            self.move.my_navigation(waypoint_name, 0.1, False)
+            self.move.my_navigation(gaol_name, 0.1, start_name, block=False)
 
         ArmMovement.motion(self.arm)

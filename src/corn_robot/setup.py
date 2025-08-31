@@ -15,6 +15,8 @@ setup(
         ('share/' + package_name + "/param", glob.glob("param/*")),
         ('share/' + package_name + "/config", glob.glob("config/*")),
         ('share/' + package_name + "/launch", glob.glob("launch/*")),
+        ('share/' + package_name + "/maps", glob.glob("maps/*")),
+        ('share/' + package_name + "/urdf", glob.glob("urdf/*")),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -25,8 +27,10 @@ setup(
     entry_points={
         'console_scripts': [
             'correction_odom = corn_robot.correction_odom:main',
+            'find_nearest_waypoint = corn_robot.find_nearest_waypoint:main',
             'generate_path = corn_robot.generate_path:main',
             'navigation_to_waypoint = corn_robot.navigation_to_waypoint:main',
+            'positioning = corn_robot.positioning:main',
             'pub_waypoints = corn_robot.pub_waypoints:main',
         ],
     },

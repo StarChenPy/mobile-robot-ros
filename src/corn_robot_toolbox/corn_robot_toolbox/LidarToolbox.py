@@ -8,10 +8,11 @@ from sensor_msgs.msg import LaserScan
 
 from .type.Direction import Direction
 from .util import Math
+from .util.MedianFilter import MedianFilter
 
-RADAR_ERROR_LEFT = 1.457
-RADAR_ERROR_FRONT = 1.5
-RADAR_ERROR_RIGHT = 0.31
+RADAR_ERROR_LEFT = 2.38
+RADAR_ERROR_FRONT = 1.98
+RADAR_ERROR_RIGHT = 2.16
 
 
 class LidarToolbox:
@@ -65,30 +66,37 @@ class LidarToolbox:
         best_angle = float(math.degrees(valid_angles[best_idx]))
         return best_range, best_angle
 
-    def __get_radar_points(self, direction: Direction) -> list[tuple[float, float]]:
+    def __get_radar_points(self, direction: Direction, scan_angle=30) -> list[tuple[float, float]]:
         points = []
         start_angle = 0
 
         if direction == Direction.RIGHT:
-            start_angle = 0
+            start_angle = 0 - (scan_angle / 2)
         elif direction == Direction.FRONT:
-            start_angle = 75
+            start_angle = 90 - (scan_angle / 2)
         elif direction == Direction.LEFT:
-            start_angle = 150
+            start_angle = 180 - (scan_angle / 2)
 
-        for i in range(1, 30):
-            angle = Math.normalize_angle(start_angle + i)
+        for i in range(scan_angle * 2):
+            angle = Math.normalize_angle(start_angle + (i * 0.5))
             points.append(self.get_radar_data(angle))
 
         return points
 
-    def get_angle_from_wall(self, direction: Direction) -> float:
+    def get_angle_from_wall(self, direction: Direction, scan_angle=30, secondary_confirmation=False) -> float:
         angle_list = []
 
+        # 角度滤波器
+        angle_filter = MedianFilter(window_size=5) # 能快速去掉瞬时尖峰，反应比较灵敏
+
         for i in range(5):
-            points = self.__get_radar_points(direction)
+            points = self.__get_radar_points(direction, scan_angle)
             angle = Math.fit_polar_line_and_get_angle(points)
 
+            # 中值滤波
+            angle = angle_filter.update(angle)
+
+            # 补偿逻辑...
             if direction == Direction.FRONT:
                 angle += RADAR_ERROR_FRONT
             else:
@@ -101,40 +109,53 @@ class LidarToolbox:
                     angle += RADAR_ERROR_LEFT
                 elif direction == Direction.RIGHT:
                     angle += RADAR_ERROR_RIGHT
+
             angle_list.append(angle)
             time.sleep(0.2)
 
         extremes = Math.average_without_extremes(angle_list)
-        self.node.get_logger().debug(f"{direction.name} 扫描到的雷达角度为 {extremes}")
+
+        self.node.get_logger().debug(f"{direction.name} 测量角度 {extremes}")
+
+        if not secondary_confirmation and extremes >= 10:
+            self.node.get_logger().info(f"{direction.name} 测量角度较大，二次确认")
+            sc = self.get_angle_from_wall(direction, scan_angle, True)
+            if abs(Math.normalize_angle(extremes - sc)) > 3:
+                self.node.get_logger().warn(f"{direction.name} 二次确认未通过, 返回0")
+                return 0
 
         return extremes
 
     def get_distance_from_wall(self, direction: Direction) -> float:
-        # 返回距离雷达扫描的5个坐标拟合成的直线的垂直距离
-        points = self.__get_radar_points(direction)
-        distance = Math.fit_polar_line_and_get_distance(points)
+        distance_list = []
+        distance_filter = MedianFilter(window_size=5) # 能快速去掉瞬时尖峰，反应比较灵敏
+
+        for i in range(5):
+            points = self.__get_radar_points(direction)
+            distance = Math.fit_polar_line_and_get_distance(points)
+
+            distance = distance_filter.update(distance)
+
+            if direction == Direction.FRONT:
+                distance += 0.2
+            else:
+                angle_from_wall = self.get_angle_from_wall(direction)
+                side = Math.calculate_right_angle_side(0.2, abs(angle_from_wall))
+                if direction == Direction.LEFT:
+                    side = -side
+                if angle_from_wall > 0:
+                    distance += side
+                else:
+                    distance -= side
+
+            distance_list.append(distance)
 
         # 方差过大，说明扫出墙壁
-        var = np.var(distance)
+        var = np.var(distance_list)
         if var > 0.1:
-            self.node.get_logger().warn(f"{distance} 方差 {var} 过大")
+            self.node.get_logger().warn(f"{distance_list} 方差 {var} 过大")
             return 0
 
-        if direction == Direction.FRONT:
-            # 加上从雷达到机器人中心的距离
-            distance += 0.2
-        else:
-            # 补偿因倾斜导致的雷达与墙和机器人中心与墙的距离不一致的问题
-            angle_from_wall = self.get_angle_from_wall(direction)
-
-            side = Math.calculate_right_angle_side(0.2, abs(angle_from_wall))
-
-            if direction == Direction.LEFT:
-                side = -side
-
-            if angle_from_wall > 0:
-                distance += side
-            else:
-                distance -= side
-
-        return distance
+        extremes = Math.average_without_extremes(distance_list)
+        self.node.get_logger().debug(f"{direction.name} 测量距离 {extremes}")
+        return extremes

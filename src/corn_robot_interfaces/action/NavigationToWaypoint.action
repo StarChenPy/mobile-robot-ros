@@ -1,5 +1,6 @@
 # Request
-string waypoint_name                            # 路径点名
+string goal_name                                # 目标点名
+string start_name                               # 出发点名，留空自动判断
 float64 speed                                   # 速度限制
 ---
 # Result
