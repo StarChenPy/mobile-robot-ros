@@ -79,7 +79,7 @@ class DebugController:
             if i == "q":
                 break
             try:
-                self.arm.rotary_servo(float(i))
+                self.arm.servo_rotary(float(i))
             except ValueError:
                 print("输入无效，请输入一个数字。")
 
@@ -89,7 +89,7 @@ class DebugController:
             if i == "q":
                 break
             try:
-                self.arm.nod_servo(float(i))
+                self.arm.servo_nod(float(i))
             except ValueError:
                 print("输入无效，请输入一个数字。")
 
@@ -99,7 +99,7 @@ class DebugController:
             if i == "q":
                 break
             try:
-                self.arm.telescopic_servo(float(i))
+                self.arm.servo_telescopic(float(i))
             except ValueError:
                 print("输入无效，请输入一个数字。")
 
@@ -109,7 +109,7 @@ class DebugController:
             if i == "q":
                 break
             try:
-                self.arm.gripper_servo(float(i))
+                self.arm.servo_gripper(float(i))
             except ValueError:
                 print("输入无效，请输入一个数字。")
 

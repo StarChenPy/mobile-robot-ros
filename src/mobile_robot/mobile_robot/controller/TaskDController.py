@@ -30,7 +30,7 @@ class TaskDController:
         self.robot.with_robot_connect()
         self.robot.set_start_led(True)
         self.arm.back_origin()
-        ArmMovement.motion(self.arm)
+        self.arm.plan_list(ArmMovement.motion())
         self.sensor.correction("c_start")
         self.robot.set_start_led(False)
 
@@ -44,7 +44,7 @@ class TaskDController:
 
         # 回起始区，结束任务
         self.move.my_navigation("c_start")
-        self.arm.nod_servo(90)
+        self.arm.servo_nod(90)
         self.robot.set_start_led(False)
 
         end_time = time.time()
@@ -53,16 +53,16 @@ class TaskDController:
 
     def grab_baskets(self):
         Station.YELLOW_2.nav_and_grab(self.node)
-        ArmMovement.put_basket_to_robot(self.arm, 1)
-        ArmMovement.motion(self.arm)
+        self.arm.plan_list(ArmMovement.put_basket_to_robot(1))
+        self.arm.plan_list(ArmMovement.motion())
 
         Station.YELLOW_3.nav_and_grab(self.node)
-        ArmMovement.put_basket_to_robot(self.arm, 2)
-        ArmMovement.motion(self.arm)
+        self.arm.plan_list(ArmMovement.put_basket_to_robot(2))
+        self.arm.plan_list(ArmMovement.motion())
 
         Station.YELLOW_1.nav_and_grab(self.node)
-        ArmMovement.put_basket_to_robot(self.arm, 3)
-        ArmMovement.motion(self.arm)
+        self.arm.plan_list(ArmMovement.put_basket_to_robot(3))
+        self.arm.plan_list(ArmMovement.motion())
 
     def grab_grapes(self):
         grab_grape_wall = GrabGrapeWall(self.node)
@@ -92,13 +92,13 @@ class TaskDController:
     def put_baskets(self):
         # 去放第1个框子
         Station.RED_3.nav_and_put(self.node, 3)
-        ArmMovement.motion(self.arm)
+        self.arm.plan_list(ArmMovement.motion())
 
         # 去放第2个框子
         Station.RED_2.nav_and_put(self.node, 2)
-        ArmMovement.motion(self.arm)
+        self.arm.plan_list(ArmMovement.motion())
 
         # 去放第3个框子
         self.move.my_navigation("c_8")
         Station.RED_1.nav_and_put(self.node, 1)
-        ArmMovement.motion(self.arm)
+        self.arm.plan_list(ArmMovement.motion())

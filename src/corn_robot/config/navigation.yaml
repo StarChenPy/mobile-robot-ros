@@ -41,9 +41,9 @@ navigation_to_waypoint:
     generate_path_service: /generate_path
     correction_service: /correction_odom
     find_nearest_waypoint_service: /find_nearest_waypoint
-    navigation_action: /nav2_ptp_action
+    navigation_action: /nav2_action
 
     speed: 0.6
     uphill_offset: 0.1
     reverse_uphill: True
-    distance_threshold: 0.1
+    distance_threshold: 0.05

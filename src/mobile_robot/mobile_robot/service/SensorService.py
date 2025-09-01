@@ -46,6 +46,14 @@ class SensorService:
     def lidar_revise(self, dis: float, is_block=True):
         from_wall = self.__radar.get_distance_from_wall(Direction.FRONT, 10)
 
+        if not from_wall:
+            self.__logger.warn("雷达没有可用值，重试一次")
+            from_wall = self.__radar.get_distance_from_wall(Direction.FRONT, 10)
+            if not from_wall:
+                self.__logger.warn("雷达没有可用值，跳过对前矫正")
+                return
+
+        self.__logger.info(f"雷达对前矫正, 距墙 {from_wall} 米, 目标 {dis} 米, 移动 {from_wall - dis} 米")
         self.__motion.line(from_wall - dis, 0.2)
         if is_block:
             time.sleep(1)
@@ -64,9 +72,6 @@ class SensorService:
 
     def get_angle_from_wall(self, direction: Direction) -> float:
         return self.__radar.get_angle_from_wall(direction)
-
-    def get_distance_and_angle_from_wall(self, direction: Direction) -> tuple[float, float]:
-        return self.__radar.get_distance_and_angle(direction)
 
     def get_ir_left(self) -> float:
         return self.__robot_data.get_ir_left()

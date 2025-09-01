@@ -13,7 +13,7 @@ from ..service.SensorService import SensorService
 class Station(enum.Enum):
     YELLOW_1 = enum.auto(), "s_y_1_l", Direction.LEFT, 1.63, False
     YELLOW_2 = enum.auto(), "s_y_2_r", Direction.RIGHT, 1.53, True
-    YELLOW_3 = enum.auto(), "s_y_3_r", Direction.RIGHT, 1.49, False, "s_y_3_l", Direction.LEFT
+    YELLOW_3 = enum.auto(), "s_y_3_r", Direction.RIGHT, 1.49, False, "s_y_3_l", Direction.LEFT, 2.11
     RED_1 = enum.auto(), "s_r_1_r", Direction.RIGHT, 0, False
     RED_2 = enum.auto(), "s_r_2_l", Direction.LEFT, 1.52, True, "s_r_2_r", Direction.RIGHT
     RED_3 = enum.auto(), "s_r_3_r", Direction.RIGHT, 1.71, False
@@ -86,11 +86,11 @@ class Station(enum.Enum):
             logger.info(f"前往 {self.name} 站台主路径点 {self.main_waypoint}.")
             move.my_navigation(self.main_waypoint)
 
-        # logger.info(f"{self.name} 站台位置旋转修正.")
-        # if is_sub:
-        #     move.rotation_correction(self.sub_direction)
-        # else:
-        #     move.rotation_correction(self.main_direction)
+        logger.info(f"{self.name} 站台位置旋转修正.")
+        if is_sub:
+            move.rotation_correction(self.sub_direction)
+        else:
+            move.rotation_correction(self.main_direction)
 
         if is_sub and self.sub_revise:
             logger.info(f"{self.name} 站台副路径点微调修正 {self.sub_revise}.")
@@ -98,7 +98,7 @@ class Station(enum.Enum):
                 sensor.lidar_revise(self.sub_revise)
             else:
                 sensor.ping_revise(-self.sub_revise)
-        elif self.main_revise:
+        elif not is_sub and self.main_revise:
             logger.info(f"{self.name} 站台主路径点微调修正 {self.main_revise}.")
             if self.main_revise > 0:
                 sensor.lidar_revise(self.main_revise)
@@ -118,7 +118,6 @@ class Station(enum.Enum):
         logger = Logger()
         arm = ArmService(node)
         sensor = SensorService(node)
-        move = MoveService(node)
 
         if is_sub:
             if self.sub_waypoint and self.sub_direction:
@@ -130,14 +129,11 @@ class Station(enum.Enum):
         else:
             direction = self.main_direction
 
-        ArmMovement.open_gripper(arm)
-        arm.nod_servo(0)
-        angle_from_wall, distance_from_wall = sensor.get_distance_and_angle_from_wall(direction)
-        ArmMovement.station_basket_top(arm, direction, (distance_from_wall - 0.25) * 100, angle_from_wall)
+        distance_from_wall = sensor.get_distance_from_wall(direction)
+        angle_from_wall = sensor.get_angle_from_wall(direction)
 
-        arm.lift(15.5 if self.on_slope else 9.5)
-        ArmMovement.close_gripper_basket(arm)
-        arm.lift(0)
+        ArmMovement.grab_basket_from_station(arm, direction, 15.5 if self.on_slope else 9.5,
+                                             (distance_from_wall - 0.25) * 100, angle_from_wall)
 
     def put_basket(self, node: rclpy.node.Node, is_sub: bool = False):
         logger = Logger()
@@ -153,8 +149,4 @@ class Station(enum.Enum):
         else:
             direction = self.main_direction
 
-        ArmMovement.station_basket_top(arm, direction, 5, 0)
-
-        arm.lift(15.5 if self.on_slope else 9.5)
-        ArmMovement.open_gripper(arm)
-        arm.lift(0)
+        ArmMovement.put_basket_to_station(arm, direction, 15.5 if self.on_slope else 9.5)

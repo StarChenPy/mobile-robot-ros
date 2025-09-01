@@ -9,3 +9,4 @@ class OmsGoal:
     servo_nod: float = None
     servo_telescopic: float = None
     servo_gripper: float = None
+    sleep: float = 0

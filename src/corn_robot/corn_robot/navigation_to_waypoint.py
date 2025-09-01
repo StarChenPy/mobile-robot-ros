@@ -10,6 +10,7 @@ from rclpy.action.client import ClientGoalHandle
 from rclpy.action.server import ServerGoalHandle
 from rclpy.executors import MultiThreadedExecutor
 
+from base_nav2.action import NavCMD
 from base_nav2_ptp.action import NavPTPCMD
 from chassis_msgs.srv import ResetOdom
 from corn_robot_interfaces.action import NavigationToWaypoint
@@ -67,7 +68,7 @@ class NavigationToPoseNode(rclpy.node.Node):
         self.action_server = ActionServer(self, NavigationToWaypoint, nav2wp_action,
                                           execute_callback=self.execute_callback,
                                           cancel_callback=self.cancel_callback)
-        self.navigation_action_client = ActionClient(self, NavPTPCMD, navigation_action)
+        self.navigation_action_client = ActionClient(self, NavCMD, navigation_action)
         self.generate_path_client = self.create_client(GeneratePath, generate_path_service)
         self.correction_client = self.create_client(CorrectionOdom, correction_service)
         self.find_nearest_waypoint_client = self.create_client(FindNearestWaypoint, find_nearest_waypoint_service)
@@ -214,13 +215,13 @@ class NavigationToPoseNode(rclpy.node.Node):
                     self.get_logger().info("导航已被取消")
                     goal_handle.canceled()
                     return self.create_result(False, '导航已被取消', index, T1)
-                time.sleep(1)
+                time.sleep(0.5)
                 result = await self.correction_client.call_async(CorrectionOdom.Request(waypoint_name=waypoint.name))
                 if result is None or not result.success:
                     goal_handle.abort()
                     msg = result.message if result else '机器人矫正Odom失败!'
                     return self.create_result(False, msg, index, T1)
-                time.sleep(1)
+                time.sleep(0.5)
 
             if not appended:
                 path.append(waypoint.pose)
@@ -284,7 +285,7 @@ class NavigationToPoseNode(rclpy.node.Node):
         """
         移动机器人指定角度和距离。
         """
-        goal_msg = NavPTPCMD.Goal()
+        goal_msg = NavCMD.Goal()
 
         for p in poses:
             pose2d = Pose2D(x=float(p.x), y=float(p.y), theta=float(0))
@@ -292,9 +293,10 @@ class NavigationToPoseNode(rclpy.node.Node):
 
         goal_msg.linear_vel = self.speed
         goal_msg.rotation_vel = self.speed * 5.0
-        # goal_msg.linear_acc = float(0.69)  # 直线加速度
-        goal_msg.linear_acc = float(3)  # 直线加速度
-        goal_msg.linear_decel = float(0.53)  # 直线减加速度
+        # # goal_msg.linear_acc = float(0.69)  # 直线加速度
+        # goal_msg.linear_acc = float(3)  # 直线加速度
+        # # goal_msg.linear_decel = float(0.53)  # 直线减加速度
+        # goal_msg.linear_decel = float(2)  # 直线减加速度
         goal_msg.rotate_acc = float(2.5)  # 旋转加速度
         goal_msg.rotate_decel = float(1.0)  # 旋转减加速度
         # 这里要获取导航最后一个点的角度并赋给heading

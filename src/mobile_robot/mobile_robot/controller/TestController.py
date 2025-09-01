@@ -1,22 +1,16 @@
-import time
-
 import rclpy
 
 from ..param import ArmMovement
 from ..popo.Direction import Direction
 from ..popo.FruitType import FruitType
-from ..popo.NavigationPoint import NavigationPoint
-from ..popo.OmsGoal import OmsGoal
 from ..service.ArmService import ArmService
 from ..service.MoveService import MoveService
 from ..service.RobotService import RobotService
 from ..service.SensorService import SensorService
 from ..service.VisionService import VisionService
-from ..util import Math
 from ..util.GrabAppleTree import GrabAppleTree
 from ..util.GrabGrapeWall import GrabGrapeWall
 from ..util.Logger import Logger
-from ..util.OmsPlanner import OmsPlanner
 from ..util.Singleton import singleton
 
 
@@ -36,25 +30,17 @@ class TestController:
         self.robot.with_robot_connect()
         self.arm.back_origin()
 
-        input("123")
-        planner = OmsPlanner(self.node)
-        plan = [OmsGoal(motor_rotary=90, motor_lift=10), OmsGoal(motor_rotary=0, motor_lift=15)]
-        planner.plan_list(plan, block=False)
-        print("测试继续运行")
-        planner.wait_plan_finish()
-
         # while True:
         #     input("等待...")
         #     self.sensor.correction("c_6")
 
 
         # # 抓葡萄墙测试
-        # time.sleep(2)
         # wall = GrabGrapeWall(self.node)
-        # wall.direction = Direction.RIGHT
+        # wall.direction = Direction.LEFT
         # while True:
         #     input("Press Enter to continue...")
-        #     ArmMovement.identify_grape(self.arm, Direction.RIGHT)
+        #     ArmMovement.identify_grape(self.arm, Direction.LEFT)
         #     fruit = self.vision.find_fruit([FruitType.PURPLE_GRAPE], True, kernel_size=71)
         #     wall.grab_grape(fruit)
 
@@ -101,13 +87,13 @@ class TestController:
         #     self.vision.show_photo(photograph, True)
         #     input("等待...")
 
-        # # 抓苹果树测试
-        # tree = GrabAppleTree(self.node)
-        # tree.direction = Direction.LEFT
-        # tree.basket_1 = [FruitType.RED_APPLE, FruitType.GREEN_APPLE]
-        # tree.basket_2 = [FruitType.GREEN_APPLE, FruitType.YELLOW_APPLE]
-        # tree.basket_3 = [FruitType.YELLOW_APPLE, FruitType.PURPLE_APPLE]
-        #
-        # while True:
-        #     input("Press Enter to continue...")
-        #     tree.grab_apple_from_tree()
+        # 抓苹果树测试
+        tree = GrabAppleTree(self.node)
+        tree.direction = Direction.LEFT
+        tree.basket_1 = [FruitType.RED_APPLE, FruitType.GREEN_APPLE]
+        tree.basket_2 = [FruitType.GREEN_APPLE, FruitType.YELLOW_APPLE]
+        tree.basket_3 = [FruitType.YELLOW_APPLE, FruitType.PURPLE_APPLE]
+
+        while True:
+            input("Press Enter to continue...")
+            tree.grab_apple_from_tree()

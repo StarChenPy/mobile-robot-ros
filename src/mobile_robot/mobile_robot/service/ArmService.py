@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 import rclpy
@@ -5,6 +6,7 @@ import rclpy
 from ..dao.LiftMotorDao import LiftMotorDao
 from ..dao.RobotCtrlDao import RobotCtrlDao
 from ..dao.RotateMotorDao import RotateMotorDao
+from ..popo.OmsGoal import OmsGoal
 from ..popo.Servo import Servo
 from ..util import Math
 from ..util.Config import Config
@@ -15,60 +17,117 @@ from ..util.Singleton import singleton
 @singleton
 class ArmService:
     def __init__(self, node: rclpy.node.Node):
-        self.__logger = Logger()
+        self.logger = Logger()
 
-        self.__lift_motor = LiftMotorDao(node)
-        self.__rotate_motor = RotateMotorDao(node)
-        self.__robot_ctrl = RobotCtrlDao(node)
+        self.robot_ctrl = RobotCtrlDao(node)
+        self.rotary_motor = RotateMotorDao(node)
+        self.lift_motor = LiftMotorDao(node)
+        self.loop = asyncio.get_event_loop()
+        self.task = None
 
     def back_origin(self, speed=20):
-        self.__logger.info(f"回原点")
+        self.logger.info(f"回原点")
 
-        self.__lift_motor.back_origin(speed)
-        self.__rotate_motor.back_origin(speed)
-        self.__lift_motor.wait_finish()
+        self.lift_motor.back_origin(speed)
+        self.rotary_motor.back_origin(speed)
+        self.lift_motor.wait_finish()
         self.lift(1, speed, True)
-        self.__rotate_motor.wait_finish()
+        self.rotary_motor.wait_finish()
 
-        self.__logger.info(f"回原点结束")
+        self.logger.info(f"回原点结束")
+
+    async def __plan(self, goal: OmsGoal, speed=70):
+        self.logger.debug(f"开始运动OMS到目标点: {goal}")
+
+        # 电机控制
+        if goal.motor_rotary is not None:
+            self.rotary_motor.ctrl_motor(goal.motor_rotary, speed)
+
+        if goal.motor_lift is not None:
+            self.lift_motor.ctrl_motor(goal.motor_lift, speed)
+
+        # 舵机控制（不需要等待）
+        if goal.servo_rotary is not None:
+            self.servo_rotary(goal.servo_rotary)
+
+        if goal.servo_nod is not None:
+            self.servo_nod(goal.servo_nod)
+
+        if goal.servo_telescopic is not None:
+            self.servo_telescopic(goal.servo_telescopic)
+
+        if goal.servo_gripper is not None:
+            self.servo_gripper(goal.servo_gripper)
+
+        # 统一下发命令
+        self.robot_ctrl.publish()
+
+        if goal.sleep:
+            await asyncio.sleep(goal.sleep)
+
+    def plan_list(self, goals: list[OmsGoal], speed=70, block=True):
+        async def run_plan():
+            for goal in goals:
+                await self.__plan(goal, speed)
+                self.wait_once_finish()
+        self.task = self.loop.create_task(run_plan())
+
+        if block:
+            self.wait_plan_finish()
+
+    def plan_once(self, goal: OmsGoal, speed=70, block=True):
+        self.loop.run_until_complete(self.__plan(goal, speed))
+        if block:
+            self.wait_once_finish()
+
+    def wait_plan_finish(self):
+        if self.task:
+            self.loop.run_until_complete(self.task)
+            self.task = None
+        else:
+            self.logger.warn("没有任务在执行")
+
+    def wait_once_finish(self):
+        self.lift_motor.wait_finish()
+        self.rotary_motor.wait_finish()
 
     def lift(self, target: float, speed = 70, is_block=True):
-        self.__lift_motor.ctrl_motor(target, speed)
+        self.lift_motor.ctrl_motor(target, speed)
         if is_block:
-            self.__lift_motor.wait_finish()
+            self.lift_motor.wait_finish()
 
     def rotate(self, target: float, speed = 70, is_block=True):
         target += 1  # 调整偏差
-        self.__rotate_motor.ctrl_motor(target, speed)
+        self.rotary_motor.ctrl_motor(target, speed)
         if is_block:
-            self.__rotate_motor.wait_finish()
+            self.rotary_motor.wait_finish()
 
     def wait_finish(self):
-        self.__lift_motor.wait_finish()
-        self.__rotate_motor.wait_finish()
+        self.lift_motor.wait_finish()
+        self.rotary_motor.wait_finish()
 
-    def rotary_servo(self, angle: float, enable=True):
+    def servo_rotary(self, angle: float, enable=True):
         """
         卡爪舵机 旋转
         原 gripper_rz
         """
         self.__ctrl_servo(Servo.ROTARY, angle, enable)
 
-    def nod_servo(self, angle: float, enable=True):
+    def servo_nod(self, angle: float, enable=True):
         """
         卡爪舵机 点头(角度)
         原 gripper_ry
         """
         self.__ctrl_servo(Servo.NOD, angle, enable)
 
-    def telescopic_servo(self, distance: float, enable=True):
+    def servo_telescopic(self, distance: float, enable=True):
         """
         卡爪舵机 伸缩 ( cm )
         原 telescopic
         """
         self.__ctrl_servo(Servo.TELESCOPIC, distance, enable, 1)
 
-    def gripper_servo(self, distance: float, enable=True):
+    def servo_gripper(self, distance: float, enable=True):
         """
         卡爪舵机 夹合 ( cm )
         原 gripper
@@ -108,21 +167,21 @@ class ArmService:
                 min_value = config["min_value"]
                 max_value = config["max_value"]
             case _:
-                self.__logger.error(f"未知舵机类型: {servo}")
+                self.logger.error(f"未知舵机类型: {servo}")
                 return
 
         type_name = servo.name.lower()
         if not enable:
-            self.__logger.debug(f'已设置 {type_name} 舵机松使能')
-            self.__robot_ctrl.write_pwm(pin, 0)
+            self.logger.debug(f'已设置 {type_name} 舵机松使能')
+            self.robot_ctrl.write_pwm(pin, 0)
             return
 
         # 限位处理
         if value < min_value:
-            self.__logger.warn(f'舵机 {type_name}: {value} 超出最小限位: {min_value}')
+            self.logger.warn(f'舵机 {type_name}: {value} 超出最小限位: {min_value}')
             value = min_value
         elif value > max_value:
-            self.__logger.warn(f'舵机 {type_name}: {value} 超出最大限位: {max_value}')
+            self.logger.warn(f'舵机 {type_name}: {value} 超出最大限位: {max_value}')
             value = max_value
 
         # 转换为PWM duty
@@ -144,19 +203,19 @@ class ArmService:
                 coeff = (config["deg90_duty"] - config["zero_duty"]) / 90.0
                 duty = config["zero_duty"] + value * coeff
 
-        prev_duty = self.__robot_ctrl.read_pwm(pin)
+        prev_duty = self.robot_ctrl.read_pwm(pin)
         if prev_duty != duty:
-            self.__logger.debug(f'设置 {type_name} 舵机: {value} (duty: {duty})')
+            self.logger.debug(f'设置 {type_name} 舵机: {value} (duty: {duty})')
 
             if decelerate > 0 and prev_duty != 0:
                 difference = abs(prev_duty - duty)
                 steps = int(decelerate * 30)
                 duty_array = Math.ease_in_out_interp(prev_duty, duty, steps)
                 for d in duty_array:
-                    self.__robot_ctrl.write_pwm(pin, d.item())
+                    self.robot_ctrl.write_pwm(pin, d.item())
                     time.sleep(difference / (decelerate * 1000))
             else:
-                self.__robot_ctrl.write_pwm(pin, duty)
+                self.robot_ctrl.write_pwm(pin, duty)
                 time.sleep(0.5)
         else:
-            self.__logger.debug(f'舵机 {type_name} 已经在目标位置，无需调整')
+            self.logger.debug(f'舵机 {type_name} 已经在目标位置，无需调整')

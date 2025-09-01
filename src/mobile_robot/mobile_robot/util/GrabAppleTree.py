@@ -61,12 +61,19 @@ class GrabAppleTree:
 
         self.close_tree()
         ArmMovement.identify_tree_fruit(self.arm, self.direction)
-        fruits = self.find_fruits(self.basket_1 + self.basket_2 + self.basket_3)
+        fruits_1 = self.find_fruits(self.basket_1 + self.basket_2 + self.basket_3)
+        fruits_2 = self.find_fruits(self.basket_1 + self.basket_2 + self.basket_3)
+        while len(fruits_1) != len(fruits_2):
+            fruits_1 = self.find_fruits(self.basket_1 + self.basket_2 + self.basket_3)
+            fruits_2 = self.find_fruits(self.basket_1 + self.basket_2 + self.basket_3)
+            self.logger.warn("两次拍摄水果数量不相同，重试.")
+        fruits = fruits_2
+
         prev_move_len = 0
 
         if not fruits:
             self.logger.warn("没有检测到水果!")
-            ArmMovement.motion(self.arm)
+            self.arm.plan_list(ArmMovement.motion())
             return False
         else:
             self.logger.info(f"检测到 {len(fruits)} 个水果")
@@ -74,8 +81,8 @@ class GrabAppleTree:
         fruits.sort(key=lambda fruit: fruit.distance)
         for i in fruits:
             if i.distance == -1:
-                self.logger.warn(f"{i.class_id} 没有深度信息，使用默认距离")
-                i.distance = 0.28
+                self.logger.warn(f"{i.class_id} 没有深度信息，跳过")
+                continue
 
             if FruitType(i.class_id) not in (self.basket_1 + self.basket_2 + self.basket_3):
                 self.logger.info(f"已经抓够的的水果，跳过 {i.class_id}")
@@ -120,7 +127,7 @@ class GrabAppleTree:
                 self.logger.info("全部抓取完成，停止抓取")
                 break
 
-        ArmMovement.motion(self.arm)
+        self.arm.plan_list(ArmMovement.motion())
         return True
 
     def close_tree(self):
@@ -143,7 +150,7 @@ class GrabAppleTree:
         x, y = Math.polar_to_cartesian(min_tree)
         print(f"雷达数据: {min_tree}, 转换为坐标: ({x}, {y})")
         x -= 0.11
-        y -= 0.55 if self.direction == Direction.LEFT else -0.55
+        y -= 0.56 if self.direction == Direction.LEFT else -0.56
 
         l, angle = Math.cartesian_to_polar((0, 0), (x, y))
         print(f"计算角度: {angle}. 计算距离: {l}")

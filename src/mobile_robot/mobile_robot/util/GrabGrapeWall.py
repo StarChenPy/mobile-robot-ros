@@ -65,30 +65,9 @@ class GrabGrapeWall:
         # distance要加上夹爪的5cm, x_distance要加上从夹爪到旋转中心的34cm
         angle = Math.calculate_right_triangle_angle(distance, 0.34)
 
-        lift_height = 33 - (y_distance * 100)
-        self.arm.lift(lift_height, is_block=False)
-        self.arm.nod_servo(90)
-        self.arm.telescopic_servo(0)
+        lift_height = 32 - (y_distance * 100)
 
-        ArmMovement.open_grape_gripper(self.arm)
-        if self.direction == Direction.LEFT:
-            self.arm.rotary_servo(-(90 - angle))
-            self.arm.rotate(180 - angle)
-        if self.direction == Direction.RIGHT:
-            self.arm.rotary_servo((90 - angle))
-            self.arm.rotate(-180 + angle)
-
-        self.arm.telescopic_servo(10)
-        self.arm.nod_servo(60)
-        self.arm.wait_finish()
-        time.sleep(0.3)
-        ArmMovement.close_gripper_grape(self.arm)
-        time.sleep(0.3)
-
-        if self.direction == Direction.LEFT:
-            self.arm.rotate(180)
-        elif self.direction == Direction.RIGHT:
-            self.arm.rotate(-180)
+        ArmMovement.grab_grape_on_wall(self.arm, self.direction, lift_height, angle)
 
     def find_grape_and_grab(self, start_name: str, gaol_name: str):
         if self.direction is None:
@@ -139,4 +118,4 @@ class GrabGrapeWall:
             # 继续导航
             self.move.my_navigation(gaol_name, 0.1, start_name, block=False)
 
-        ArmMovement.motion(self.arm)
+        self.arm.plan_list(ArmMovement.motion())

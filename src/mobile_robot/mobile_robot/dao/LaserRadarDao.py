@@ -89,81 +89,59 @@ class LaserRadarDao:
         return points
 
     def get_angle_from_wall(self, direction: Direction, scan_angle=30, secondary_confirmation=False) -> float:
-        angle_list = []
+        points = self.__get_radar_points(direction, scan_angle)
+        angle = Math.fit_polar_line_and_get_angle(points)
 
-        # 角度滤波器
-        angle_filter = MedianFilter(window_size=5) # 能快速去掉瞬时尖峰，反应比较灵敏
-
-        for i in range(5):
-            points = self.__get_radar_points(direction, scan_angle)
-            angle = Math.fit_polar_line_and_get_angle(points)
-
-            # 中值滤波
-            angle = angle_filter.update(angle)
-
-            # 补偿逻辑...
-            if direction == Direction.FRONT:
-                angle += RADAR_ERROR_FRONT
+        # 补偿逻辑...
+        if direction == Direction.FRONT:
+            angle += RADAR_ERROR_FRONT
+        else:
+            if angle > 0:
+                angle -= 90
             else:
-                if angle > 0:
-                    angle -= 90
-                else:
-                    angle += 90
+                angle += 90
 
-                if direction == Direction.LEFT:
-                    angle += RADAR_ERROR_LEFT
-                elif direction == Direction.RIGHT:
-                    angle += RADAR_ERROR_RIGHT
+            if direction == Direction.LEFT:
+                angle += RADAR_ERROR_LEFT
+            elif direction == Direction.RIGHT:
+                angle += RADAR_ERROR_RIGHT
 
-            angle_list.append(angle)
-            time.sleep(0.2)
+        self.logger.debug(f"{direction.name} 测量角度 {angle}")
 
-        extremes = Math.average_without_extremes(angle_list)
-
-        self.logger.debug(f"{direction.name} 测量角度 {extremes}")
-
-        if not secondary_confirmation and extremes >= 10:
+        if not secondary_confirmation and angle >= 10:
             self.logger.debug(f"{direction.name} 测量角度较大，二次确认")
             sc = self.get_angle_from_wall(direction, scan_angle, True)
-            if abs(Math.normalize_angle(extremes - sc)) > 3:
-                self.logger.warn(f"{direction.name} 二次确认未通过, 返回0")
+            if abs(Math.normalize_angle(angle - sc)) > 3:
+                time.sleep(0.5)
+                self.logger.warn(f"{direction.name} 二次确认未通过, 返回 0")
                 return 0
 
-        return extremes
+        return angle
 
-    def get_distance_from_wall(self, direction: Direction, scan_angle=30) -> float:
-        return self.get_distance_and_angle(direction, scan_angle)[1]
+    def get_distance_from_wall(self, direction: Direction, scan_angle=30, secondary_confirmation=False) -> float:
+        points = self.__get_radar_points(direction, scan_angle)
+        distance = Math.fit_polar_line_and_get_distance(points)
 
-    def get_distance_and_angle(self, direction: Direction, scan_angle=30) -> tuple[float, float]:
-        distance_list = []
-        distance_filter = MedianFilter(window_size=5) # 能快速去掉瞬时尖峰，反应比较灵敏
-        angle_from_wall = self.get_angle_from_wall(direction)
-
-        for i in range(5):
-            points = self.__get_radar_points(direction, scan_angle)
-            distance = Math.fit_polar_line_and_get_distance(points)
-
-            distance = distance_filter.update(distance)
-
-            if direction == Direction.FRONT:
-                distance += 0.2
+        if direction == Direction.FRONT:
+            distance += 0.2
+        else:
+            angle_from_wall = self.get_angle_from_wall(direction)
+            side = Math.calculate_right_angle_side(0.2, abs(angle_from_wall))
+            if direction == Direction.LEFT:
+                side = -side
+            if angle_from_wall > 0:
+                distance += side
             else:
-                side = Math.calculate_right_angle_side(0.2, abs(angle_from_wall))
-                if direction == Direction.LEFT:
-                    side = -side
-                if angle_from_wall > 0:
-                    distance += side
-                else:
-                    distance -= side
+                distance -= side
 
-            distance_list.append(distance)
+        self.logger.debug(f"{direction.name} 测量距离 {distance}")
 
-        # 方差过大，说明扫出墙壁
-        var = np.var(distance_list)
-        if var > 0.1:
-            self.logger.warn(f"{distance_list} 方差 {var} 过大")
-            return angle_from_wall, -1
+        if not secondary_confirmation:
+            self.logger.debug(f"{direction.name} 测量距离，二次确认")
+            sc = self.get_distance_from_wall(direction, scan_angle, True)
+            if abs(Math.normalize_angle(distance - sc)) > 0.05:
+                time.sleep(0.5)
+                self.logger.warn(f"{direction.name} 二次确认未通过, 返回 0")
+                return 0
 
-        extremes = Math.average_without_extremes(distance_list)
-        self.logger.debug(f"{direction.name} 测量距离 {extremes}")
-        return angle_from_wall, extremes
+        return distance
