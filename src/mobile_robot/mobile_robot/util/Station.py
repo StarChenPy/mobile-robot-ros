@@ -11,12 +11,12 @@ from ..service.SensorService import SensorService
 
 
 class Station(enum.Enum):
-    YELLOW_1 = enum.auto(), "s_y_1_l", Direction.LEFT, 1.63, False
-    YELLOW_2 = enum.auto(), "s_y_2_r", Direction.RIGHT, 1.53, True
-    YELLOW_3 = enum.auto(), "s_y_3_r", Direction.RIGHT, 1.49, False, "s_y_3_l", Direction.LEFT, 2.11
-    RED_1 = enum.auto(), "s_r_1_r", Direction.RIGHT, 0, False
-    RED_2 = enum.auto(), "s_r_2_l", Direction.LEFT, 1.52, True, "s_r_2_r", Direction.RIGHT
-    RED_3 = enum.auto(), "s_r_3_r", Direction.RIGHT, 1.71, False
+    YELLOW_1 = enum.auto(), "s_y_1_r", Direction.RIGHT, 1.49, False, "s_y_1_l", Direction.LEFT, 2.11
+    YELLOW_2 = enum.auto(), "s_y_2_r", Direction.RIGHT, 1.52, True
+    YELLOW_3 = enum.auto(), "s_y_3_l", Direction.LEFT, 1.61, False
+    RED_1 = enum.auto(), "s_r_1_l", Direction.LEFT, 1.51, True
+    RED_2 = enum.auto(), "s_r_2_r", Direction.RIGHT, 0, False
+    RED_3 = enum.auto(), "s_r_3_l", Direction.LEFT, 1.7, False
 
     def __new__(cls, key, main_waypoint: str, main_direction: Direction, main_revise: float, on_slope: bool,
                 sub_waypoint=None, sub_direction: Direction=None, sub_revise: float = 0):
@@ -130,10 +130,9 @@ class Station(enum.Enum):
             direction = self.main_direction
 
         distance_from_wall = sensor.get_distance_from_wall(direction)
-        angle_from_wall = sensor.get_angle_from_wall(direction)
 
         ArmMovement.grab_basket_from_station(arm, direction, 15.5 if self.on_slope else 9.5,
-                                             (distance_from_wall - 0.25) * 100, angle_from_wall)
+                                             (distance_from_wall - 0.25) * 100)
 
     def put_basket(self, node: rclpy.node.Node, is_sub: bool = False):
         logger = Logger()

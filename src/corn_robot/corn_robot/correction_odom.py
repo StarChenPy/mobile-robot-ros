@@ -108,17 +108,17 @@ class CorrectionOdomNode(rclpy.node.Node):
         x, y = odom_data.x, odom_data.y
         right_angle = Math.round_right_angle(yaw)
         if right_angle == 0:
-            x = pose.x - x_buffer
+            x = pose.x + x_buffer
             y = pose.y + y_buffer
         elif right_angle == 90:
-            x = pose.x - y_buffer
+            x = pose.x + y_buffer
             y = pose.y + x_buffer
         elif right_angle == 180 or right_angle == -180:
-            x = pose.x + x_buffer
+            x = pose.x - x_buffer
             y = pose.y - y_buffer
         elif right_angle == -90:
             x = pose.x + y_buffer
-            y = pose.y - x_buffer
+            y = pose.y + x_buffer
 
         self.get_logger().info(f"矫正当前坐标为: x: {x}, y: {y}, w: {yaw}")
         req = ResetOdom.Request(clear_mode=0, x=x, y=y, theta=math.radians(yaw))

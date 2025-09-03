@@ -56,13 +56,12 @@ class TaskDController:
         self.arm.plan_list(ArmMovement.put_basket_to_robot(1))
         self.arm.plan_list(ArmMovement.motion())
 
-        Station.YELLOW_3.nav_and_grab(self.node)
-        self.arm.plan_list(ArmMovement.put_basket_to_robot(2))
-        self.arm.plan_list(ArmMovement.motion())
-
         Station.YELLOW_1.nav_and_grab(self.node)
+        self.arm.plan_list(ArmMovement.put_basket_to_robot(2) + ArmMovement.motion(), block=False)
+
+        Station.YELLOW_3.nav_and_grab(self.node)
         self.arm.plan_list(ArmMovement.put_basket_to_robot(3))
-        self.arm.plan_list(ArmMovement.motion())
+        self.arm.plan_list(ArmMovement.motion(), block=False)
 
     def grab_grapes(self):
         grab_grape_wall = GrabGrapeWall(self.node)
@@ -70,24 +69,34 @@ class TaskDController:
         grab_grape_wall.basket_2 = [FruitType.GREEN_GRAPE] * 6
         grab_grape_wall.basket_3 = [FruitType.YELLOW_GRAPE] * 6
 
-        grab_grape_wall.direction = Direction.LEFT
-        grab_grape_wall.find_grape_and_grab("c_2", "c_3")
-        if not grab_grape_wall.has_grape():
-            return
+        def grab_graph_wall(_path: list, _direction: Direction, target_waypoint: str):
+            if _path:
+                for r in _path:
+                    self.move.my_navigation(r)
 
-        grab_grape_wall.direction = Direction.RIGHT
-        grab_grape_wall.find_grape_and_grab("c_4", "v_2")
-        if not grab_grape_wall.has_grape():
-            return
+            grab_grape_wall.direction = _direction
+            self.move.my_navigation(target_waypoint)
+            grab_grape_wall.grab_grape_from_wall()
+            if not grab_grape_wall.has_grape():
+                return True
+            return False
 
-        self.move.my_navigation("c_4")
-        grab_grape_wall.direction = Direction.RIGHT
-        grab_grape_wall.find_grape_and_grab("v_3", "c_5")
-        if not grab_grape_wall.has_grape():
-            return
+        plans = [
+            ([], Direction.RIGHT, "v2"),
+            ([], Direction.RIGHT, "v1"),
+            (["c5"], Direction.LEFT, "v3"),
+            (["c2"], Direction.LEFT, "v4"),
+            ([], Direction.LEFT, "v5"),
+            ([], Direction.LEFT, "v6"),
+            (["c5"], Direction.LEFT, "v7"),
+            ([], Direction.LEFT, "v8"),
+        ]
 
-        grab_grape_wall.direction = Direction.LEFT
-        grab_grape_wall.find_grape_and_grab("v_4", "c_6")
+        for path, direction, waypoint in plans:
+            self.logger.info(f"尝试扫描到 {waypoint} 抓葡萄")
+            if grab_graph_wall(path, direction, waypoint):
+                self.logger.info("葡萄抓取完成!")
+                break
 
     def put_baskets(self):
         # 去放第1个框子

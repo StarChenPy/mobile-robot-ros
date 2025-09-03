@@ -60,6 +60,7 @@ class NavigationToPoseNode(rclpy.node.Node):
         self.declare_parameter('speed', 0.4)
         self.declare_parameter('uphill_offset', 0.1)
         self.declare_parameter("distance_threshold", 0.05)
+        self.declare_parameter("skip_start_point_correction", "")
 
         # 缓存参数
         self.speed = self.get_parameter('speed').value
@@ -198,6 +199,11 @@ class NavigationToPoseNode(rclpy.node.Node):
 
             # 是否为矫正点
             if is_correcter_point(waypoint):
+                if index == len(waypoints) and waypoint.name == self.get_parameter('skip_start_point_correction').value:
+                    self.get_logger().info("最后一个矫正点为起始点，跳过矫正.")
+                    path.append(waypoint.pose)
+                    continue
+
                 if not appended:
                     appended = True
                     path.append(waypoint.pose)

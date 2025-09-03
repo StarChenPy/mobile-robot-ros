@@ -1,6 +1,6 @@
 import time
 
-import rclpy
+from rclpy.node import Node
 
 from . import Math
 from .Logger import Logger
@@ -17,12 +17,11 @@ from ..service.VisionService import VisionService
 
 @singleton
 class GrabGrapeWall:
-    def __init__(self, node: rclpy.node.Node):
+    def __init__(self, node: Node):
         self.logger = Logger()
         self.node = node
 
         self.direction = None
-        self.speed = 0.1
         self.basket_1 = []
         self.basket_2 = []
         self.basket_3 = []
@@ -39,6 +38,85 @@ class GrabGrapeWall:
             if basket and any(fruit in grape_types for fruit in basket):
                 return True
         return False
+
+    def find_fruits(self) -> list[IdentifyResult]:
+        identify = self.vision.get_onnx_identify_depth(True)
+
+        result = []
+        for i in identify:
+            self_basket = self.basket_1 + self.basket_2 + self.basket_3
+            if self_basket:
+                if FruitType(i.class_id) not in self_basket:
+                    continue
+            result.append(i)
+        return result
+
+    def grab_grape_from_wall(self):
+        if self.direction is None:
+            self.logger.error("方向未设置。无法抓苹果!")
+            return False
+
+        self.move.rotation_correction(Direction.FRONT, scan_angle=10)
+        ArmMovement.identify_grape(self.arm, self.direction)
+        fruits_1 = self.find_fruits()
+        fruits_2 = self.find_fruits()
+        while len(fruits_1) != len(fruits_2):
+            fruits_1 = self.find_fruits()
+            fruits_2 = self.find_fruits()
+            self.logger.warn("两次拍摄水果数量不相同，重试.")
+        fruits = fruits_2
+
+        if not fruits:
+            self.logger.warn("没有检测到水果!")
+            self.arm.plan_list(ArmMovement.motion())
+            return False
+        else:
+            self.logger.info(f"检测到 {len(fruits)} 个水果")
+
+        fruits.sort(key=lambda fruit: fruit.box.get_rectangle_center().x, reverse=self.direction == Direction.RIGHT)
+        prev_move_len = 0
+        for i in fruits:
+            if FruitType(i.class_id) not in (self.basket_1 + self.basket_2 + self.basket_3):
+                self.logger.info(f"已经抓够的的水果，跳过 {i.class_id}")
+                continue
+
+            center = i.box.get_rectangle_center()
+            fruit_type = FruitType(i.class_id)
+            distance = i.distance + 0.05 if i.distance != -1 else 0.35
+
+            if self.direction == Direction.LEFT:
+                move_distance = Math.pixel_to_horizontal_distance_x_centered(center.x - 320, distance)
+            elif self.direction == Direction.RIGHT:
+                move_distance = Math.pixel_to_horizontal_distance_x_centered(320 - center.x, distance)
+            else:
+                raise ValueError()
+            move_distance += 0.07 if self.direction == Direction.LEFT else 0.05
+
+
+            actual_move_len = move_distance - prev_move_len
+            self.logger.info(f"准备抓取: {i.class_id} ({center.x}, {center.y}), 距离: {distance}, 移动: {actual_move_len}")
+
+            self.move.line(actual_move_len, is_block=False)
+            prev_move_len = move_distance
+
+            angle = Math.calculate_right_triangle_angle(distance, 0.34)
+
+            y_distance = Math.pixel_to_distance_from_bottom(center.y, distance)
+            lift_height = 32 - (y_distance * 100)
+            ArmMovement.grab_grape_on_wall(self.arm, self.direction, lift_height, angle)
+            for j in range(1, 4):
+                basket = getattr(self, f"basket_{j}")
+                if fruit_type in basket:
+                    ArmMovement.put_fruit_to_basket(self.arm, j, True)
+                    basket.remove(fruit_type)
+                    break
+
+            if not self.has_grape():
+                self.logger.info("全部抓取完成，停止抓取")
+                break
+
+        self.arm.plan_list(ArmMovement.motion())
+        return True
 
     def grab_grape(self, grape: IdentifyResult):
         if self.direction is None:
@@ -69,7 +147,7 @@ class GrabGrapeWall:
 
         ArmMovement.grab_grape_on_wall(self.arm, self.direction, lift_height, angle)
 
-    def find_grape_and_grab(self, start_name: str, gaol_name: str):
+    def patrol_line(self, start_name: str, gaol_name: str):
         if self.direction is None:
             self.logger.error("方向未设置。无法抓葡萄!")
             return
@@ -81,7 +159,7 @@ class GrabGrapeWall:
         self.move.my_navigation(gaol_name, 0.1, gaol_name, block=False)
         while self.move.get_my_status():
             # 因为葡萄的深度比较难以检测，所以扩大深度获取的范围
-            grape = self.vision.find_fruit(self.basket_1 + self.basket_2 + self.basket_3, True)
+            grape = self.vision.find_fruit(self.basket_1 + self.basket_2 + self.basket_3, True, 75)
             if not grape:
                 continue
 

@@ -59,7 +59,7 @@ class MoveService:
                 self.__odom.init_yaw(new_angle)
                 self.__logger.info(f"重置里程计角度, 角度 {new_angle}")
 
-    def my_navigation(self, waypoint: str, speed=0.6, start_name: str="", block=True):
+    def my_navigation(self, waypoint: str, speed=0.5, start_name: str="", block=True):
         self.__navigation.navigation(waypoint, speed, start_name)
         if block:
             self.__navigation.wait_finish()
@@ -81,14 +81,14 @@ class MoveService:
     def jx_nav2(self):
         self.__jx_nav2.call_service()
 
-    def line(self, distance: float, speed: float = 0.2, is_block=True):
+    def line(self, distance: float, speed: float = 0.4, is_block=True):
         self.__motion.line(distance, speed)
         time.sleep(1)
 
         if is_block:
             self.__motion.wait_finish()
 
-    def rotate(self, angle: float, speed: float = 50, is_block=True):
+    def rotate(self, angle: float, speed: float = 60, is_block=True):
         self.__motion.rotate(angle, speed)
         time.sleep(1)
 

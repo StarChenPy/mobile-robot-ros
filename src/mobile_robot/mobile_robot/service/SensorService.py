@@ -53,6 +53,9 @@ class SensorService:
                 self.__logger.warn("雷达没有可用值，跳过对前矫正")
                 return
 
+        if abs(from_wall - dis) < 0.01:
+            self.__logger.info(f"雷达对前矫正, 距墙 {from_wall} 米, 目标 {dis} 米, 差距过小，跳过矫正.")
+
         self.__logger.info(f"雷达对前矫正, 距墙 {from_wall} 米, 目标 {dis} 米, 移动 {from_wall - dis} 米")
         self.__motion.line(from_wall - dis, 0.2)
         if is_block:

@@ -88,7 +88,15 @@ class VisionService:
             if valid_depths.size > 0:
                 r.distance = float(np.median(valid_depths)) / 1000  # 使用中位数，避免离群值
             else:
-                r.distance = -1
+                for i in range(5):
+                    self.__logger.warn(f"未找到深度信息，重试 {i} 次.")
+                    depth_data = self.get_depth_data(point, inverted, kernel_size + (i * 4))
+                    if depth_data != -1:
+                        r.distance = depth_data
+                        break
+
+            if r.distance == -1:
+                self.__logger.warn(f"{r.class_id} ({point.x}, {point.y}), 深度信息获取失败.")
 
         return result
 
@@ -123,13 +131,14 @@ class VisionService:
 
         roi = depth[y1:y2, x1:x2]
         valid_depths = roi[roi > 0]  # 自动忽略0深度
+        valid_depths = valid_depths[valid_depths < 1000]  # 自动忽略大于1000的深度
 
         if valid_depths.size > 0:
             return float(np.median(valid_depths)) / 1000  # 使用中位数，避免离群值
         else:
             return -1
 
-    def find_fruit(self, fruit: list[FruitType]=None, inverted=False, kernel_size=17) -> IdentifyResult | None:
+    def find_fruit(self, fruit: list[FruitType]=None, inverted=True, kernel_size=35) -> IdentifyResult | None:
         identify = self.get_onnx_identify_depth(inverted, kernel_size)
         if not fruit:
             return None

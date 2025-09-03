@@ -1,3 +1,4 @@
+import time
 from typing import List
 
 import rclpy.node
@@ -22,7 +23,7 @@ class GrabAppleTree:
         self.node = node
 
         self.direction = None
-        self.max_grab_distance = 0.46  # 最大抓取距离，单位米
+        self.max_grab_distance = 0.48  # 最大抓取距离，单位米
 
         self.basket_1 = []
         self.basket_2 = []
@@ -42,7 +43,7 @@ class GrabAppleTree:
         return False
 
     def find_fruits(self, fruit=None) -> List[IdentifyResult]:
-        identify = self.vision.get_onnx_identify_depth(True)
+        identify = self.vision.get_onnx_identify_depth(True, 35)
 
         result = []
         for i in identify:
@@ -50,6 +51,7 @@ class GrabAppleTree:
                 if FruitType(i.class_id) not in fruit:
                     continue
             if i.distance > self.max_grab_distance:
+                self.logger.info(f"检测到一个 {i.class_id}, 但是距离 {i.distance} 超出 {self.max_grab_distance}")
                 continue
             result.append(i)
         return result
@@ -61,6 +63,7 @@ class GrabAppleTree:
 
         self.close_tree()
         ArmMovement.identify_tree_fruit(self.arm, self.direction)
+        time.sleep(1)
         fruits_1 = self.find_fruits(self.basket_1 + self.basket_2 + self.basket_3)
         fruits_2 = self.find_fruits(self.basket_1 + self.basket_2 + self.basket_3)
         while len(fruits_1) != len(fruits_2):
@@ -68,8 +71,6 @@ class GrabAppleTree:
             fruits_2 = self.find_fruits(self.basket_1 + self.basket_2 + self.basket_3)
             self.logger.warn("两次拍摄水果数量不相同，重试.")
         fruits = fruits_2
-
-        prev_move_len = 0
 
         if not fruits:
             self.logger.warn("没有检测到水果!")
@@ -79,6 +80,7 @@ class GrabAppleTree:
             self.logger.info(f"检测到 {len(fruits)} 个水果")
 
         fruits.sort(key=lambda fruit: fruit.distance)
+        prev_move_len = 0
         for i in fruits:
             if i.distance == -1:
                 self.logger.warn(f"{i.class_id} 没有深度信息，跳过")
@@ -105,8 +107,8 @@ class GrabAppleTree:
                 move_distance = Math.pixel_to_horizontal_distance_x_centered(320 - center.x, i.distance)
             else:
                 raise ValueError()
-            move_distance = move_distance * 1.4 if move_distance < 0 else move_distance
-            move_distance = move_distance + 0.215
+            # move_distance = move_distance * 1.4 if move_distance < 0 else move_distance
+            move_distance = move_distance * 1.15 + 0.215
 
             actual_move_len = move_distance - prev_move_len
             self.logger.info(f"准备抓取: {i.class_id} ({center.x}, {center.y}), 距离: {i.distance}, 移动: {actual_move_len}")
@@ -148,12 +150,17 @@ class GrabAppleTree:
             self.logger.warn("无雷达数据!")
             return
         x, y = Math.polar_to_cartesian(min_tree)
-        print(f"雷达数据: {min_tree}, 转换为坐标: ({x}, {y})")
+        self.logger.info(f"雷达数据: {min_tree}, 转换为坐标: ({x}, {y})")
         x -= 0.11
         y -= 0.56 if self.direction == Direction.LEFT else -0.56
 
         l, angle = Math.cartesian_to_polar((0, 0), (x, y))
-        print(f"计算角度: {angle}. 计算距离: {l}")
+        self.logger.info(f"计算角度: {angle}. 计算距离: {l}")
+
+        if abs(l) < 0.02:
+            self.logger.info(f"距离过短，跳过矫正.")
+            return
+
         if abs(angle) > 90:
             angle = Math.normalize_angle(angle - 180)
             l = -l
