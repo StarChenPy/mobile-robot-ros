@@ -1,3 +1,5 @@
+import time
+
 import rclpy
 
 from ..param import ArmMovement
@@ -46,6 +48,7 @@ class TestController:
                 wall = self.sensor.get_angle_from_wall(Direction.LEFT)
                 li.append(wall)
                 print(wall)
+                time.sleep(0.3)
             print(Math.average_without_extremes(li))
 
             print("----------------前墙----------------")
@@ -54,6 +57,7 @@ class TestController:
                 wall = self.sensor.get_angle_from_wall(Direction.FRONT)
                 li.append(wall)
                 print(wall)
+                time.sleep(0.3)
             print(Math.average_without_extremes(li))
 
             print("----------------右墙----------------")
@@ -62,6 +66,7 @@ class TestController:
                 wall = self.sensor.get_angle_from_wall(Direction.RIGHT)
                 li.append(wall)
                 print(wall)
+                time.sleep(0.3)
             print(Math.average_without_extremes(li))
 
         # dao = RobotDataDao(self.node)

@@ -142,8 +142,8 @@ class GrabAppleTree:
             return
 
         # 获取指定角度范围内距离最小点
-        start_angle = 180 if self.direction == Direction.LEFT else 45
-        radar_data = self.sensor.get_lidar_data(start_angle - 45, start_angle)
+        start_angle = -170 if self.direction == Direction.LEFT else 20
+        radar_data = self.sensor.get_lidar_data(start_angle - 30, start_angle)
         min_tree = min(radar_data, key=lambda i: i[0])
 
         if not min_tree[0] or not min_tree[1]:
@@ -159,6 +159,9 @@ class GrabAppleTree:
 
         if abs(l) < 0.02:
             self.logger.info(f"距离过短，跳过矫正.")
+            return
+        elif abs(l) > 0.2:
+            self.logger.info("距离过远，不可信，跳过矫正.")
             return
 
         if abs(angle) > 90:

@@ -21,7 +21,7 @@ pub_waypoints:
   ros__parameters:
     use_sim_time: False
 
-    waypoints_path: 国赛路径点b.yaml
+    waypoints_path: 9.3.yaml
     waypoints_topic: /waypoints
 
 generate_path:

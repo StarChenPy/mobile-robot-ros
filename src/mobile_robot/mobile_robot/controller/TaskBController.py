@@ -117,9 +117,9 @@ class TaskBController:
 
         # 依次尝试的路线
         plans = [
-            (["c2"], "c3"),
-            (["v9"], "v10"),
-            (["c4", "v2"], "c5")
+            (["c_2"], "c_3"),
+            (["v_9"], "v_10"),
+            (["c_4", "v_2"], "c_5")
         ]
 
         for path, point in plans:
@@ -165,7 +165,7 @@ class TaskBController:
 
     def task_4(self, _):
         # 寻找葡萄并抓取
-        self.move.my_navigation("v4")
+        self.move.my_navigation("v_4")
         grab_grape_wall = GrabGrapeWall(self.node)
         grab_grape_wall.direction = Direction.LEFT
         grab_grape_wall.basket_1 = [FruitType.PURPLE_GRAPE]
@@ -212,14 +212,14 @@ class TaskBController:
         # 去葡萄区抓一个葡萄，放到篮子里
         grab_grape_wall = GrabGrapeWall(self.node)
         grab_grape_wall.direction = Direction.RIGHT
-        self.move.my_navigation("c5")
-        self.move.my_navigation("v1", speed=0.4)
+        self.move.my_navigation("c_5")
+        self.move.my_navigation("v_1", speed=0.4)
         ArmMovement.grab_grape_on_wall(self.arm, Direction.RIGHT, 16, 34)
         ArmMovement.put_fruit_to_basket(self.arm, 2, True)
         self.arm.plan_list(ArmMovement.motion())
 
         # 去苹果区抓一个苹果，放到篮子里
-        self.move.my_navigation("c7")
+        self.move.my_navigation("c_7")
         self.move.my_navigation("t_1_g", speed=0.4)
         ArmMovement.grab_apple_on_tree(self.arm, Direction.RIGHT, 0, False)
         ArmMovement.put_fruit_to_basket(self.arm, 2)
@@ -245,6 +245,7 @@ class TaskBController:
         self.arm.plan_list(ArmMovement.motion())
 
         # 去红站台2抓框子
+        self.move.my_navigation("c_7")
         Station.RED_2.nav_and_grab(self.node)
         self.arm.plan_list(ArmMovement.put_basket_to_robot(3))
         self.arm.plan_list(ArmMovement.motion(), block=False)
@@ -258,14 +259,14 @@ class TaskBController:
         grab_apple_tree.direction = Direction.LEFT
         grab_apple_tree.grab_apple_from_tree()
         if grab_apple_tree.has_apple():
-            self.move.my_navigation("c7")
-            self.move.my_navigation("c8")
+            self.move.my_navigation("c_7")
+            self.move.my_navigation("c_8")
             self.move.my_navigation("t_2_l")
-            grab_apple_tree.direction = Direction.RIGHT
+            grab_apple_tree.direction = Direction.LEFT
             grab_apple_tree.grab_apple_from_tree()
 
         # 回起始区
-        self.move.my_navigation("c8")
+        self.move.my_navigation("c_8")
         self.move.my_navigation("c_start")
         ArmMovement.end(self.arm)
 
@@ -292,7 +293,7 @@ class TaskBController:
         grab_grape_wall.basket_3 = [FruitType.PURPLE_GRAPE, FruitType.GREEN_GRAPE]
 
         self.move.my_navigation("c_5")
-        path = ["v7", "v8"]
+        path = ["v_7", "v_8"]
         for i in path:
             self.move.my_navigation(i)
             grab_grape_wall.grab_grape_from_wall()
@@ -320,7 +321,7 @@ class TaskBController:
         self.arm.plan_list(ArmMovement.motion())
 
         # 去红站台2抓框子
-        self.move.my_navigation("c7")
+        self.move.my_navigation("c_7")
         Station.RED_2.nav_and_grab(self.node)
         self.arm.plan_list(ArmMovement.put_basket_to_robot(3))
         self.arm.plan_list(ArmMovement.motion(), block=False)
@@ -334,8 +335,8 @@ class TaskBController:
         grab_apple_tree.direction = Direction.RIGHT
         grab_apple_tree.grab_apple_from_tree()
         if grab_apple_tree.has_apple():
-            self.move.my_navigation("c7")
-            self.move.my_navigation("c8")
+            self.move.my_navigation("c_7")
+            self.move.my_navigation("c_8")
             self.move.my_navigation("t_3_l")
             grab_apple_tree.direction = Direction.RIGHT
             grab_apple_tree.grab_apple_from_tree()

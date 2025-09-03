@@ -12,9 +12,9 @@ from ..util import Math
 from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
-RADAR_ERROR_LEFT = 1.97
-RADAR_ERROR_FRONT = 1.67
-RADAR_ERROR_RIGHT = 1.78
+RADAR_ERROR_LEFT = 2.35
+RADAR_ERROR_FRONT = 1.08
+RADAR_ERROR_RIGHT = 1.41
 
 
 @singleton
@@ -82,6 +82,8 @@ class LaserRadarDao:
             start_angle = 180 - (scan_angle / 2)
 
         rclpy.spin_once(self.node)
+        rclpy.spin_once(self.node)
+        rclpy.spin_once(self.node)
         for i in range(scan_angle * 2):
             angle = Math.normalize_angle(start_angle + (i * 0.5))
             points.append(self.get_radar_data(angle))
@@ -108,7 +110,7 @@ class LaserRadarDao:
 
         self.logger.debug(f"{direction.name} 测量角度 {angle}")
 
-        if not secondary_confirmation and angle >= 5:
+        if not secondary_confirmation and angle >= 2:
             self.logger.info(f"{direction.name} 测量角度较大，二次确认")
             time.sleep(0.5)
             sc = self.get_angle_from_wall(direction, scan_angle, True)

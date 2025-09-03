@@ -1,6 +1,7 @@
 import math
 
 import numpy as np
+from sklearn.linear_model import RANSACRegressor
 
 from ..popo.NavigationPoint import NavigationPoint
 from ..popo.Point import Point
@@ -84,19 +85,20 @@ def fit_polar_line_and_get_distance(polar_points: list[tuple[float, float]]):
     """
     给定一组极坐标点 (r, theta)，其中 theta 的单位为度，
     拟合出一条直线，并计算原点 (0,0) 到该直线的垂直距离。
-
-    @param polar_points: list of tuples，每个元组为 (r, theta)，其中 theta 单位为度。
-    @return: 原点 (0,0) 到直线的垂直距离
+    使用 RANSAC 拟合，鲁棒性更强。
     """
-    # 将极坐标转换为直角坐标（输入角度转换为弧度）
+
     x = np.array([r * np.cos(np.radians(theta)) for r, theta in polar_points])
     y = np.array([r * np.sin(np.radians(theta)) for r, theta in polar_points])
 
-    # 构建设计矩阵，并用最小二乘法拟合直线 y = ax + b
-    A = np.vstack([x, np.ones(len(x))]).T
-    a, b = np.linalg.lstsq(A, y, rcond=None)[0]
+    X = x.reshape(-1, 1)
+    ransac = RANSACRegressor(min_samples=2, residual_threshold=0.05)
+    ransac.fit(X, y)
 
-    # 计算原点 (0,0) 到直线的垂直距离：d = |b| / sqrt(a^2 + 1) 并返回
+    a = ransac.estimator_.coef_[0]
+    b = ransac.estimator_.intercept_
+
+    # 直线 y = ax + b 到原点的距离
     return (np.abs(b) / np.sqrt(a ** 2 + 1)).item()
 
 
@@ -148,21 +150,19 @@ def cartesian_to_polar(a: tuple[float, float], b: tuple[float, float]) -> tuple[
 def fit_polar_line_and_get_angle(polar_points: list[tuple[float, float]]) -> float:
     """
     给定一组极坐标点 (r, theta)，其中 theta 的单位为度，
-    拟合出一条直线，并计算直线相对于极坐标0度的角度。
-
-    @param polar_points: list of tuples，每个元组为 (r, theta)，其中 theta 单位为度。
-    @return: 直线相对于极坐标0度的角度
+    拟合出一条直线，并计算直线相对于极坐标 0° 的角度。
+    使用 RANSAC 拟合，鲁棒性更强。
     """
 
-    # 将极坐标转换为直角坐标（输入角度转换为弧度）
     x = np.array([r * np.cos(np.radians(theta)) for r, theta in polar_points])
     y = np.array([r * np.sin(np.radians(theta)) for r, theta in polar_points])
 
-    # 构建设计矩阵，并用最小二乘法拟合直线 y = ax + b
-    A = np.vstack([x, np.ones(len(x))]).T
-    a, b = np.linalg.lstsq(A, y, rcond=None)[0]
+    X = x.reshape(-1, 1)
+    ransac = RANSACRegressor(min_samples=2, residual_threshold=0.05)
+    ransac.fit(X, y)
 
-    # 计算直线与x轴正方向的夹角，然后转换为角度并返回
+    a = ransac.estimator_.coef_[0]
+
     return np.degrees(np.arctan(a)).item()
 
 

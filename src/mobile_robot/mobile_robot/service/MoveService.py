@@ -59,7 +59,7 @@ class MoveService:
                 self.__odom.init_yaw(new_angle)
                 self.__logger.info(f"重置里程计角度, 角度 {new_angle}")
 
-    def my_navigation(self, waypoint: str, speed=0.5, start_name: str="", block=True):
+    def my_navigation(self, waypoint: str, speed=0.6, start_name: str="", block=True):
         self.__navigation.navigation(waypoint, speed, start_name)
         if block:
             self.__navigation.wait_finish()
