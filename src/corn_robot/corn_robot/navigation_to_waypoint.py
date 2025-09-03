@@ -52,8 +52,11 @@ class NavigationToPoseNode(rclpy.node.Node):
         self.declare_parameter('find_nearest_waypoint_service', '/find_nearest_waypoint')
         find_nearest_waypoint_service = self.get_parameter('find_nearest_waypoint_service').value
 
-        self.declare_parameter('navigation_action', '/nav2_ptp_action')
+        self.declare_parameter('navigation_action', '/nav2_action')
         navigation_action = self.get_parameter('navigation_action').value
+
+        self.declare_parameter('navigation_ptp_action', '/nav2_ptp_action')
+        navigation_ptp_action = self.get_parameter('navigation_ptp_action').value
 
         self.declare_parameter("reverse_uphill", False)
 
@@ -70,6 +73,7 @@ class NavigationToPoseNode(rclpy.node.Node):
                                           execute_callback=self.execute_callback,
                                           cancel_callback=self.cancel_callback)
         self.navigation_action_client = ActionClient(self, NavCMD, navigation_action)
+        self.navigation_ptp_action_client = ActionClient(self, NavPTPCMD, navigation_ptp_action)
         self.generate_path_client = self.create_client(GeneratePath, generate_path_service)
         self.correction_client = self.create_client(CorrectionOdom, correction_service)
         self.find_nearest_waypoint_client = self.create_client(FindNearestWaypoint, find_nearest_waypoint_service)
@@ -140,7 +144,7 @@ class NavigationToPoseNode(rclpy.node.Node):
                             self.get_logger().info("导航已被取消")
                             goal_handle.canceled()
                             return self.create_result(False, '导航已被取消', index, T1)
-                        result = await self.navigation(path, self.get_parameter("reverse_uphill").value)
+                        result = await self.auto_navigation(path, self.get_parameter("reverse_uphill").value)
                         if result is None or not result.success:
                             goal_handle.abort()
                             return self.create_result(False, '导航到路径点失败', index, T1)
@@ -176,7 +180,7 @@ class NavigationToPoseNode(rclpy.node.Node):
                         # 如果不是最后一个点，并且不是矫正点，则朝向下一个点的角度
                         if index < len(waypoints) - 1 and not is_correcter_point(waypoint):
                             waypoint.pose.w = Math.compute_delta_theta(waypoint.pose, waypoints[index + 1].pose)
-                        result = await self.navigation(path, True)
+                        result = await self.auto_navigation(path, True)
                         if result is None or not result.success:
                             goal_handle.abort()
                             return self.create_result(False, '导航到路径点失败', index, T1)
@@ -191,7 +195,7 @@ class NavigationToPoseNode(rclpy.node.Node):
                             self.get_logger().info("导航已被取消")
                             goal_handle.canceled()
                             return self.create_result(False, '导航已被取消', index, T1)
-                        result = await self.navigation(path, True)
+                        result = await self.auto_navigation(path, True)
                         if result is None or not result.success:
                             goal_handle.abort()
                             return self.create_result(False, '导航到路径点失败', index, T1)
@@ -211,7 +215,7 @@ class NavigationToPoseNode(rclpy.node.Node):
                         self.get_logger().info("导航已被取消")
                         goal_handle.canceled()
                         return self.create_result(False, '导航已被取消', index, T1)
-                    result = await self.navigation(path)
+                    result = await self.auto_navigation(path)
                     if result is None or not result.success:
                         goal_handle.abort()
                         return self.create_result(False, '导航到路径点失败', index, T1)
@@ -245,7 +249,7 @@ class NavigationToPoseNode(rclpy.node.Node):
                 self.get_logger().info("导航已被取消")
                 goal_handle.canceled()
                 return self.create_result(False, '导航已被取消', len(waypoints), T1)
-            result = await self.navigation(path)
+            result = await self.auto_navigation(path)
             if result is None or not result.success:
                 goal_handle.abort()
                 return self.create_result(False, '导航到路径点失败', len(waypoints), T1)
@@ -287,9 +291,15 @@ class NavigationToPoseNode(rclpy.node.Node):
 
         return response.path.waypoints
 
-    async def navigation(self, poses: list[Pose], reverse=False):
+    def auto_navigation(self, poses: list[Pose], reverse=False):
+        if len(poses) > 2:
+            return self.path_following_navigation(poses, reverse)
+        else:
+            return self.ptp_navigation(poses, reverse)
+
+    async def path_following_navigation(self, poses: list[Pose], reverse=False):
         """
-        移动机器人指定角度和距离。
+        移动机器人路径跟随导航，实时规划。
         """
         goal_msg = NavCMD.Goal()
 
@@ -299,10 +309,6 @@ class NavigationToPoseNode(rclpy.node.Node):
 
         goal_msg.linear_vel = self.speed
         goal_msg.rotation_vel = self.speed * 5.0
-        # # goal_msg.linear_acc = float(0.69)  # 直线加速度
-        # goal_msg.linear_acc = float(3)  # 直线加速度
-        # # goal_msg.linear_decel = float(0.53)  # 直线减加速度
-        # goal_msg.linear_decel = float(2)  # 直线减加速度
         goal_msg.rotate_acc = float(2.5)  # 旋转加速度
         goal_msg.rotate_decel = float(1.0)  # 旋转减加速度
         # 这里要获取导航最后一个点的角度并赋给heading
@@ -311,6 +317,34 @@ class NavigationToPoseNode(rclpy.node.Node):
 
         try:
             handle: ClientGoalHandle = await self.navigation_action_client.send_goal_async(goal_msg)
+            self.goal_handle = handle
+            return (await handle.get_result_async()).result
+        except Exception as e:
+            self.get_logger().error(f'发送导航目标失败: {e}')
+            return None
+
+    async def ptp_navigation(self, poses: list[Pose], reverse=False):
+        """
+        移动机器人点对点导航，预规划。
+        """
+        goal_msg = NavPTPCMD.Goal()
+
+        for p in poses:
+            pose2d = Pose2D(x=float(p.x), y=float(p.y), theta=float(0))
+            goal_msg.points.append(pose2d)
+
+        goal_msg.linear_vel = self.speed
+        goal_msg.rotation_vel = self.speed * 5.0
+        goal_msg.linear_acc = float(3)  # 直线加速度
+        goal_msg.linear_decel = float(2)  # 直线减加速度
+        goal_msg.rotate_acc = float(2.5)  # 旋转加速度
+        goal_msg.rotate_decel = float(1.0)  # 旋转减加速度
+        # 这里要获取导航最后一个点的角度并赋给heading
+        goal_msg.heading = float(poses[-1].w)
+        goal_msg.back = reverse
+
+        try:
+            handle: ClientGoalHandle = await self.navigation_ptp_action_client.send_goal_async(goal_msg)
             self.goal_handle = handle
             return (await handle.get_result_async()).result
         except Exception as e:

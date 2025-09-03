@@ -42,6 +42,7 @@ navigation_to_waypoint:
     correction_service: /correction_odom
     find_nearest_waypoint_service: /find_nearest_waypoint
     navigation_action: /nav2_action
+    navigation_ptp_action: /nav2_ptp_action
 
     speed: 0.6
     uphill_offset: 0.15
