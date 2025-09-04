@@ -71,7 +71,7 @@ class TaskEController:
         grab_apple_tree.basket_3 = [FruitType.YELLOW_APPLE, FruitType.PURPLE_APPLE]
 
         # 抓果树 1 后面
-        self.move.my_navigation("c7")
+        self.move.my_navigation("c_7")
         self.move.my_navigation("t_1_f")
         grab_apple_tree.direction = Direction.LEFT
         grab_apple_tree.grab_apple_from_tree()
@@ -79,7 +79,7 @@ class TaskEController:
             return
 
         # 抓果树 3 右面
-        self.move.my_navigation("c7")
+        self.move.my_navigation("c_7")
         self.move.my_navigation("t_3_r")
         grab_apple_tree.direction = Direction.RIGHT
         grab_apple_tree.grab_apple_from_tree()
@@ -87,14 +87,14 @@ class TaskEController:
             return
 
         # 抓果树 1 前面
-        self.move.my_navigation("c7")
+        self.move.my_navigation("c_7")
         self.move.my_navigation("t_1_b")
         grab_apple_tree.direction = Direction.RIGHT
         if not grab_apple_tree.has_apple():
             return
 
         # 抓果树 2 右面
-        self.move.my_navigation("c7")
+        self.move.my_navigation("c_7")
         self.move.my_navigation("t_2_r")
         grab_apple_tree.direction = Direction.LEFT
         grab_apple_tree.grab_apple_from_tree()
@@ -102,16 +102,16 @@ class TaskEController:
             return
 
         # 抓果树 2 左面
-        self.move.my_navigation("c7")
-        self.move.my_navigation("c8")
+        self.move.my_navigation("c_7")
+        self.move.my_navigation("c_8")
         self.move.my_navigation("t_2_l")
-        grab_apple_tree.direction = Direction.RIGHT
+        grab_apple_tree.direction = Direction.LEFT
         grab_apple_tree.grab_apple_from_tree()
         if not grab_apple_tree.has_apple():
             return
 
         # 抓果树 3 左面
-        self.move.my_navigation("c8")
+        self.move.my_navigation("c_8")
         self.move.my_navigation("t_3_l")
         grab_apple_tree.direction = Direction.RIGHT
         grab_apple_tree.grab_apple_from_tree()
@@ -137,14 +137,14 @@ class TaskEController:
             return False
 
         plans = [
-            ([], Direction.RIGHT, "v2"),
-            ([], Direction.RIGHT, "v1"),
-            (["c5"], Direction.LEFT, "v3"),
-            (["c2"], Direction.LEFT, "v4"),
-            ([], Direction.LEFT, "v5"),
-            ([], Direction.LEFT, "v6"),
-            (["c5"], Direction.LEFT, "v7"),
-            ([], Direction.LEFT, "v8"),
+            ([], Direction.RIGHT, "v_2"),
+            ([], Direction.RIGHT, "v_1"),
+            (["c_5"], Direction.LEFT, "v_3"),
+            (["c_2"], Direction.LEFT, "v_4"),
+            ([], Direction.LEFT, "v_5"),
+            ([], Direction.LEFT, "v_6"),
+            (["c_5"], Direction.LEFT, "v_7"),
+            ([], Direction.LEFT, "v_8"),
         ]
 
         for path, direction, waypoint in plans:

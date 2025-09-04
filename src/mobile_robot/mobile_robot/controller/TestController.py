@@ -34,40 +34,40 @@ class TestController:
         self.robot.with_robot_connect()
         # self.arm.back_origin()
 
-        # while True:
-        #     input("等待...")
-        #     self.sensor.correction("c_start")
-
-
-        # 矫正雷达
         while True:
-            input("等待")
-            print("----------------左墙----------------")
-            li = []
-            for i in range(5):
-                wall = self.sensor.get_angle_from_wall(Direction.LEFT)
-                li.append(wall)
-                print(wall)
-                time.sleep(0.3)
-            print(Math.average_without_extremes(li))
+            input("等待...")
+            self.sensor.correction("c_6")
 
-            print("----------------前墙----------------")
-            li = []
-            for i in range(5):
-                wall = self.sensor.get_angle_from_wall(Direction.FRONT)
-                li.append(wall)
-                print(wall)
-                time.sleep(0.3)
-            print(Math.average_without_extremes(li))
 
-            print("----------------右墙----------------")
-            li = []
-            for i in range(5):
-                wall = self.sensor.get_angle_from_wall(Direction.RIGHT)
-                li.append(wall)
-                print(wall)
-                time.sleep(0.3)
-            print(Math.average_without_extremes(li))
+        # # 矫正雷达
+        # while True:
+        #     input("等待")
+        #     print("----------------左墙----------------")
+        #     li = []
+        #     for i in range(5):
+        #         wall = self.sensor.get_angle_from_wall(Direction.LEFT)
+        #         li.append(wall)
+        #         print(wall)
+        #         time.sleep(0.3)
+        #     print(Math.average_without_extremes(li))
+        #
+        #     print("----------------前墙----------------")
+        #     li = []
+        #     for i in range(5):
+        #         wall = self.sensor.get_angle_from_wall(Direction.FRONT)
+        #         li.append(wall)
+        #         print(wall)
+        #         time.sleep(0.3)
+        #     print(Math.average_without_extremes(li))
+        #
+        #     print("----------------右墙----------------")
+        #     li = []
+        #     for i in range(5):
+        #         wall = self.sensor.get_angle_from_wall(Direction.RIGHT)
+        #         li.append(wall)
+        #         print(wall)
+        #         time.sleep(0.3)
+        #     print(Math.average_without_extremes(li))
 
         # dao = RobotDataDao(self.node)
         # while len(dao.imu_data) < 20:

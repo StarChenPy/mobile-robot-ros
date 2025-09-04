@@ -115,8 +115,7 @@ class GrabGroundFruit:
 
             # 计算旋转
             rotary_angle = -Math.calculate_right_triangle_angle(x_dis, telescopic_len)
-            if abs(rotary_angle) > 30:
-                rotary_angle *= 1.2
+            rotary_angle *= 1.2
 
             ArmMovement.grab_fruit_from_ground(self.arm, rotary_angle, (telescopic_len - photo_telescopic_len) * 100 + 6, "grape" in fruit.class_id)
 

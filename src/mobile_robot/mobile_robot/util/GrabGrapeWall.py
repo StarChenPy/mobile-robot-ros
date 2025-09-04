@@ -80,6 +80,10 @@ class GrabGrapeWall:
                 self.logger.info(f"已经抓够的的水果，跳过 {i.class_id}")
                 continue
 
+            if i.box.get_area() < 4000:
+                self.logger.warn(f"面积 {i.box.get_area()} 太小，可能有遮挡或过于遥远，跳过 {i.class_id}")
+                continue
+
             center = i.box.get_rectangle_center()
             fruit_type = FruitType(i.class_id)
             distance = i.distance + 0.05 if i.distance != -1 else 0.35
@@ -96,14 +100,16 @@ class GrabGrapeWall:
             actual_move_len = move_distance - prev_move_len
             self.logger.info(f"准备抓取: {i.class_id} ({center.x}, {center.y}), 距离: {distance}, 移动: {actual_move_len}")
 
-            self.move.line(actual_move_len, is_block=False)
-            prev_move_len = move_distance
-
             angle = Math.calculate_right_triangle_angle(distance, 0.34)
 
             y_distance = Math.pixel_to_distance_from_bottom(center.y, distance)
-            lift_height = 32 - (y_distance * 100)
-            ArmMovement.grab_grape_on_wall(self.arm, self.direction, lift_height, angle)
+            lift_height = 31 - (y_distance * 100)
+            self.arm.plan_list(ArmMovement.grab_grape_on_wall(self.direction, lift_height, angle), block=False)
+
+            self.move.line(actual_move_len, is_block=False)
+            self.arm.wait_plan_finish()
+            prev_move_len = move_distance
+
             for j in range(1, 4):
                 basket = getattr(self, f"basket_{j}")
                 if fruit_type in basket:
@@ -145,7 +151,7 @@ class GrabGrapeWall:
 
         lift_height = 32 - (y_distance * 100)
 
-        ArmMovement.grab_grape_on_wall(self.arm, self.direction, lift_height, angle)
+        self.arm.plan_list(ArmMovement.grab_grape_on_wall(self.direction, lift_height, angle))
 
     def patrol_line(self, start_name: str, gaol_name: str):
         if self.direction is None:

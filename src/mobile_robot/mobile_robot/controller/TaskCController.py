@@ -8,6 +8,7 @@ from ..service.MoveService import MoveService
 from ..service.RobotService import RobotService
 from ..service.SensorService import SensorService
 from ..service.VisionService import VisionService
+from ..util import Utils
 from ..util.GrabGroundFruit import GrabGroundFruit
 from ..util.Logger import Logger
 from ..util.Singleton import singleton
@@ -77,9 +78,16 @@ class TaskCController:
             self.logger.warn("没有找到水果")
             pass
         ArmMovement.motion_apple(self.arm)
-        self.move.navigation([NavigationPoint(3.3, 0.3, 90)])
+        self.move.rotate(90)
         self.logger.info("准备开始走迷宫")
 
     def nav_to_put(self):
-        self.move.jx_nav2()
-        ArmMovement.put_fruit_to_ground(self.arm)
+        for i in range(3):
+            if Utils.jx_nav2().success:
+                self.arm.plan_list(ArmMovement.put_fruit_to_ground())
+                self.arm.plan_list(ArmMovement.motion())
+                return
+            else:
+                self.logger.warn(f"导航到放置点失败，重试第 {i} 次.")
+                time.sleep(1)
+        self.logger.error("导航放置点失败.")

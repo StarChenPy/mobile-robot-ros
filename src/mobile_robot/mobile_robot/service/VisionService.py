@@ -82,8 +82,8 @@ class VisionService:
             y2 = min(depth.shape[0], cy + half_k + 1)
 
             roi = depth[y1:y2, x1:x2]
-            valid_depths = roi[roi > 0]  # 自动忽略0深度
-            valid_depths = valid_depths[valid_depths < 1000]  # 自动忽略大于1000的深度
+            valid_depths = roi[roi > 0]  # 自动忽略 0 深度
+            valid_depths = valid_depths[valid_depths < 750]  # 自动忽略大于 750 的深度
 
             if valid_depths.size > 0:
                 r.distance = float(np.median(valid_depths)) / 1000  # 使用中位数，避免离群值

@@ -2,7 +2,6 @@ import time
 
 import rclpy
 
-from ..dao.JXNav2Dao import JXNav2Dao
 from ..dao.LaserRadarDao import LaserRadarDao
 from ..dao.MotionDao import MotionDao
 from ..dao.MyNavigationDao import MyNavigationDao
@@ -32,7 +31,6 @@ class MoveService:
         self.__odom = OdomDao(node)
         self.__radar = LaserRadarDao(node)
         self.__robot_data = RobotDataDao(node)
-        self.__jx_nav2 = JXNav2Dao(node)
 
     def rotation_correction(self, direction: Direction = None, set_odom=False, scan_angle=30, block=True):
         if not direction:
@@ -77,9 +75,6 @@ class MoveService:
         self.__ptp_navigation.navigation(path, speed, speed * 5, False)
         if block:
             self.__ptp_navigation.wait_finish()
-
-    def jx_nav2(self):
-        self.__jx_nav2.call_service()
 
     def line(self, distance: float, speed: float = 0.4, is_block=True):
         self.__motion.line(distance, speed)

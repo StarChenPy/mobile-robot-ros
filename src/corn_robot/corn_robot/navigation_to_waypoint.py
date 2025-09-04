@@ -292,7 +292,7 @@ class NavigationToPoseNode(rclpy.node.Node):
         return response.path.waypoints
 
     def auto_navigation(self, poses: list[Pose], reverse=False):
-        if len(poses) > 2:
+        if len(poses) > 1:
             return self.path_following_navigation(poses, reverse)
         else:
             return self.ptp_navigation(poses, reverse)

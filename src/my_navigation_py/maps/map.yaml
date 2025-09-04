@@ -1,5 +1,5 @@
-image: map.png
-resolution: 0.02
+image: map404.png
+resolution: 0.01
 mode: trinary
 origin: [-0.02, -0.02, 0.0]
 negate: 0

@@ -111,8 +111,8 @@ class CorrectionOdomNode(rclpy.node.Node):
             x = pose.x + x_buffer
             y = pose.y + y_buffer
         elif right_angle == 90:
-            x = pose.x + y_buffer
-            y = pose.y + x_buffer
+            x = pose.x - y_buffer
+            y = pose.y - x_buffer
         elif right_angle == 180 or right_angle == -180:
             x = pose.x - x_buffer
             y = pose.y - y_buffer

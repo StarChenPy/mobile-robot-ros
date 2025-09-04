@@ -214,7 +214,7 @@ class TaskBController:
         grab_grape_wall.direction = Direction.RIGHT
         self.move.my_navigation("c_5")
         self.move.my_navigation("v_1", speed=0.4)
-        ArmMovement.grab_grape_on_wall(self.arm, Direction.RIGHT, 16, 34)
+        self.arm.plan_list(ArmMovement.grab_grape_on_wall(Direction.RIGHT, 16, 34))
         ArmMovement.put_fruit_to_basket(self.arm, 2, True)
         self.arm.plan_list(ArmMovement.motion())
 

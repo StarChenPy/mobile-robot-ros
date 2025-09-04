@@ -16,7 +16,7 @@ amcl:
     lambda_short: 0.1  # 激光束短距离权重参数
     laser_likelihood_max_dist: 2.0  # 激光束最大似然距离
     laser_max_range: 3.5 # 激光雷达最大测量距离
-    laser_min_range: 0.12  # 激光雷达最小测量距离（-1表示使用传感器默认值）
+    laser_min_range: 0.15  # 激光雷达最小测量距离（-1表示使用传感器默认值）
     laser_model_type: "likelihood_field"  # 激光模型类型，用于计算粒子权重（beam、likelihood_field、likelihood_field_prob）
     max_beams: 200  # 每次更新使用的最大激光束数量
     max_particles: 5000  # 最大粒子数量
@@ -64,7 +64,7 @@ bt_navigator:
   ros__parameters:
     use_sim_time: False
     transform_tolerance: 0.5 #变换容差
-    goal_reached_tol: 0.15 #接受姿势作为目标的容忍度(m)
+    goal_reached_tol: 0.1 #接受姿势作为目标的容忍度(m)
     global_frame: map
     robot_base_frame: base_link
     odom_topic: /chassis/odom/user
@@ -219,15 +219,14 @@ local_costmap:
       robot_base_frame: base_link
       use_sim_time: False
       rolling_window: true
-      width: 4
-      height: 4
+      width: 2
+      height: 2
       resolution: 0.02
-      footprint: "[ [0.35, 0.25], [0.35, -0.25], [-0.35, -0.25], [-0.35, 0.25] ]"
-      # footprint: "[ [0.245, 0.24], [0.245, -0.24], [-0.245, -0.24], [-0.245, 0.24] ]"
+      footprint: "[ [0.245, 0.24], [0.245, -0.24], [-0.245, -0.24], [-0.245, 0.24] ]"
       plugins: ["obstacle_layer", "voxel_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        inflation_radius: 0.1 # 膨胀距离
+        inflation_radius: 0.4 # 膨胀距离
         cost_scaling_factor: 6.0
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
@@ -237,7 +236,7 @@ local_costmap:
         scan:
           topic: /scan
           max_obstacle_height: 2.0
-          clearing: True
+          clearing: true
           marking: True
           data_type: "LaserScan"
       voxel_layer:
@@ -253,7 +252,7 @@ local_costmap:
         pointcloud:
           topic: /intel_realsense_r200_depth/points
           max_obstacle_height: 2.0
-          clearing: True
+          clearing: true
           marking: True
           data_type: "PointCloud2"
       static_layer:
@@ -274,8 +273,7 @@ global_costmap:
       global_frame: map
       robot_base_frame: base_link
       use_sim_time: False
-      footprint: "[ [0.35, 0.25], [0.35, -0.25], [-0.35, -0.25], [-0.35, 0.25] ]"
-     # footprint: "[ [0.245, 0.24], [0.245, -0.24], [-0.245, -0.24], [-0.245, 0.24] ]"
+      footprint: "[ [0.245, 0.24], [0.245, -0.24], [-0.245, -0.24], [-0.245, 0.24] ]"
       resolution: 0.02
       plugins: ["static_layer", "obstacle_layer", "voxel_layer", "inflation_layer"]
       obstacle_layer:
@@ -286,7 +284,7 @@ global_costmap:
         scan:
           topic: /scan
           max_obstacle_height: 2.0
-          clearing: True
+          clearing: true
           marking: True
           data_type: "LaserScan"
       voxel_layer:
@@ -302,7 +300,7 @@ global_costmap:
         pointcloud:
           topic: /intel_realsense_r200_depth/points
           max_obstacle_height: 2.0
-          clearing: True
+          clearing: true
           marking: True
           data_type: "PointCloud2"
       static_layer:
@@ -311,7 +309,7 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 6.0
-        inflation_radius: 0.1
+        inflation_radius: 0.4
       always_send_full_costmap: True
   global_costmap_client:
     ros__parameters:

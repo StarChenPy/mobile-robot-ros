@@ -21,17 +21,17 @@ CLOSE_GRIPPER_BASKET = 15.6
 def robot_basket_top(num):
     if num == 1:
         plan_list = [
-            OmsGoal(motor_rotary=20, motor_lift=0, servo_rotary=69, servo_nod=0, servo_telescopic=3),
+            OmsGoal(motor_rotary=22, motor_lift=0, servo_rotary=71, servo_nod=0, servo_telescopic=3.5),
             OmsGoal(servo_nod=90)
         ]
     elif num == 2:
         plan_list = [
-            OmsGoal(motor_rotary=0, motor_lift=0, servo_rotary=-85, servo_nod=0, servo_telescopic=2),
-            OmsGoal(servo_nod=95)
+            OmsGoal(motor_rotary=8, motor_lift=0, servo_rotary=-94, servo_nod=0, servo_telescopic=2),
+            OmsGoal(servo_nod=90)
         ]
     elif num == 3:
         plan_list = [
-            OmsGoal(motor_rotary=-23, motor_lift=0, servo_rotary=-65, servo_nod=0, servo_telescopic=4),
+            OmsGoal(motor_rotary=-19, motor_lift=0, servo_rotary=-67, servo_nod=0, servo_telescopic=3.5),
             OmsGoal(servo_nod=90)
         ]
     else:
@@ -206,21 +206,21 @@ def put_basket_to_robot(num):
 
     if num == 1:
         plan_list.append(
-            OmsGoal(motor_rotary=20, servo_rotary=72, servo_telescopic=5.5)
+            OmsGoal(motor_rotary=22, servo_rotary=71, servo_telescopic=3.5)
         )
         plan_list.append(
             OmsGoal(motor_lift=3, servo_nod=90)
         )
     elif num == 2:
         plan_list.append(
-            OmsGoal(motor_rotary=0, servo_rotary=-85, servo_telescopic=2)
+            OmsGoal(motor_rotary=8, servo_rotary=-94, servo_telescopic=2)
         )
         plan_list.append(
-            OmsGoal(motor_lift=3, servo_nod=95)
+            OmsGoal(motor_lift=3, servo_nod=90)
         )
     elif num == 3:
         plan_list.append(
-            OmsGoal(motor_rotary=-20, servo_rotary=-68, servo_telescopic=5)
+            OmsGoal(motor_rotary=-19, servo_rotary=-67, servo_telescopic=3.5)
         )
         plan_list.append(
             OmsGoal(motor_lift=3, servo_nod=90)
@@ -249,19 +249,20 @@ def put_fruit_to_basket(arm: 'ArmService', num, down=False):
     ] + robot_basket_top(num)
     if down:
         plan_list.append(OmsGoal(motor_lift=10))
-        plan_list.append(OmsGoal(motor_lift=0, servo_gripper=OPEN_HALF_GRIPPER))
+        plan_list.append(OmsGoal(motor_lift=0, servo_gripper=OPEN_GRAPE_GRIPPER))
     else:
         plan_list.append(OmsGoal(servo_gripper=OPEN_HALF_GRIPPER))
 
     arm.plan_list(plan_list)
 
 
-def put_fruit_to_ground(arm: 'ArmService'):
+def put_fruit_to_ground():
     plan_list = [
-        OmsGoal(motor_rotary=180, motor_lift=30, servo_rotary=0, servo_nod=90, servo_telescopic=15),
+        OmsGoal(motor_rotary=180, servo_rotary=0, servo_telescopic=15),
+        OmsGoal(motor_lift=30, servo_nod=90),
         OmsGoal(servo_gripper=OPEN_GRIPPER),
     ]
-    arm.plan_list(plan_list)
+    return plan_list
 
 
 def grab_apple_on_tree(arm: 'ArmService', direction: Direction, telescopic: float, is_low: bool):
@@ -295,7 +296,7 @@ def grab_apple_on_tree(arm: 'ArmService', direction: Direction, telescopic: floa
     arm.plan_list(plan_list)
 
 
-def grab_grape_on_wall(arm: 'ArmService', direction: Direction, lift_height: float, angle: float):
+def grab_grape_on_wall(direction: Direction, lift_height: float, angle: float):
     plan_list = [
 
     ]
@@ -326,4 +327,4 @@ def grab_grape_on_wall(arm: 'ArmService', direction: Direction, lift_height: flo
     plan_list.append(OmsGoal(servo_gripper=CLOSE_GRIPPER_GRAPE, sleep=0.3))
     plan_list.append(OmsGoal(servo_telescopic=0))
 
-    arm.plan_list(plan_list)
+    return plan_list

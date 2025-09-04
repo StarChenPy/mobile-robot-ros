@@ -116,10 +116,8 @@ c_2:
     y: 3.05
     yaw: 0.0
   corrective_data:
-    front: 0.0
     back: 0.3
     left: 0.95
-    right: 0.0
   connected_nodes:
     - "v_4"
     - "p_9"
@@ -135,8 +133,6 @@ c_3:
     yaw: 0.0
   corrective_data:
     front: 0.54
-    back: 0.0
-    left: 0.0
     right: 0.25
   connected_nodes:
     - "v_4"
@@ -235,8 +231,11 @@ c_8:
 v_1:
   pose:
     x: 0.25
-    y: 3.384
+    y: 3.26
     yaw: 90.0
+  corrective_data:
+    front: 0.74
+    left: 0.25
   connected_nodes:
     - "s_y_3_l"
     - "c_6"
@@ -251,6 +250,9 @@ v_2:
     x: 0.25
     y: 2.66
     yaw: 90.0
+  corrective_data:
+    front: 1.34
+    left: 0.25
   connected_nodes:
     - "s_y_3_l"
     - "c_6"
@@ -288,6 +290,8 @@ v_5:
     x: 1.972
     y: 3.021
     yaw: 0.0
+  corrective_data:
+    front: 1.32
   connected_nodes:
     - "v_4"
     - "v_6"
@@ -297,9 +301,12 @@ v_5:
   on_slope: false
 v_6:
   pose:
-    x: 2.529
-    y: 3.026
+    x: 2.52
+    y: 3.03
     yaw: 0.0
+  corrective_data:
+    front: 0.76
+    right: 0.25
   connected_nodes:
     - "v_4"
     - "v_5"
@@ -312,6 +319,9 @@ v_7:
     x: 0.25
     y: 1.34
     yaw: -90.0
+  corrective_data:
+    front: 1.39
+    right: 0.25
   connected_nodes:
     - "s_y_3_l"
     - "c_6"
@@ -324,8 +334,11 @@ v_7:
 v_8:
   pose:
     x: 0.25
-    y: 0.57
+    y: 0.74
     yaw: -90.0
+  corrective_data:
+    front: 0.74
+    right: 0.25
   connected_nodes:
     - "s_y_3_l"
     - "c_6"

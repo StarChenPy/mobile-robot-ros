@@ -82,14 +82,14 @@ class TaskDController:
             return False
 
         plans = [
-            ([], Direction.RIGHT, "v2"),
-            ([], Direction.RIGHT, "v1"),
-            (["c5"], Direction.LEFT, "v3"),
-            (["c2"], Direction.LEFT, "v4"),
-            ([], Direction.LEFT, "v5"),
-            ([], Direction.LEFT, "v6"),
-            (["c5"], Direction.LEFT, "v7"),
-            ([], Direction.LEFT, "v8"),
+            ([], Direction.RIGHT, "v_2"),
+            ([], Direction.RIGHT, "v_1"),
+            (["c_5"], Direction.LEFT, "v_3"),
+            (["c_2"], Direction.LEFT, "v_4"),
+            ([], Direction.LEFT, "v_5"),
+            ([], Direction.LEFT, "v_6"),
+            (["c_5"], Direction.LEFT, "v_7"),
+            ([], Direction.LEFT, "v_8"),
         ]
 
         for path, direction, waypoint in plans:

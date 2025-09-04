@@ -1,5 +1,6 @@
 # my_navigation_py/launch/navigation.launch.py
 import os
+from ament_index_python import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.conditions import IfCondition
@@ -11,6 +12,7 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
     my_nav_pkg = FindPackageShare(package='my_navigation_py')
     nav2_bringup_pkg = FindPackageShare(package='nav2_bringup')
+    corn_dir = get_package_share_directory('corn_robot')
 
     # 配置参数
     params_file = LaunchConfiguration(
@@ -28,6 +30,11 @@ def generate_launch_description():
         DeclareLaunchArgument('params_file', default_value=params_file, description='导航参数文件路径'),
         DeclareLaunchArgument('map_file', default_value=map_file, description='地图文件路径'),
         DeclareLaunchArgument('use_sim_time', default_value=use_sim_time, description='是否使用仿真时间'),
+
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(os.path.join(corn_dir, 'launch', 'urdf.launch.py'))
+        ),
+
         IncludeLaunchDescription(
             PathJoinSubstitution([nav2_bringup_pkg, 'launch', 'bringup_launch.py']),
             launch_arguments={
