@@ -70,10 +70,11 @@ class CorrectionOdomNode(rclpy.node.Node):
 
         corrected_data = waypoint.corrected_data
         if corrected_data.front:
-            distance_from_wall = self.lidar.get_distance_from_wall(Direction.FRONT)
+            scan_angle = 10 if corrected_data.front > 0.8 else 30
+            distance_from_wall = self.lidar.get_distance_from_wall(Direction.FRONT, scan_angle)
             if distance_from_wall:
-                angle_from_wall = self.lidar.get_angle_from_wall(Direction.FRONT)
-                x_buffer = distance_from_wall - corrected_data.front
+                angle_from_wall = self.lidar.get_angle_from_wall(Direction.FRONT, scan_angle)
+                x_buffer = corrected_data.front - distance_from_wall
 
         if corrected_data.back and self.robot_data.sonar:
             sonar_l = self.robot_data.sonar[0]
@@ -83,15 +84,17 @@ class CorrectionOdomNode(rclpy.node.Node):
             x_buffer = distance_from_wall - corrected_data.back
 
         if corrected_data.left:
-            distance_from_wall = self.lidar.get_distance_from_wall(Direction.LEFT)
+            scan_angle = 10 if corrected_data.left > 0.8 else 30
+            distance_from_wall = self.lidar.get_distance_from_wall(Direction.LEFT, scan_angle)
             if distance_from_wall:
-                angle_from_wall = self.lidar.get_angle_from_wall(Direction.LEFT)
+                angle_from_wall = self.lidar.get_angle_from_wall(Direction.LEFT, scan_angle)
                 y_buffer = corrected_data.left - distance_from_wall
 
         if corrected_data.right:
-            distance_from_wall = self.lidar.get_distance_from_wall(Direction.RIGHT)
+            scan_angle = 10 if corrected_data.right > 0.8 else 30
+            distance_from_wall = self.lidar.get_distance_from_wall(Direction.RIGHT, scan_angle)
             if distance_from_wall:
-                angle_from_wall = self.lidar.get_angle_from_wall(Direction.RIGHT)
+                angle_from_wall = self.lidar.get_angle_from_wall(Direction.RIGHT, scan_angle)
                 y_buffer = distance_from_wall - corrected_data.right
 
         odom_data = self.robot_data.odom
@@ -112,13 +115,13 @@ class CorrectionOdomNode(rclpy.node.Node):
             y = pose.y + y_buffer
         elif right_angle == 90:
             x = pose.x - y_buffer
-            y = pose.y - x_buffer
+            y = pose.y + x_buffer
         elif right_angle == 180 or right_angle == -180:
             x = pose.x - x_buffer
             y = pose.y - y_buffer
         elif right_angle == -90:
             x = pose.x + y_buffer
-            y = pose.y + x_buffer
+            y = pose.y - x_buffer
 
         self.get_logger().info(f"矫正当前坐标为: x: {x}, y: {y}, w: {yaw}")
         req = ResetOdom.Request(clear_mode=0, x=x, y=y, theta=math.radians(yaw))

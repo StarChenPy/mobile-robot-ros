@@ -32,11 +32,11 @@ class TestController:
 
     def run(self):
         self.robot.with_robot_connect()
-        # self.arm.back_origin()
+        self.arm.back_origin()
 
-        while True:
-            input("等待...")
-            self.sensor.correction("c_6")
+        # while True:
+        #     input("等待...")
+        #     self.sensor.correction("c_start")
 
 
         # # 矫正雷达
@@ -44,7 +44,7 @@ class TestController:
         #     input("等待")
         #     print("----------------左墙----------------")
         #     li = []
-        #     for i in range(5):
+        #     for i in range(10):
         #         wall = self.sensor.get_angle_from_wall(Direction.LEFT)
         #         li.append(wall)
         #         print(wall)
@@ -53,7 +53,7 @@ class TestController:
         #
         #     print("----------------前墙----------------")
         #     li = []
-        #     for i in range(5):
+        #     for i in range(10):
         #         wall = self.sensor.get_angle_from_wall(Direction.FRONT)
         #         li.append(wall)
         #         print(wall)
@@ -62,7 +62,7 @@ class TestController:
         #
         #     print("----------------右墙----------------")
         #     li = []
-        #     for i in range(5):
+        #     for i in range(10):
         #         wall = self.sensor.get_angle_from_wall(Direction.RIGHT)
         #         li.append(wall)
         #         print(wall)
@@ -97,15 +97,15 @@ class TestController:
         #     tree.grab_apple_from_tree()
 
 
-        # # 抓葡萄墙测试
-        # wall = GrabGrapeWall(self.node)
-        # wall.direction = Direction.LEFT
-        # wall.basket_1 = [FruitType.GREEN_GRAPE] * 3
-        # wall.basket_2 = [FruitType.YELLOW_GRAPE] * 3
-        # wall.basket_3 = [FruitType.PURPLE_GRAPE] * 3
-        # while True:
-        #     input("Press Enter to continue...")
-        #     wall.grab_grape_from_wall()
+        # 抓葡萄墙测试
+        wall = GrabGrapeWall(self.node)
+        wall.direction = Direction.RIGHT
+        wall.basket_1 = [FruitType.GREEN_GRAPE] * 3
+        wall.basket_2 = [FruitType.YELLOW_GRAPE] * 3
+        wall.basket_3 = [FruitType.PURPLE_GRAPE] * 3
+        while True:
+            input("Press Enter to continue...")
+            wall.grab_grape_from_wall()
 
         # # 抓地板水果测试
         # ground_fruit = GrabGroundFruit(self.node)

@@ -58,20 +58,20 @@ class MyNavigationDao:
         if self.__done_future is not None:
             self.__done_future.set_result(True)
 
-    def wait_finish(self) -> None:
+    def wait_finish(self):
         """等待导航完成（同步接口，但内部用 asyncio 轮询）"""
         loop = asyncio.get_event_loop()
 
         async def _wait():
             while rclpy.ok() and self.__is_navigating:
                 rclpy.spin_once(self.__node, timeout_sec=0.1)
-                await asyncio.sleep(0.5)  # 让出控制权
+                await asyncio.sleep(0.2)  # 让出控制权
             self.__logger.info("导航结束")
 
         # 在当前事件循环中运行协程，直到完成
         loop.run_until_complete(_wait())
 
-    def cancel(self) -> None:
+    def cancel(self):
         """取消路径跟随"""
         while self.__goal_handle is None:
             rclpy.spin_once(self.__node)

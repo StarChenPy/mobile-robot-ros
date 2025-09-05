@@ -12,9 +12,9 @@ from ..util import Math
 from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
-RADAR_ERROR_LEFT = 2.35
-RADAR_ERROR_FRONT = 1.08
-RADAR_ERROR_RIGHT = 1.41
+RADAR_ERROR_LEFT = 2.01
+RADAR_ERROR_FRONT = 1.61
+RADAR_ERROR_RIGHT = 1.87
 
 
 @singleton

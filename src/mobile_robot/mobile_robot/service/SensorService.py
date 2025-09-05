@@ -78,10 +78,18 @@ class SensorService:
         return self.__radar.get_angle_from_wall(direction)
 
     def get_ir_left(self) -> float:
-        return self.__robot_data.get_ir_left()
+        left = self.__robot_data.get_ir_left()
+        if 0.15 < left < 0.4:
+            return left + 0.14
+        else:
+            return 0
 
     def get_ir_right(self) -> float:
-        return self.__robot_data.get_ir_right()
+        right = self.__robot_data.get_ir_right()
+        if 0.15 < right < 0.4:
+            return right + 0.1
+        else:
+            return 0
 
     def get_sonar(self) -> float:
         sonar = self.__robot_data.get_sonar()

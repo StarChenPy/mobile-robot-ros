@@ -1,3 +1,5 @@
+import time
+
 import rclpy
 
 from corn_robot_interfaces.srv import CorrectionOdom
@@ -26,6 +28,7 @@ class CorrectionOdomDao:
             rclpy.spin_once(self.__node)
 
             if not self.future.done():
+                time.sleep(0.2)
                 continue
 
             if self.future.result().success:

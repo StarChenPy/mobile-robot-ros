@@ -13,7 +13,7 @@ from ..service.SensorService import SensorService
 class Station(enum.Enum):
     YELLOW_1 = enum.auto(), "s_y_1_r", Direction.RIGHT, 1.49, False, "s_y_1_l", Direction.LEFT, 2.11
     YELLOW_2 = enum.auto(), "s_y_2_r", Direction.RIGHT, 1.52, True
-    YELLOW_3 = enum.auto(), "s_y_3_l", Direction.LEFT, 1.61, False
+    YELLOW_3 = enum.auto(), "s_y_3_l", Direction.LEFT, 1.6, False
     RED_1 = enum.auto(), "s_r_1_l", Direction.LEFT, 1.51, True
     RED_2 = enum.auto(), "s_r_2_r", Direction.RIGHT, 0, False
     RED_3 = enum.auto(), "s_r_3_r", Direction.RIGHT, 1.7, False
@@ -42,8 +42,10 @@ class Station(enum.Enum):
         :param is_sub: 是否使用副路径点
         :return: None
         """
+        arm = ArmService(node)
 
         self.nav_to_station(node, is_sub)
+        self.correction(node, is_sub)
         self.grab_basket(node, is_sub)
 
     def nav_and_put(self, node: rclpy.node.Node, basket_num: int, is_sub: bool = False):
@@ -60,31 +62,10 @@ class Station(enum.Enum):
         ArmMovement.grab_basket_from_robot(arm, basket_num)
         self.put_basket(node, is_sub)
 
-    def nav_to_station(self, node: rclpy.node.Node, is_sub: bool = False):
-        """
-        导航至站台并进行位置修正
-
-        :param node: ROS2节点
-        :param is_sub: 是否使用副路径点
-        :return: None
-        """
-
+    def correction(self, node: rclpy.node.Node, is_sub: bool = False):
         logger = Logger()
         move = MoveService(node)
         sensor = SensorService(node)
-
-        # 1. 导航至路径点
-        if is_sub:
-            if self.sub_waypoint and self.sub_direction:
-                logger.info(f"前往 {self.name} 站台副路径点 {self.sub_waypoint}.")
-                move.my_navigation(self.sub_waypoint)
-            else:
-                logger.warn(f"未定义 {self.name} 站台副路径点或方向，使用站台主路径点.")
-                is_sub = False
-                move.my_navigation(self.main_waypoint)
-        else:
-            logger.info(f"前往 {self.name} 站台主路径点 {self.main_waypoint}.")
-            move.my_navigation(self.main_waypoint)
 
         logger.info(f"{self.name} 站台位置旋转修正.")
         if is_sub:
@@ -105,13 +86,38 @@ class Station(enum.Enum):
             else:
                 sensor.ping_revise(-self.main_revise)
 
+    def nav_to_station(self, node: rclpy.node.Node, is_sub: bool = False):
+        """
+        导航至站台并进行位置修正
+
+        :param node: ROS2节点
+        :param is_sub: 是否使用副路径点
+        :return: None
+        """
+
+        logger = Logger()
+        move = MoveService(node)
+
+        if is_sub:
+            if self.sub_waypoint and self.sub_direction:
+                logger.info(f"前往 {self.name} 站台副路径点 {self.sub_waypoint}.")
+                move.my_navigation(self.sub_waypoint)
+            else:
+                logger.warn(f"未定义 {self.name} 站台副路径点或方向，使用站台主路径点.")
+                is_sub = False
+                move.my_navigation(self.main_waypoint)
+        else:
+            logger.info(f"前往 {self.name} 站台主路径点 {self.main_waypoint}.")
+            move.my_navigation(self.main_waypoint)
+
         logger.info(f"到达站台 {self.name} {'副路径点' if is_sub else '主路径点'}.")
 
-    def grab_basket(self, node: rclpy.node.Node, is_sub: bool = False):
+    def grab_basket(self, node: rclpy.node.Node, is_sub: bool = False, block=True):
         """
         抓取站台篮子
         :param node: ROS2节点
         :param is_sub: 是否使用副路径点
+        :param block: 是否阻塞
         :return: None
         """
 
@@ -127,12 +133,13 @@ class Station(enum.Enum):
                 logger.warn(f"未定义 {self.name} 站台副路径点或方向，使用站台主方向抓取篮子.")
                 direction = self.main_direction
         else:
+            logger.info(f"使用 {self.name} 站台主方向 {self.main_direction} 抓取篮子.")
             direction = self.main_direction
 
         distance_from_wall = sensor.get_distance_from_wall(direction)
 
-        ArmMovement.grab_basket_from_station(arm, direction, 15.5 if self.on_slope else 9.5,
-                                             (distance_from_wall - 0.25) * 100)
+        arm.plan_list(ArmMovement.grab_basket_from_station(direction, 16 if self.on_slope else 10,
+                                             (distance_from_wall - 0.25) * 100), block=block)
 
     def put_basket(self, node: rclpy.node.Node, is_sub: bool = False):
         logger = Logger()
@@ -148,4 +155,4 @@ class Station(enum.Enum):
         else:
             direction = self.main_direction
 
-        ArmMovement.put_basket_to_station(arm, direction, 15.5 if self.on_slope else 9.5)
+        arm.plan_list(ArmMovement.put_basket_to_station(direction, 16 if self.on_slope else 10))

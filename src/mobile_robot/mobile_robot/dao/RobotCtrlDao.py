@@ -52,6 +52,8 @@ class RobotCtrlDao(object):
     def publish(self):
         self.__topic.publish(self.__robot_ctrl)
         rclpy.spin_once(self.__node)
+        self.__topic.publish(self.__robot_ctrl)
+        rclpy.spin_once(self.__node)
 
     # 设置DO输出(端口: 0-2, 电平: T/F)
     def write_do(self, port: int, state: bool):

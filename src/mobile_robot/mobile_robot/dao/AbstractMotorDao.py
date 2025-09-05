@@ -65,14 +65,12 @@ class AbstractMotorDao(ABC):
             future = self._call_service(MotorCmd.READ_FEEDBACK, 0, 0)
 
             # 单层等待循环配超时机制
-            while rclpy.ok() and not future.done():
-                rclpy.spin_once(self.__node, timeout_sec=0.2)
+            rclpy.spin_until_future_complete(self.__node, future, timeout_sec=10)
 
-            if not rclpy.ok():
-                break
+            if not future.done():
+                self.__logger.warn("请求电机运动服务超时.")
+                continue
 
             if future.result().feedback.reached:
                 self.__logger.debug("电机运动服务已结束")
                 return
-
-            time.sleep(0.5)

@@ -110,8 +110,6 @@ class MotionDao:
                 self.__logger.debug("运动服务已结束.")
                 return
 
-            time.sleep(0.5)
-
     def stop(self):
         """停止基础运动"""
         self.__logger.debug("停止中...")

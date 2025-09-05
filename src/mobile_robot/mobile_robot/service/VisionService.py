@@ -88,12 +88,7 @@ class VisionService:
             if valid_depths.size > 0:
                 r.distance = float(np.median(valid_depths)) / 1000  # 使用中位数，避免离群值
             else:
-                for i in range(5):
-                    self.__logger.warn(f"未找到深度信息，重试 {i} 次.")
-                    depth_data = self.get_depth_data(point, inverted, kernel_size + (i * 4))
-                    if depth_data != -1:
-                        r.distance = depth_data
-                        break
+                r.distance = -1
 
             if r.distance == -1:
                 self.__logger.warn(f"{r.class_id} ({point.x}, {point.y}), 深度信息获取失败.")
@@ -108,7 +103,7 @@ class VisionService:
             result = infer_onnx_model(self.__weight_path, self.__names, photo)
             return result
 
-    def get_depth_data(self, point: Point, inverted=False, kernel_size=11) -> float:
+    def get_depth_data(self, point: Point, inverted=False, kernel_size=35) -> float:
         """
         @param point: 图像的坐标点
         @param inverted: 图像是否倒置

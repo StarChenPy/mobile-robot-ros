@@ -47,7 +47,9 @@ class MoveService:
 
         odom_w = self.__robot_data.get_robot_data().odom.w
         if abs(angle) > 15:
-            self.__logger.warn(f"角度过大，放弃矫正: {angle}")
+            self.__logger.warn(f"角度差异过大，不可信，放弃矫正: {angle}")
+        elif abs(angle) < 1:
+            self.__logger.warn(f"角度差异较小，无需矫正: {angle}")
         else:
             self.rotate(angle, is_block=block)
             self.__logger.info(f"直角矫正, 度数 {angle}")
@@ -56,6 +58,8 @@ class MoveService:
                 new_angle = Math.normalize_angle(Math.round_right_angle(odom_w))
                 self.__odom.init_yaw(new_angle)
                 self.__logger.info(f"重置里程计角度, 角度 {new_angle}")
+
+        return angle
 
     def my_navigation(self, waypoint: str, speed=0.6, start_name: str="", block=True):
         self.__navigation.navigation(waypoint, speed, start_name)

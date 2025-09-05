@@ -51,13 +51,8 @@ def generate_launch_description():
                                 output='screen',
                                 parameters=[LaunchConfiguration('navigation_params_file')])
 
-    urdf_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(package_dir, 'launch', 'urdf.launch.py'))
-    )
-
     return LaunchDescription([
         navigation_params,
-        urdf_launch,
         find_nearest_waypoint,
         correction_odom_node,
         pub_waypoints_node,

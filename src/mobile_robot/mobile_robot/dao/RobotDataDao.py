@@ -40,8 +40,8 @@ class RobotDataDao(object):
 
     def get_ir_left(self) -> float:
         rclpy.spin_once(self.__node)
-        return self.__robot_data.ir[0] + 0.145
+        return self.__robot_data.ir[0]
 
     def get_ir_right(self) -> float:
         rclpy.spin_once(self.__node)
-        return self.__robot_data.ir[1] + 0.114
+        return self.__robot_data.ir[1]

@@ -111,6 +111,8 @@ class ArmService:
         卡爪舵机 旋转
         原 gripper_rz
         """
+        if angle < 0:
+            angle *= 0.95
         self.__ctrl_servo(Servo.ROTARY, angle, enable)
 
     def servo_nod(self, angle: float, enable=True):
