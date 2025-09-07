@@ -342,7 +342,7 @@ def pixel_to_distance_from_bottom(y_pixel: float, camera_height: float) -> float
 
 def pixel_to_distance_from_center(y_pixel: float, camera_height: float) -> float:
     """
-    将图像中的像素位置映射为现实世界距离，底部为 0 米，向上递增。
+    将图像中的像素位置映射为现实世界距离。
 
     参数:
     - y_pixel: 像素坐标（图像底部为0）

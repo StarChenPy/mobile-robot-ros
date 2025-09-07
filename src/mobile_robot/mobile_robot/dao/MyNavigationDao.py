@@ -29,7 +29,7 @@ class MyNavigationDao:
         goal_msg.speed = speed
 
         self.__action.wait_for_server()
-        self.__logger.info(f"正在发送新的导航请求")
+        self.__logger.info(f"正在发送新的导航请求: {waypoint_name}")
 
         goal_handle_future = self.__action.send_goal_async(goal_msg)
         goal_handle_future.add_done_callback(self.__goal_response_callback)

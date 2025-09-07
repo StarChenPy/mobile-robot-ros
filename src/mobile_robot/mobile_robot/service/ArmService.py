@@ -48,16 +48,16 @@ class ArmService:
 
         # 舵机控制（不需要等待）
         if goal.servo_rotary is not None:
-            self.servo_rotary(goal.servo_rotary)
+            self.servo_rotary(goal.servo_rotary, publish=False)
 
         if goal.servo_nod is not None:
-            self.servo_nod(goal.servo_nod)
+            self.servo_nod(goal.servo_nod, publish=False)
 
         if goal.servo_telescopic is not None:
-            self.servo_telescopic(goal.servo_telescopic)
+            self.servo_telescopic(goal.servo_telescopic, publish=False)
 
         if goal.servo_gripper is not None:
-            self.servo_gripper(goal.servo_gripper)
+            self.servo_gripper(goal.servo_gripper, publish=False)
 
         # 统一下发命令
         self.robot_ctrl.publish()
@@ -91,12 +91,12 @@ class ArmService:
         self.lift_motor.wait_finish()
         self.rotary_motor.wait_finish()
 
-    def lift(self, target: float, speed = 70, is_block=True):
+    def lift(self, target: float, speed = 80, is_block=True):
         self.lift_motor.ctrl_motor(target, speed)
         if is_block:
             self.lift_motor.wait_finish()
 
-    def rotate(self, target: float, speed = 70, is_block=True):
+    def rotate(self, target: float, speed = 80, is_block=True):
         target += 1  # 调整偏差
         self.rotary_motor.ctrl_motor(target, speed)
         if is_block:
@@ -106,37 +106,37 @@ class ArmService:
         self.lift_motor.wait_finish()
         self.rotary_motor.wait_finish()
 
-    def servo_rotary(self, angle: float, enable=True):
+    def servo_rotary(self, angle: float, enable=True, publish=True):
         """
         卡爪舵机 旋转
         原 gripper_rz
         """
         if angle < 0:
-            angle *= 0.95
-        self.__ctrl_servo(Servo.ROTARY, angle, enable)
+            angle *= 0.96
+        self.__ctrl_servo(Servo.ROTARY, angle, enable, publish)
 
-    def servo_nod(self, angle: float, enable=True):
+    def servo_nod(self, angle: float, enable=True, publish=True):
         """
         卡爪舵机 点头(角度)
         原 gripper_ry
         """
-        self.__ctrl_servo(Servo.NOD, angle, enable)
+        self.__ctrl_servo(Servo.NOD, angle, enable, publish)
 
-    def servo_telescopic(self, distance: float, enable=True):
+    def servo_telescopic(self, distance: float, enable=True, publish=True):
         """
         卡爪舵机 伸缩 ( cm )
         原 telescopic
         """
-        self.__ctrl_servo(Servo.TELESCOPIC, distance, enable, 1)
+        self.__ctrl_servo(Servo.TELESCOPIC, distance, enable, publish)
 
-    def servo_gripper(self, distance: float, enable=True):
+    def servo_gripper(self, distance: float, enable=True, publish=True):
         """
         卡爪舵机 夹合 ( cm )
         原 gripper
         """
-        self.__ctrl_servo(Servo.GRIPPER, distance, enable)
+        self.__ctrl_servo(Servo.GRIPPER, distance, enable, publish)
 
-    def __ctrl_servo(self, servo: Servo, value: float, enable: bool, decelerate=0):
+    def __ctrl_servo(self, servo: Servo, value: float, enable: bool, publish=True):
         """
         通用舵机控制方法
         @param servo 舵机类型
@@ -175,7 +175,7 @@ class ArmService:
         type_name = servo.name.lower()
         if not enable:
             self.logger.debug(f'已设置 {type_name} 舵机松使能')
-            self.robot_ctrl.write_pwm(pin, 0)
+            self.robot_ctrl.write_pwm(pin, 0, publish)
             return
 
         # 限位处理
@@ -205,19 +205,4 @@ class ArmService:
                 coeff = (config["deg90_duty"] - config["zero_duty"]) / 90.0
                 duty = config["zero_duty"] + value * coeff
 
-        prev_duty = self.robot_ctrl.read_pwm(pin)
-        if prev_duty != duty:
-            self.logger.debug(f'设置 {type_name} 舵机: {value} (duty: {duty})')
-
-            if decelerate > 0 and prev_duty != 0:
-                difference = abs(prev_duty - duty)
-                steps = int(decelerate * 30)
-                duty_array = Math.ease_in_out_interp(prev_duty, duty, steps)
-                for d in duty_array:
-                    self.robot_ctrl.write_pwm(pin, d.item())
-                    time.sleep(difference / (decelerate * 1000))
-            else:
-                self.robot_ctrl.write_pwm(pin, duty)
-                time.sleep(0.5)
-        else:
-            self.logger.debug(f'舵机 {type_name} 已经在目标位置，无需调整')
+        self.robot_ctrl.write_pwm(pin, duty, publish)

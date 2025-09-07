@@ -75,11 +75,11 @@ class LaserRadarDao:
         start_angle = 0
 
         if direction == Direction.RIGHT:
-            start_angle = 0 - (scan_angle / 2)
+            start_angle = 0
         elif direction == Direction.FRONT:
             start_angle = 90 - (scan_angle / 2)
         elif direction == Direction.LEFT:
-            start_angle = 180 - (scan_angle / 2)
+            start_angle = 180 - scan_angle
 
         rclpy.spin_once(self.node)
         rclpy.spin_once(self.node)

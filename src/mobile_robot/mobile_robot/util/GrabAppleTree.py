@@ -6,7 +6,7 @@ import rclpy.node
 from . import Math
 from .Logger import Logger
 from .Singleton import singleton
-from ..param import ArmMovement
+from ..param import ArmMovement, RobotConstant
 from ..popo.Direction import Direction
 from ..popo.FruitType import FruitType
 from ..popo.IdentifyResult import IdentifyResult
@@ -35,6 +35,10 @@ class GrabAppleTree:
         self.sensor = SensorService(node)
 
     def has_apple(self):
+        """
+        判断框子中是否还有苹果
+        """
+
         apple_types = set(FruitType.apples())
         for i in range(1, 4):
             basket = getattr(self, f"basket_{i}")
@@ -42,19 +46,49 @@ class GrabAppleTree:
                 return True
         return False
 
-    def find_fruits(self, fruit=None) -> List[IdentifyResult]:
-        identify = self.vision.get_onnx_identify_depth(True, 35)
+    def apples_in_basket(self, apple: FruitType | str) -> bool:
+        """
+        判断水果在不在需求列表中
+        :param apple: 苹果，可以是名称或是FruitType
+        """
 
-        result = []
-        for i in identify:
-            if fruit:
-                if FruitType(i.class_id) not in fruit:
-                    continue
-            if i.distance > self.max_grab_distance:
-                self.logger.info(f"检测到一个 {i.class_id}, 但是距离 {i.distance} 超出 {self.max_grab_distance}")
-                continue
-            result.append(i)
-        return result
+        if isinstance(apple, str):
+            apple = FruitType(apple)
+
+        basket = self.basket_1 + self.basket_2 + self.basket_3
+        return apple in basket
+
+    def get_grape_in_which_basket(self, apple: FruitType | str) -> int:
+        """
+        获取给定的苹果所在的框子编号
+        """
+
+        if isinstance(apple, str):
+            apple = FruitType(apple)
+
+        for i in range(1, 4):
+            bastet = getattr(self, f"basket_{i}")
+            if apple in bastet:
+                return i
+        return 0
+
+    def find_apples_you_need(self) -> list[IdentifyResult]:
+        """
+        获取所需的葡萄识别结果
+        """
+
+        def get_result() -> list[IdentifyResult]:
+            identify = self.vision.get_onnx_identify_depth(True, 95)
+            return [i for i in identify if self.apples_in_basket(i.class_id)]
+
+        # 第一次结果
+        result = get_result()
+
+        while True:
+            new_result = get_result()
+            if len(result) == len(new_result):
+                return result  # 数量一致，返回
+            result = new_result  # 更新结果，继续循环
 
     def grab_apple_from_tree(self):
         if self.direction is None:
@@ -64,13 +98,7 @@ class GrabAppleTree:
         self.close_tree()
         ArmMovement.identify_tree_fruit(self.arm, self.direction)
         time.sleep(1)
-        fruits_1 = self.find_fruits(self.basket_1 + self.basket_2 + self.basket_3)
-        fruits_2 = self.find_fruits(self.basket_1 + self.basket_2 + self.basket_3)
-        while len(fruits_1) != len(fruits_2):
-            fruits_1 = self.find_fruits(self.basket_1 + self.basket_2 + self.basket_3)
-            fruits_2 = self.find_fruits(self.basket_1 + self.basket_2 + self.basket_3)
-            self.logger.warn("两次拍摄水果数量不相同，重试.")
-        fruits = fruits_2
+        fruits = self.find_apples_you_need()
 
         if not fruits:
             self.logger.warn("没有检测到水果!")
@@ -83,8 +111,13 @@ class GrabAppleTree:
         prev_move_len = 0
         for i in fruits:
             if i.distance == -1:
-                self.logger.warn(f"{i.class_id} 没有深度信息，跳过")
-                continue
+                width_center = RobotConstant.CAMERA_WIDTH / 2
+                if width_center - 100 < i.box.get_rectangle_center().x < width_center + 100:
+                    self.logger.warn(f"{i.class_id} 没有深度信息，跳过")
+                else:
+                    self.logger.warn(f"{i.class_id} 没有深度信息，但在画面中间，使用默认深度")
+                    i.distance = 0.25
+                    continue
 
             if FruitType(i.class_id) not in (self.basket_1 + self.basket_2 + self.basket_3):
                 self.logger.info(f"已经抓够的的水果，跳过 {i.class_id}")
@@ -100,15 +133,20 @@ class GrabAppleTree:
 
             center = i.box.get_rectangle_center()
             fruit_type = FruitType(i.class_id)
+            is_low = center.y > 180
+            extra_swing_angle = 0
 
             if self.direction == Direction.LEFT:
                 move_distance = Math.pixel_to_horizontal_distance_x_centered(center.x - 320, i.distance)
+                if is_low:
+                    extra_swing_angle = 20 if move_distance > 0 else -20
             elif self.direction == Direction.RIGHT:
                 move_distance = Math.pixel_to_horizontal_distance_x_centered(320 - center.x, i.distance)
+                if is_low:
+                    extra_swing_angle = -20 if move_distance > 0 and is_low else 20
             else:
                 raise ValueError()
-            # move_distance = move_distance * 1.4 if move_distance < 0 else move_distance
-            move_distance = move_distance * 1.15 + 0.215
+            move_distance = move_distance + 0.215
 
             actual_move_len = move_distance - prev_move_len
             self.logger.info(f"准备抓取: {i.class_id} ({center.x}, {center.y}), 距离: {i.distance}, 移动: {actual_move_len}")
@@ -116,7 +154,7 @@ class GrabAppleTree:
             self.move.line(actual_move_len, is_block=False)
             prev_move_len = move_distance
 
-            ArmMovement.grab_apple_on_tree(self.arm, self.direction, (i.distance - 0.27) * 100, center.y > 180)
+            ArmMovement.grab_apple_on_tree(self.arm, self.direction, (i.distance - 0.27) * 100, is_low, extra_swing_angle)
             for j in range(1, 4):
                 basket = getattr(self, f"basket_{j}")
                 if fruit_type in basket:
@@ -142,7 +180,9 @@ class GrabAppleTree:
             return
 
         # 获取指定角度范围内距离最小点
-        start_angle = -170 if self.direction == Direction.LEFT else 20
+        rclpy.spin_once(self.node)
+        rclpy.spin_once(self.node)
+        start_angle = 180 if self.direction == Direction.LEFT else 30
         radar_data = self.sensor.get_lidar_data(start_angle - 30, start_angle)
         min_tree = min(radar_data, key=lambda i: i[0])
 

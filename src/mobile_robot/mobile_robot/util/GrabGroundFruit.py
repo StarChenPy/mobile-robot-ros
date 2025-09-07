@@ -111,11 +111,11 @@ class GrabGroundFruit:
 
             # 伸缩控制
             telescopic_len = Math.calculate_hypotenuse(photo_telescopic_len, x_dis)
-            self.arm.servo_telescopic((telescopic_len - photo_telescopic_len) * 100 + 6)
+            self.arm.servo_telescopic((telescopic_len - photo_telescopic_len) * 100 + 7)
 
             # 计算旋转
             rotary_angle = -Math.calculate_right_triangle_angle(x_dis, telescopic_len)
-            rotary_angle *= 1.2
+            rotary_angle *= 1.3
 
             ArmMovement.grab_fruit_from_ground(self.arm, rotary_angle, (telescopic_len - photo_telescopic_len) * 100 + 6, "grape" in fruit.class_id)
 

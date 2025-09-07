@@ -34,21 +34,20 @@ class TaskDController:
         self.robot.set_start_led(True)
         self.arm.back_origin()
         self.arm.plan_list(ArmMovement.motion())
-        # self.sensor.init_odom_all(NavigationPoint(2.432, 2.452, 180))
-        self.sensor.correction("c_4")
+        self.sensor.init_odom_all(NavigationPoint(2.432, 2.452, 180))
+        # self.sensor.correction("c_2")
         self.robot.set_start_led(False)
 
         self.robot.with_start_button()
 
         self.start_time = time.time()
 
-        # self.grab_baskets()
+        self.grab_baskets()
         self.grab_grapes()
         self.put_baskets()
 
         # 回起始区，结束任务
         self.move.my_navigation("start")
-        self.arm.servo_nod(90)
         self.robot.set_start_led(False)
 
         end_time = time.time()
@@ -100,8 +99,8 @@ class TaskDController:
             (["c_2"], Direction.LEFT, "v_4", True),
             ([], Direction.LEFT, "v_5", True),
             ([], Direction.LEFT, "v_6", False),
-            # (["c_3", "c_9"], Direction.LEFT, "v_7"),
-            # ([], Direction.LEFT, "v_8"),
+            (["c_3", "c_9"], Direction.LEFT, "v_7", True),
+            ([], Direction.LEFT, "v_8", False),
         ]
 
         for path, direction, waypoint, continuous in plans:

@@ -26,7 +26,28 @@ class RobotCtrlDao(object):
 
         self.__topic.publish(self.__robot_ctrl)
 
-    def write_pwm_no_pub(self, port: int, duty: float):
+    def publish(self):
+        self.__topic.publish(self.__robot_ctrl)
+        rclpy.spin_once(self.__node)
+        self.__topic.publish(self.__robot_ctrl)
+        rclpy.spin_once(self.__node)
+        self.__topic.publish(self.__robot_ctrl)
+        rclpy.spin_once(self.__node)
+
+    # 设置DO输出(端口: 0-2, 电平: T/F)
+    def write_do(self, port: int, state: bool):
+        self.__logger.debug(f"操作DO端口 {port} 为 {state}")
+        match port:
+            case 0:
+                self.__robot_ctrl.do0 = state
+            case 1:
+                self.__robot_ctrl.do1 = state
+            case 2:
+                self.__robot_ctrl.do2 = state
+        self.publish()
+
+    # 设置 pwm (端口: 0-4, duty: 0-100%)
+    def write_pwm(self, port: int, duty: float, publish=True):
         duty = float(min(max(duty, 0), 100))
         if duty > 100:
             self.__logger.warn(f"操作PWM端口 {port} 占空比为 {duty} 超过最大值!")
@@ -49,28 +70,8 @@ class RobotCtrlDao(object):
             case 4:
                 self.__robot_ctrl.pwm4 = duty
 
-    def publish(self):
-        self.__topic.publish(self.__robot_ctrl)
-        rclpy.spin_once(self.__node)
-        self.__topic.publish(self.__robot_ctrl)
-        rclpy.spin_once(self.__node)
-
-    # 设置DO输出(端口: 0-2, 电平: T/F)
-    def write_do(self, port: int, state: bool):
-        self.__logger.debug(f"操作DO端口 {port} 为 {state}")
-        match port:
-            case 0:
-                self.__robot_ctrl.do0 = state
-            case 1:
-                self.__robot_ctrl.do1 = state
-            case 2:
-                self.__robot_ctrl.do2 = state
-        self.publish()
-
-    # 设置 pwm (端口: 0-4, duty: 0-100%)
-    def write_pwm(self, port: int, duty: float):
-        self.write_pwm_no_pub(port, duty)
-        self.publish()
+        if publish:
+            self.publish()
 
     def read_pwm(self, port: int) -> float:
         """

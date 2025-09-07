@@ -7,10 +7,10 @@ rotary:
 
 nod:
   pin: 1
-  min_value: -40
-  max_value: 180
-  zero_duty: 17.3336
-  deg90_duty: 30
+  min_value: -60
+  max_value: 150
+  zero_duty: 24.79
+  deg90_duty: 37.03
 
 telescopic:
   pin: 2

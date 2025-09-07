@@ -370,16 +370,11 @@ v_10:
     - "c_4"
     - "v_3"
   on_slope: false
-c_start:
+start:
   pose:
     x: 2.432
     y: 2.452
-    yaw: 0.0
-  corrective_data:
-    front: 0.0
-    back: 0.3
-    left: 0.3
-    right: 0.0
+    yaw: 180.0
   connected_nodes:
     - "s_y_2_r"
   on_slope: false
@@ -472,7 +467,7 @@ s_y_2_r:
     yaw: 90.0
   connected_nodes:
     - "s_r_1_l"
-    - "c_start"
+    - "start"
     - "p_1"
     - "c_1"
     - "c_8"

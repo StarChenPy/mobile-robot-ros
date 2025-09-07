@@ -67,7 +67,7 @@ c_2:
   corrective_data:
     front: 0.0
     back: 0.3
-    left: 0.94
+    left: 0.95
     right: 0.0
   connected_nodes:
     - "v_6"
@@ -209,13 +209,8 @@ v_3:
 v_4:
   pose:
     x: 1.372
-    y: 3.021
+    y: 3.03
     yaw: 0.0
-  corrective_data:
-    front: 1.92
-    back: 0.0
-    left: 0.0
-    right: 0.87
   connected_nodes:
     - "v_6"
     - "v_5"
@@ -226,7 +221,7 @@ v_4:
 v_5:
   pose:
     x: 1.972
-    y: 3.021
+    y: 3.03
     yaw: 0.0
   corrective_data:
     front: 1.32

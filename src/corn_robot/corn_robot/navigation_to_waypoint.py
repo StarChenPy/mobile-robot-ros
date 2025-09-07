@@ -217,6 +217,7 @@ class NavigationToPoseNode(rclpy.node.Node):
                         return self.create_result(False, '导航已被取消', index, T1)
                     result = await self.auto_navigation(path)
                     if result is None or not result.success:
+                        self.get_logger().error("导航到路径点失败")
                         goal_handle.abort()
                         return self.create_result(False, '导航到路径点失败', index, T1)
                     path = []
@@ -225,11 +226,12 @@ class NavigationToPoseNode(rclpy.node.Node):
                     self.get_logger().info("导航已被取消")
                     goal_handle.canceled()
                     return self.create_result(False, '导航已被取消', index, T1)
-                time.sleep(0.3)
+                time.sleep(0.5)
                 result = await self.correction_client.call_async(CorrectionOdom.Request(waypoint_name=waypoint.name))
                 if result is None or not result.success:
                     goal_handle.abort()
                     msg = result.message if result else '机器人矫正Odom失败!'
+                    self.get_logger().error(msg)
                     return self.create_result(False, msg, index, T1)
                 time.sleep(0.3)
 
@@ -251,6 +253,7 @@ class NavigationToPoseNode(rclpy.node.Node):
                 return self.create_result(False, '导航已被取消', len(waypoints), T1)
             result = await self.auto_navigation(path)
             if result is None or not result.success:
+                self.get_logger().error("导航到路径点失败")
                 goal_handle.abort()
                 return self.create_result(False, '导航到路径点失败', len(waypoints), T1)
 

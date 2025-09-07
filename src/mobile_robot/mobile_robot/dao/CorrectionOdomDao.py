@@ -17,6 +17,7 @@ class CorrectionOdomDao:
         self.future = None
 
     def send_correction_odom(self, waypoint_name: str):
+        self.__logger.info(f"请求矫正: {waypoint_name}")
         self.future = self.__service.call_async(CorrectionOdom.Request(waypoint_name=waypoint_name))
 
     def wait_finish(self):

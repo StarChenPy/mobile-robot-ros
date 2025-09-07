@@ -3,6 +3,7 @@ import time
 from ..param import ArmMovement
 from ..popo.Direction import Direction
 from ..popo.FruitType import FruitType
+from ..popo.NavigationPoint import NavigationPoint
 from ..service.ArmService import ArmService
 from ..service.MoveService import MoveService
 from ..service.RobotService import RobotService
@@ -48,12 +49,12 @@ class TaskBController:
             task_method = getattr(self, f"task_{i}")
             if callable(task_method):
                 self.logger.info(f"等待执行任务B-{i}")
+                # self.sensor.correction("c_4")
+                self.sensor.init_odom_all(NavigationPoint(2.432, 2.452, 180))
                 button = self.robot.with_start_button()
                 self.logger.info(f"开始执行任务B-{i}")
                 self.arm.plan_list(ArmMovement.motion())
                 start_time = time.time()
-                self.sensor.correction("c_start")
-                time.sleep(0.5)
                 task_method(button)
                 self.robot.set_start_led(False)
                 end_time = time.time()
@@ -80,6 +81,7 @@ class TaskBController:
         # 去红站台1抓取水果
         direction = Direction.LEFT
         Station.RED_1.nav_to_station(self.node)
+        Station.RED_1.correction(self.node)
         self.logger.info("开始识别水果")
         ArmMovement.identify_station_fruit(self.arm, direction)
         red_station = None
@@ -212,16 +214,16 @@ class TaskBController:
         # 去葡萄区抓一个葡萄，放到篮子里
         grab_grape_wall = GrabGrapeWall(self.node)
         grab_grape_wall.direction = Direction.RIGHT
-        self.move.my_navigation("c_5")
-        self.move.my_navigation("v_1", speed=0.4)
-        self.arm.plan_list(ArmMovement.grab_grape_on_wall(Direction.RIGHT, 16, 34))
-        ArmMovement.put_fruit_to_basket(self.arm, 2, True)
-        self.arm.plan_list(ArmMovement.motion())
+        self.move.my_navigation("v_1")
+        grab_grape_wall = GrabGrapeWall(self.node)
+        grab_grape_wall.direction = Direction.RIGHT
+        grab_grape_wall.basket_2 = [FruitType.PURPLE_GRAPE]
+        grab_grape_wall.grab_grape_from_wall()
 
         # 去苹果区抓一个苹果，放到篮子里
         self.move.my_navigation("c_7")
-        self.move.my_navigation("t_1_g", speed=0.4)
-        ArmMovement.grab_apple_on_tree(self.arm, Direction.RIGHT, 0, False)
+        self.move.my_navigation("t_1_g")
+        ArmMovement.grab_apple_on_tree(self.arm, Direction.RIGHT, 0, False, 0)
         ArmMovement.put_fruit_to_basket(self.arm, 2)
         self.arm.plan_list(ArmMovement.motion())
 
@@ -230,8 +232,8 @@ class TaskBController:
         self.arm.plan_list(ArmMovement.motion())
 
         # 回到起始区
-        self.move.my_navigation("c_start")
-        ArmMovement.end(self.arm)
+        self.move.my_navigation("start")
+        self.arm.servo_nod(-60)
 
     def task_7(self, _):
         # 去黄站台2抓框子
@@ -267,8 +269,8 @@ class TaskBController:
 
         # 回起始区
         self.move.my_navigation("c_8")
-        self.move.my_navigation("c_start")
-        ArmMovement.end(self.arm)
+        self.move.my_navigation("start")
+        self.arm.servo_nod(-60)
 
     def task_8(self, _):
         # 去黄站台2抓框子
@@ -301,8 +303,8 @@ class TaskBController:
                 break
 
         # 返回起始区
-        self.move.my_navigation("c_start")
-        ArmMovement.end(self.arm)
+        self.move.my_navigation("start")
+        self.arm.servo_nod(-60)
 
     def task_9(self, button):
         # 去会动的 果树1 抓一颗苹果
@@ -343,5 +345,5 @@ class TaskBController:
 
         # 回起始区
         self.move.my_navigation("c_8")
-        self.move.my_navigation("c_start")
-        ArmMovement.end(self.arm)
+        self.move.my_navigation("start")
+        self.arm.servo_nod(-60)

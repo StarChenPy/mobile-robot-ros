@@ -68,7 +68,7 @@ class SensorService:
         if start > end:
             start, end = end, start
         for i in range(start, end):
-            l.append(self.__radar.get_radar_data(Math.normalize_angle(i)))
+            l.append(self.__radar.get_radar_data(i))
         return l
 
     def get_distance_from_wall(self, direction: Direction) -> float:
@@ -102,8 +102,8 @@ class SensorService:
 
     def init_odom_all(self, point: NavigationPoint):
         self.__odom.init_all(point)
-        time.sleep(1)
         rclpy.spin_once(self.__node)
+        time.sleep(1)
 
     def init_location(self, x, y):
         self.__odom.init_location(x, y)

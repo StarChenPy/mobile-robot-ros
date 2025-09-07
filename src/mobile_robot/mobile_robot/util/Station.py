@@ -13,7 +13,7 @@ from ..service.SensorService import SensorService
 class Station(enum.Enum):
     YELLOW_1 = enum.auto(), "s_y_1_r", Direction.RIGHT, 1.49, False, "s_y_1_l", Direction.LEFT, 2.11
     YELLOW_2 = enum.auto(), "s_y_2_r", Direction.RIGHT, 1.52, True
-    YELLOW_3 = enum.auto(), "s_y_3_l", Direction.LEFT, 1.6, False
+    YELLOW_3 = enum.auto(), "s_y_3_l", Direction.LEFT, 1.62, False
     RED_1 = enum.auto(), "s_r_1_l", Direction.LEFT, 1.51, True
     RED_2 = enum.auto(), "s_r_2_r", Direction.RIGHT, 0, False
     RED_3 = enum.auto(), "s_r_3_r", Direction.RIGHT, 1.7, False

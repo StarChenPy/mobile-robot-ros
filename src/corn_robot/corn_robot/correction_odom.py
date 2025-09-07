@@ -50,7 +50,7 @@ class CorrectionOdomNode(rclpy.node.Node):
         self.robot_data = msg
 
     def correction_callback(self, request: CorrectionOdom.Request, response: CorrectionOdom.Response):
-        self.get_logger().info(f"接收到矫正请求")
+        self.get_logger().info(f"接收到矫正请求: {request.waypoint_name}")
 
         x_buffer = 0
         y_buffer = 0
