@@ -46,9 +46,9 @@ class MoveService:
             angle = self.__radar.get_angle_from_wall(direction, scan_angle)
 
         odom_w = self.__robot_data.get_robot_data().odom.w
-        if abs(angle) > 15:
+        if abs(angle) > 7:
             self.__logger.warn(f"角度差异过大，不可信，放弃矫正: {angle}")
-        elif abs(angle) < 1:
+        elif abs(angle) < 0.5:
             self.__logger.warn(f"角度差异较小，无需矫正: {angle}")
         else:
             self.rotate(angle, is_block=block)

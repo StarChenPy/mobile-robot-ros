@@ -96,6 +96,7 @@ class GrabAppleTree:
             return False
 
         self.close_tree()
+        self.move.rotation_correction()
         ArmMovement.identify_tree_fruit(self.arm, self.direction)
         time.sleep(1)
         fruits = self.find_apples_you_need()

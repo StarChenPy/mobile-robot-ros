@@ -103,7 +103,6 @@ class SensorService:
     def init_odom_all(self, point: NavigationPoint):
         self.__odom.init_all(point)
         rclpy.spin_once(self.__node)
-        time.sleep(1)
 
     def init_location(self, x, y):
         self.__odom.init_location(x, y)

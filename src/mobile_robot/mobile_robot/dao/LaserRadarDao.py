@@ -13,14 +13,9 @@ from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
 
-RADAR_ERROR_LEFT = 2.01
-RADAR_ERROR_FRONT = 1.61
-RADAR_ERROR_RIGHT = 1.87
-
-
-# RADAR_ERROR_LEFT = 0
-# RADAR_ERROR_FRONT = 0
-# RADAR_ERROR_RIGHT = 0
+RADAR_ERROR_LEFT = 1.83
+RADAR_ERROR_FRONT = 1.21
+RADAR_ERROR_RIGHT = 1.75
 
 
 @singleton
@@ -116,7 +111,7 @@ class LaserRadarDao:
 
         self.logger.debug(f"{direction.name} 测量角度 {angle}")
 
-        if not secondary_confirmation and angle >= 2:
+        if not secondary_confirmation and abs(angle) >= 2:
             self.logger.info(f"{direction.name} 测量角度较大，二次确认")
             time.sleep(0.5)
             sc = self.get_angle_from_wall(direction, scan_angle, True)

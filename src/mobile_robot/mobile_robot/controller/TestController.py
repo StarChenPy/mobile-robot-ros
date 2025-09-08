@@ -5,6 +5,7 @@ import rclpy
 from ..param import ArmMovement
 from ..popo.Direction import Direction
 from ..popo.FruitType import FruitType
+from ..popo.NavigationPoint import NavigationPoint
 from ..service.ArmService import ArmService
 from ..service.MoveService import MoveService
 from ..service.RobotService import RobotService
@@ -32,41 +33,43 @@ class TestController:
 
     def run(self):
         self.robot.with_robot_connect()
-        self.arm.back_origin()
+        # self.arm.back_origin()
 
         # while True:
-        #     input("等待...")
-        #     self.sensor.correction("c_2")
+            # input("等待...")
+            # self.sensor.init_odom_all(NavigationPoint(2.405, 1.55, 180))
+            # self.move.my_navigation("s_y_2_r")
+            # self.sensor.correction("c_2")
 
-        # # 矫正雷达
-        # while True:
-        #     input("等待")
-        #     print("----------------左墙----------------")
-        #     li = []
-        #     for i in range(10):
-        #         wall = self.sensor.get_angle_from_wall(Direction.LEFT)
-        #         li.append(wall)
-        #         print(wall)
-        #         time.sleep(0.3)
-        #     print(Math.average_without_extremes(li))
-        #
-        #     print("----------------前墙----------------")
-        #     li = []
-        #     for i in range(10):
-        #         wall = self.sensor.get_angle_from_wall(Direction.FRONT)
-        #         li.append(wall)
-        #         print(wall)
-        #         time.sleep(0.3)
-        #     print(Math.average_without_extremes(li))
-        #
-        #     print("----------------右墙----------------")
-        #     li = []
-        #     for i in range(10):
-        #         wall = self.sensor.get_angle_from_wall(Direction.RIGHT)
-        #         li.append(wall)
-        #         print(wall)
-        #         time.sleep(0.3)
-        #     print(Math.average_without_extremes(li))
+        # 矫正雷达
+        while True:
+            input("等待")
+            print("----------------左墙----------------")
+            li = []
+            for i in range(10):
+                wall = self.sensor.get_angle_from_wall(Direction.LEFT)
+                li.append(wall)
+                print(wall)
+                time.sleep(0.3)
+            print(Math.average_without_extremes(li))
+
+            print("----------------前墙----------------")
+            li = []
+            for i in range(10):
+                wall = self.sensor.get_angle_from_wall(Direction.FRONT)
+                li.append(wall)
+                print(wall)
+                time.sleep(0.3)
+            print(Math.average_without_extremes(li))
+
+            print("----------------右墙----------------")
+            li = []
+            for i in range(10):
+                wall = self.sensor.get_angle_from_wall(Direction.RIGHT)
+                li.append(wall)
+                print(wall)
+                time.sleep(0.3)
+            print(Math.average_without_extremes(li))
 
         # dao = RobotDataDao(self.node)
         # while len(dao.imu_data) < 20:
@@ -84,16 +87,16 @@ class TestController:
         #     input("等待...")
 
 
-        # 抓苹果树测试
-        tree = GrabAppleTree(self.node)
-        tree.direction = Direction.RIGHT
-        tree.basket_1 = [FruitType.RED_APPLE, FruitType.GREEN_APPLE]
-        tree.basket_2 = [FruitType.GREEN_APPLE, FruitType.YELLOW_APPLE]
-        tree.basket_3 = [FruitType.YELLOW_APPLE, FruitType.PURPLE_APPLE]
-
-        while True:
-            input("Press Enter to continue...")
-            tree.grab_apple_from_tree()
+        # # 抓苹果树测试
+        # tree = GrabAppleTree(self.node)
+        # tree.direction = Direction.RIGHT
+        # tree.basket_1 = [FruitType.RED_APPLE, FruitType.GREEN_APPLE]
+        # tree.basket_2 = [FruitType.GREEN_APPLE, FruitType.YELLOW_APPLE]
+        # tree.basket_3 = [FruitType.YELLOW_APPLE, FruitType.PURPLE_APPLE]
+        #
+        # while True:
+        #     input("Press Enter to continue...")
+        #     tree.grab_apple_from_tree()
 
 
         # # 抓葡萄墙测试

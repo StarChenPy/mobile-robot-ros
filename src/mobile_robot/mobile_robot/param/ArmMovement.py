@@ -15,7 +15,7 @@ OPEN_GRAPE_GRIPPER = 10
 
 CLOSE_GRIPPER_APPLE = 4
 CLOSE_GRIPPER_GRAPE = 1
-CLOSE_GRIPPER_BASKET = 15.3
+CLOSE_GRIPPER_BASKET = 15.5
 
 
 # ------------------ 基础动作与复用动作 ------------------ #
@@ -218,7 +218,7 @@ def grab_apple_on_tree(arm: 'ArmService', direction: Direction, telescopic: floa
         OmsGoal(motor_rotary=rotate_angle + extra_swing_angle, motor_lift=0,
                 servo_rotary=0, servo_nod=servo_nod, servo_telescopic=0, servo_gripper=OPEN_HALF_GRIPPER),
         OmsGoal(motor_lift=lift_height),
-        OmsGoal(servo_telescopic=telescopic, servo_nod=38 if extra_swing_angle else servo_nod),
+        OmsGoal(servo_telescopic=telescopic, servo_nod=45 if extra_swing_angle else servo_nod, sleep=0.3),
         OmsGoal(motor_rotary=rotate_angle),
         OmsGoal(servo_nod=servo_nod, sleep=0.5),
         OmsGoal(servo_gripper=CLOSE_GRIPPER_APPLE, sleep=0.2),
@@ -230,7 +230,7 @@ def grab_apple_on_tree(arm: 'ArmService', direction: Direction, telescopic: floa
     else:
         plan_list.append(OmsGoal(servo_nod=90, servo_telescopic=0))
 
-    plan_list.append(OmsGoal(motor_lift=0, servo_rotary=90, servo_nod=0))
+    plan_list.append(OmsGoal(motor_lift=0, servo_rotary=-90 if extra_swing_angle > 0 else 90))
 
     arm.plan_list(plan_list)
 
