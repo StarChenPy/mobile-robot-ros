@@ -75,9 +75,12 @@ class PubWaypointsNode(rclpy.node.Node):
             corrected_data = v.get('corrective_data', {})
             if corrected_data:
                 msg.corrected_data.front = float(corrected_data.get('front', 0))
+                msg.corrected_data.front_angle = float(corrected_data.get('front_angle', 0))
                 msg.corrected_data.back = float(corrected_data.get('back', 0))
                 msg.corrected_data.left = float(corrected_data.get('left', 0))
+                msg.corrected_data.left_angle = float(corrected_data.get('left_angle', 0))
                 msg.corrected_data.right = float(corrected_data.get('right', 0))
+                msg.corrected_data.right_angle = float(corrected_data.get('right_angle', 0))
 
             msg.pose.x = x
             msg.pose.y = y

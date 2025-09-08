@@ -116,7 +116,7 @@ class LidarToolbox:
         distance = Math.fit_polar_line_and_get_distance(points)
 
         if direction == Direction.FRONT:
-            distance += 0.2
+            distance += 0.23
         else:
             angle_from_wall = self.get_angle_from_wall(direction)
             side = Math.calculate_right_angle_side(0.2, abs(angle_from_wall))

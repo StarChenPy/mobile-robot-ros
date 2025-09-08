@@ -345,11 +345,11 @@ def pixel_to_distance_from_center(y_pixel: float, camera_height: float) -> float
     将图像中的像素位置映射为现实世界距离。
 
     参数:
-    - y_pixel: 像素坐标（图像底部为0）
+    - y_pixel: 像素坐标（图像中间为0）
     - camera_height: 相机离地高度（米）
 
     返回:
-    - 从图像底部到该点的现实距离（米）
+    - 从图像中间到该点的现实距离（米）
     """
     IMAGE_HEIGHT = 320  # 图像高度（像素）
     VERTICAL_FOV_DEG = 55  # 垂直视场角（度）

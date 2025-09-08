@@ -73,7 +73,7 @@ class TaskCController:
         self.move.navigation([NavigationPoint(3.3, 0.3, 0)])
         self.logger.info("开始抓取")
         ground_fruit = GrabGroundFruit(self.node)
-        ArmMovement.identify_ground_fruit(self.arm, 60)
+        ArmMovement.identify_ground_fruit(self.arm)
         while not ground_fruit.grab_ground_fruit([self.fruit]):
             self.logger.warn("没有找到水果")
             pass

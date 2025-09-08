@@ -117,14 +117,13 @@ def identify_grape(direction: Direction):
     return plan_list
 
 
-def identify_ground_fruit(arm: 'ArmService', nod_angle: float):
+def identify_ground_fruit(arm: 'ArmService', nod_angle=60):
     """
     识别地上的水果姿态
     """
     plan_list = [
         OmsGoal(motor_lift=5, motor_rotary=180, servo_telescopic=3),
-        OmsGoal(servo_nod=nod_angle, servo_rotary=90),
-        OmsGoal(servo_rotary=180)
+        OmsGoal(servo_rotary=0, servo_nod=nod_angle)
     ]
     arm.plan_list(plan_list)
     time.sleep(1)
@@ -187,12 +186,12 @@ def grab_fruit_from_station(arm: 'ArmService', direction: Direction, low=True):
     arm.plan_list(plan_list)
 
 
-def grab_fruit_from_ground(arm: 'ArmService', rotary, telescopic, is_grape):
+def grab_fruit_from_ground(arm: 'ArmService', rotary, telescopic, is_small):
     plan_list = [
         OmsGoal(motor_rotary=180 + rotary, motor_lift=29,
                 servo_rotary=90 - rotary, servo_nod=90, servo_telescopic=telescopic, servo_gripper=OPEN_HALF_GRIPPER),
     ]
-    if is_grape:
+    if is_small:
         plan_list.append(OmsGoal(servo_gripper=CLOSE_GRIPPER_GRAPE, sleep=0.5))
     else:
         plan_list.append(OmsGoal(servo_gripper=CLOSE_GRIPPER_APPLE, sleep=0.5))
