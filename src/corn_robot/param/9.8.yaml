@@ -604,11 +604,11 @@ v_6:
   on_slope: false
 c_3:
   pose:
-    x: 2.975
+    x: 2.65
     y: 0.98
     yaw: 0.0
   corrective_data:
-    front: 0.28
+    front: 0.62
     back: 0.0
     left: 0.25
     right: 0.0

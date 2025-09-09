@@ -150,12 +150,14 @@ class GrabAppleTree:
             move_distance = move_distance + 0.215
 
             actual_move_len = move_distance - prev_move_len
+            if abs(actual_move_len) > 0.1:
+                actual_move_len *= 1.1
             self.logger.info(f"准备抓取: {i.class_id} ({center.x}, {center.y}), 距离: {i.distance}, 移动: {actual_move_len}")
 
             self.move.line(actual_move_len, is_block=False)
             prev_move_len = move_distance
 
-            ArmMovement.grab_apple_on_tree(self.arm, self.direction, (i.distance - 0.27) * 100, is_low, extra_swing_angle)
+            ArmMovement.grab_apple_on_tree(self.arm, self.direction, (i.distance - 0.26) * 100, is_low, extra_swing_angle)
             for j in range(1, 4):
                 basket = getattr(self, f"basket_{j}")
                 if fruit_type in basket:

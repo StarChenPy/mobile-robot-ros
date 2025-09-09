@@ -293,7 +293,7 @@ def pixel_to_horizontal_distance_x_centered(x_pixel: float, camera_height: float
     相机垂直向下安装，图像宽度640px，水平FOV为110°。
     """
     fov_deg = 80
-    image_width = 600
+    image_width = 640
     fov_rad = math.radians(fov_deg)
 
     # 焦距（像素单位）

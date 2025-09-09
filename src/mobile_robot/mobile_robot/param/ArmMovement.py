@@ -24,17 +24,17 @@ CLOSE_GRIPPER_BASKET = 15.5
 def robot_basket_top(num):
     if num == 1:
         plan_list = [
-            OmsGoal(motor_rotary=22, motor_lift=0, servo_rotary=71, servo_nod=0, servo_telescopic=3.5),
+            OmsGoal(motor_rotary=21, motor_lift=0, servo_rotary=69, servo_telescopic=4),
             OmsGoal(servo_nod=90, sleep=0.5)
         ]
     elif num == 2:
         plan_list = [
-            OmsGoal(motor_rotary=8, motor_lift=0, servo_rotary=-98, servo_nod=0, servo_telescopic=2),
+            OmsGoal(motor_rotary=7, motor_lift=0, servo_rotary=-97, servo_telescopic=3),
             OmsGoal(servo_nod=90, sleep=0.5)
         ]
     elif num == 3:
         plan_list = [
-            OmsGoal(motor_rotary=-19, motor_lift=0, servo_rotary=-71, servo_nod=0, servo_telescopic=3.5),
+            OmsGoal(motor_rotary=-19, motor_lift=0, servo_rotary=-69, servo_telescopic=4.5),
             OmsGoal(servo_nod=90, sleep=0.5)
         ]
     else:
@@ -122,7 +122,7 @@ def identify_ground_fruit(arm: 'ArmService', nod_angle=60):
     识别地上的水果姿态
     """
     plan_list = [
-        OmsGoal(motor_lift=5, motor_rotary=180, servo_telescopic=3),
+        OmsGoal(motor_lift=5, motor_rotary=180, servo_nod=0, servo_telescopic=8),
         OmsGoal(servo_rotary=0, servo_nod=nod_angle)
     ]
     arm.plan_list(plan_list)
@@ -144,7 +144,7 @@ def identify_tree_fruit(arm: 'ArmService', direction: Direction):
     else:
         raise ValueError("不支持的方向")
     arm.servo_nod(-30)
-    arm.lift(30, is_block=False)
+    arm.lift(28, is_block=False)
     arm.servo_telescopic(0)
     arm.wait_finish()
     time.sleep(1)
@@ -158,7 +158,7 @@ def grab_basket_from_robot(arm: 'ArmService', num: int):
         OmsGoal(motor_lift=10, servo_gripper=OPEN_GRIPPER),
         OmsGoal(servo_gripper=CLOSE_GRIPPER_BASKET),
         OmsGoal(motor_lift=0),
-        OmsGoal(servo_rotary=0, servo_nod=0, servo_telescopic=18)
+        OmsGoal(servo_rotary=0, servo_nod=0)
     ]
     arm.plan_list(plan_list)
 
@@ -187,10 +187,17 @@ def grab_fruit_from_station(arm: 'ArmService', direction: Direction, low=True):
 
 
 def grab_fruit_from_ground(arm: 'ArmService', rotary, telescopic, is_small):
-    plan_list = [
-        OmsGoal(motor_rotary=180 + rotary, motor_lift=29,
-                servo_rotary=90 - rotary, servo_nod=90, servo_telescopic=telescopic, servo_gripper=OPEN_HALF_GRIPPER),
-    ]
+    plan_list = []
+    if rotary > 0:
+        plan_list.append(
+            OmsGoal(motor_rotary=180 + rotary, motor_lift=30,
+                    servo_rotary=90 - rotary, servo_nod=90, servo_telescopic=telescopic, servo_gripper=OPEN_HALF_GRIPPER),
+        )
+    else:
+        plan_list.append(
+            OmsGoal(motor_rotary=180 + rotary, motor_lift=30,
+                    servo_rotary=-90 - rotary, servo_nod=90, servo_telescopic=telescopic, servo_gripper=OPEN_HALF_GRIPPER),
+        )
     if is_small:
         plan_list.append(OmsGoal(servo_gripper=CLOSE_GRIPPER_GRAPE, sleep=0.5))
     else:
@@ -204,8 +211,10 @@ def grab_apple_on_tree(arm: 'ArmService', direction: Direction, telescopic: floa
     # 确定旋转方向
     if direction == Direction.LEFT:
         rotate_angle = 90
+        servo_rotary = -90 if extra_swing_angle > 0 else 90
     elif direction == Direction.RIGHT:
         rotate_angle = -90
+        servo_rotary = 90 if extra_swing_angle > 0 else -90
     else:
         raise ValueError("不支持的方向")
 
@@ -230,7 +239,7 @@ def grab_apple_on_tree(arm: 'ArmService', direction: Direction, telescopic: floa
     else:
         plan_list.append(OmsGoal(servo_nod=90, servo_telescopic=0))
 
-    plan_list.append(OmsGoal(motor_lift=0, servo_rotary=-90 if extra_swing_angle > 0 else 90))
+    plan_list.append(OmsGoal(motor_lift=0, servo_rotary=servo_rotary))
 
     arm.plan_list(plan_list)
 
@@ -280,21 +289,21 @@ def put_basket_to_robot(num):
 
     if num == 1:
         plan_list.append(
-            OmsGoal(motor_rotary=22, servo_rotary=71, servo_telescopic=3.5)
+            OmsGoal(motor_rotary=21, servo_rotary=69, servo_telescopic=4)
         )
         plan_list.append(
             OmsGoal(motor_lift=3, servo_nod=90)
         )
     elif num == 2:
         plan_list.append(
-            OmsGoal(motor_rotary=8, servo_rotary=-94, servo_telescopic=2)
+            OmsGoal(motor_rotary=7, servo_rotary=-97, servo_telescopic=3)
         )
         plan_list.append(
             OmsGoal(motor_lift=3, servo_nod=90, sleep=0.5)
         )
     elif num == 3:
         plan_list.append(
-            OmsGoal(motor_rotary=-19, servo_rotary=-67, servo_telescopic=3.5)
+            OmsGoal(motor_rotary=-19, servo_rotary=-69, servo_telescopic=4.5)
         )
         plan_list.append(
             OmsGoal(motor_lift=3, servo_nod=90, sleep=0.5)

@@ -39,14 +39,14 @@ class GrabGroundFruit:
             self.logger.info("没有可抓的水果，跳过.")
             return False
 
-        ArmMovement.identify_ground_fruit(self.arm, 70)
+        ArmMovement.identify_ground_fruit(self.arm)
         self.move.my_navigation(goal, 0.15, start_name=goal, block=False)
         while self.move.get_my_status():
             fruit = self.vision.find_fruit(FruitType.all(), inverted=False)
             if fruit:
                 self.move.stop_my_navigation()
                 time.sleep(0.5)
-                # 如果抓取失败，继续巡线
+
                 if self.grab_ground_fruit():
                     ArmMovement.put_fruit_to_basket(self.arm, 2)
 
@@ -59,6 +59,7 @@ class GrabGroundFruit:
                     ArmMovement.identify_ground_fruit(self.arm, 60)
 
                 self.move.my_navigation(goal, 0.15, start_name=goal, block=False)
+                self.move.rotation_correction(Direction.RIGHT)
 
         return False
 
@@ -67,12 +68,12 @@ class GrabGroundFruit:
         在扫地之前，先看看走廊中有没有水果
         """
 
-        ArmMovement.identify_ground_fruit(self.arm, 70)
+        ArmMovement.identify_ground_fruit(self.arm, 50)
         fruit = self.vision.find_fruit(FruitType.all(), kernel_size=75)
         if fruit:
             return True
         else:
-            self.arm.servo_nod(-10)
+            self.arm.servo_nod(-5)
             time.sleep(1)
             fruit = self.vision.find_fruit(FruitType.all(), kernel_size=75)
             if fruit:
@@ -90,22 +91,20 @@ class GrabGroundFruit:
         if fruit_types is None:
             fruit_types = FruitType.all()
 
-        fruit = self.vision.find_fruit(fruit_types, inverted=False)
+        fruit = self.vision.find_fruit(fruit_types)
         if fruit:
             self.logger.info(f"找到了一个 {fruit.class_id} 水果")
             center = fruit.box.get_rectangle_center()
 
-            distance = 0.41
-            if fruit.distance != -1:
-                distance = fruit.distance
+            distance = 0.36
 
             # 先移动到水果前面，使其在相机下方
             move_dis = Math.pixel_to_distance_from_center(center.y, distance)
-            self.move.line(move_dis)
+            self.move.line(move_dis - 0.03)
 
             # 计算水果的左右偏移
             x_dis = Math.pixel_to_horizontal_distance_x_centered(RobotConstant.CAMERA_WIDTH / 2 - center.x, distance)
-            photo_telescopic_len = 0.32 - move_dis
+            photo_telescopic_len = 0.32
 
             # 伸缩控制
             telescopic_len = Math.calculate_hypotenuse(photo_telescopic_len, x_dis)
@@ -113,8 +112,13 @@ class GrabGroundFruit:
             # 计算旋转
             rotary_angle = -Math.calculate_right_triangle_angle(x_dis, photo_telescopic_len)
 
+            # 修复一下因为夹爪特性导致的多余数值
+            rotary_angle *= 0.95
+
             is_small = "grape" in fruit.class_id or "kiwifruit" in fruit.class_id
-            ArmMovement.grab_fruit_from_ground(self.arm, rotary_angle, (telescopic_len - photo_telescopic_len) * 100, is_small)
+
+            print(telescopic_len, rotary_angle, is_small)
+            ArmMovement.grab_fruit_from_ground(self.arm, rotary_angle, ((telescopic_len - photo_telescopic_len) * 100) + 8, is_small)
 
             return True
         return False
