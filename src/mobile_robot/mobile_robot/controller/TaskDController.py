@@ -34,7 +34,7 @@ class TaskDController:
         self.robot.set_start_led(True)
         self.arm.back_origin()
         self.arm.plan_list(ArmMovement.motion())
-        self.sensor.init_odom_all(NavigationPoint(2.432, 2.452, 180))
+        self.sensor.init_odom_all(NavigationPoint(2.4, 1.54, 180))
         # self.sensor.correction("c_2")
         self.robot.set_start_led(False)
 
@@ -64,7 +64,7 @@ class TaskDController:
 
         Station.YELLOW_3.nav_and_grab(self.node)
         self.arm.plan_list(ArmMovement.put_basket_to_robot(3))
-        self.arm.plan_list(ArmMovement.identify_grape(Direction.RIGHT), block=False)
+        self.arm.plan_list(ArmMovement.motion(), block=False)
 
     def grab_grapes(self):
         grab_grape_wall = GrabGrapeWall(self.node)
@@ -75,7 +75,7 @@ class TaskDController:
         def grab_graph_wall(_path: list, _direction: Direction, target_waypoint: str, _continuous: bool):
             now_time = time.time()
             use_time = now_time - self.start_time
-            if use_time > (7 * 60):
+            if use_time > (7.5 * 60):
                 self.logger.warn("在抓取葡萄上耗费的时间过长，直接去放框子!")
                 return True
             else:
@@ -93,14 +93,16 @@ class TaskDController:
             return False
 
         plans = [
-            ([], Direction.RIGHT, "v_2", True),
-            ([], Direction.RIGHT, "v_1", False),
-            (["c_5"], Direction.LEFT, "v_3", False),
-            (["c_2"], Direction.LEFT, "v_4", True),
-            ([], Direction.LEFT, "v_5", True),
+            (["c_7"], Direction.LEFT, "v_5", True),
             ([], Direction.LEFT, "v_6", False),
-            (["c_3", "c_9"], Direction.LEFT, "v_7", True),
-            ([], Direction.LEFT, "v_8", False),
+            (["c_7"], Direction.LEFT, "v_3", True),
+            ([], Direction.LEFT, "v_4", False),
+            (["c_7"], Direction.LEFT, "v_9", True),
+            (["c_2"], Direction.LEFT, "v_1", True),
+            ([], Direction.LEFT, "v_2", False),
+            (["c_3"], Direction.LEFT, "v_10", False),
+            (["c_7"], Direction.RIGHT, "v_7", True),
+            ([], Direction.RIGHT, "v_8", False),
         ]
 
         for path, direction, waypoint, continuous in plans:
@@ -110,6 +112,8 @@ class TaskDController:
                 break
 
     def put_baskets(self):
+        self.move.my_navigation("c_5")
+
         # 去放第1个框子
         Station.RED_3.nav_and_put(self.node, 3)
         self.arm.plan_list(ArmMovement.motion(), block=False)

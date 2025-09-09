@@ -25,6 +25,7 @@ class GrabGrapeWall:
         self.extra_move_distance = 0
         self.continuous = False
         self.direction = None
+        self.front_grab_extra_angle = 0
         self.basket_1 = []
         self.basket_2 = []
         self.basket_3 = []
@@ -98,38 +99,48 @@ class GrabGrapeWall:
         """
 
         pixel_x = grape.box.get_rectangle_center().x
-        if self.direction == Direction.LEFT:
-            pixel_x = pixel_x - RobotConstant.CAMERA_WIDTH / 2
-        elif self.direction == Direction.RIGHT:
+        if self.direction == Direction.RIGHT:
             pixel_x = RobotConstant.CAMERA_WIDTH / 2 - pixel_x
+        else:
+            pixel_x = pixel_x - RobotConstant.CAMERA_WIDTH / 2
         real_x = Math.pixel_to_horizontal_distance_x_centered(pixel_x, grape.distance)
         real_x += RobotConstant.IDENTIFY_GRAPE_DISTANCE - self.extra_move_distance
         if self.direction == Direction.LEFT:
-            real_x += 0.05
+            real_x += 0.03
 
         self.logger.debug(f"{grape.class_id} 距离OMS中心的真实 x 距离为: {real_x}")
 
         return real_x
 
-    def calculate_grape_polar(self, fruit: IdentifyResult) -> tuple[float, float]:
+    def calculate_grape_polar(self, grape: IdentifyResult) -> tuple[float, float]:
         """
         计算出葡萄距离 OMS 中心的距离
-        :param fruit 葡萄识别结果
+        :param grape 葡萄识别结果
         :return 以旋转中心为0，葡萄的极坐标
         """
 
-        real_x = self.calculate_grape_lateral_distance(fruit)
+        real_x = self.calculate_grape_lateral_distance(grape)
 
 
-        if self.direction == Direction.LEFT:
-            distance = fruit.distance
-            distance -= RobotConstant.GRAPE_THICKNESS
-        else:
-            distance = -fruit.distance
+        if self.direction == Direction.FRONT:
+            # 对于向前抓，做特殊处理
+            rotate_center_polar = (RobotConstant.MIN_GRAB_DISTANCE, self.front_grab_extra_angle)
+            grape_polar = Math.cartesian_to_polar((0, 0), (real_x, grape.distance))
+            r, angle = Math.relative_polar_with_rotation(rotate_center_polar, grape_polar)
+            angle += 90
+
+            self.logger.debug(f"{grape.class_id} 距离OMS中心的距离为 {r}, 角度为 {angle}")
+
+            return r, angle
+        elif self.direction == Direction.RIGHT:
+            distance = -grape.distance
             distance += RobotConstant.GRAPE_THICKNESS
+        else:
+            distance = grape.distance
+            distance -= RobotConstant.GRAPE_THICKNESS
         r, angle = Math.cartesian_to_polar((0, 0), (real_x, distance))
 
-        self.logger.debug(f"{fruit.class_id} 距离OMS中心的距离为 {r}, 角度为 {angle}")
+        self.logger.debug(f"{grape.class_id} 距离OMS中心的距离为 {r}, 角度为 {angle}")
 
         return r, angle
 
@@ -142,14 +153,15 @@ class GrabGrapeWall:
 
         r, angle = self.calculate_grape_polar(grape)
 
-        i = 1 if self.direction == Direction.LEFT else -1
-        if not (RobotConstant.MIN_GRAB_ANGLE < angle * i < RobotConstant.MAX_GRAB_ANGLE):
-            self.logger.debug(f"{grape.class_id} 距离OMS中心的角度为 {angle}, 超出范围.")
-            return False
+        if self.direction != Direction.FRONT:
+            i = 1 if self.direction == Direction.LEFT else -1
+            if not (RobotConstant.MIN_GRAB_ANGLE < angle * i < RobotConstant.MAX_GRAB_ANGLE):
+                self.logger.debug(f"{grape.class_id} 距离OMS中心的角度为 {angle}, 超出范围.")
+                return False
 
-        if not (RobotConstant.MIN_GRAB_DISTANCE < r < RobotConstant.MAX_GRAB_DISTANCE):
-            self.logger.debug(f"{grape.class_id} 距离OMS中心的距离为 {r}, 超出范围.")
-            return False
+            if not (RobotConstant.MIN_GRAB_DISTANCE < r < RobotConstant.MAX_GRAB_DISTANCE):
+                self.logger.debug(f"{grape.class_id} 距离OMS中心的距离为 {r}, 超出范围.")
+                return False
 
         return True
 
@@ -157,6 +169,11 @@ class GrabGrapeWall:
         """
         移动机器人到适合抓取的位置
         """
+
+        if self.direction == Direction.FRONT:
+            self.logger.info("向前抓葡萄时无法靠近葡萄...")
+            return
+
         if self.can_grab_fruit(grape):
             self.logger.info(f"{grape.class_id} 可以直接抓到, 无需移动.")
             return
@@ -199,7 +216,7 @@ class GrabGrapeWall:
         if self.continuous and continuous:
             self.arm.wait_plan_finish()
         else:
-            self.arm.plan_list(ArmMovement.identify_grape(self.direction))
+            self.arm.plan_list(ArmMovement.identify_grape(self.direction, self.front_grab_extra_angle))
             self.continuous = continuous
         time.sleep(1)
 

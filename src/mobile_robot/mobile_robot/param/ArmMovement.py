@@ -15,7 +15,7 @@ OPEN_GRAPE_GRIPPER = 10
 
 CLOSE_GRIPPER_APPLE = 4
 CLOSE_GRIPPER_GRAPE = 1
-CLOSE_GRIPPER_BASKET = 15.5
+CLOSE_GRIPPER_BASKET = 15.3
 
 
 # ------------------ 基础动作与复用动作 ------------------ #
@@ -44,7 +44,10 @@ def robot_basket_top(num):
 
 
 def station_basket_top(direction: Direction, telescopic):
-    if direction == Direction.LEFT:
+    if direction == Direction.FRONT:
+        telescopic -= 11
+        rotate = 180
+    elif direction == Direction.LEFT:
         rotate = 90
     elif direction == Direction.RIGHT:
         rotate = -90
@@ -100,12 +103,17 @@ def identify_station_fruit(arm: 'ArmService', direction: Direction):
     time.sleep(1)
 
 
-def identify_grape(direction: Direction):
+def identify_grape(direction: Direction, front_grab_extra_angle=0):
     """
     识别墙上的葡萄姿态
     """
     plan_list = []
-    if direction == Direction.LEFT:
+    if direction == Direction.FRONT:
+        plan_list.append(
+            OmsGoal(motor_rotary=180 + front_grab_extra_angle, servo_rotary=-front_grab_extra_angle,
+                    servo_nod=-30, servo_gripper=OPEN_HALF_GRIPPER)
+        )
+    elif direction == Direction.LEFT:
         plan_list.append(
             OmsGoal(motor_rotary=200, servo_rotary=-112, servo_nod=-30, servo_gripper=OPEN_HALF_GRIPPER)
         )
@@ -247,7 +255,17 @@ def grab_apple_on_tree(arm: 'ArmService', direction: Direction, telescopic: floa
 def grab_grape_on_wall(direction: Direction, lift_height: float, angle: float, telescopic: float):
     plan_list = []
 
-    if direction == Direction.LEFT:
+    if direction == Direction.FRONT:
+        plan_list.append(
+            OmsGoal(motor_rotary=angle)
+        )
+        plan_list.append(
+            OmsGoal(motor_lift=16, servo_rotary=-angle, servo_nod=90, servo_telescopic=0)
+        )
+        plan_list.append(
+            OmsGoal(motor_lift=lift_height, servo_telescopic=telescopic, servo_gripper=OPEN_GRAPE_GRIPPER)
+        )
+    elif direction == Direction.LEFT:
         plan_list.append(
             OmsGoal(motor_rotary=180)
         )
@@ -258,8 +276,9 @@ def grab_grape_on_wall(direction: Direction, lift_height: float, angle: float, t
             OmsGoal(motor_rotary=180 - angle)
         )
         plan_list.append(
-            OmsGoal(motor_lift=lift_height, servo_telescopic=telescopic, servo_gripper=OPEN_GRAPE_GRIPPER))
-    if direction == Direction.RIGHT:
+            OmsGoal(motor_lift=lift_height, servo_telescopic=telescopic, servo_gripper=OPEN_GRAPE_GRIPPER)
+        )
+    elif direction == Direction.RIGHT:
         plan_list.append(
             OmsGoal(motor_rotary=-180)
         )
@@ -270,7 +289,8 @@ def grab_grape_on_wall(direction: Direction, lift_height: float, angle: float, t
             OmsGoal(motor_rotary=-180 - angle)
         )
         plan_list.append(
-            OmsGoal(motor_lift=lift_height, servo_telescopic=telescopic, servo_gripper=OPEN_GRAPE_GRIPPER))
+            OmsGoal(motor_lift=lift_height, servo_telescopic=telescopic, servo_gripper=OPEN_GRAPE_GRIPPER)
+        )
 
     plan_list.append(OmsGoal(servo_nod=60, sleep=0.3))
     plan_list.append(OmsGoal(servo_gripper=CLOSE_GRIPPER_GRAPE, sleep=0.3))
@@ -292,7 +312,7 @@ def put_basket_to_robot(num):
             OmsGoal(motor_rotary=21, servo_rotary=69, servo_telescopic=4)
         )
         plan_list.append(
-            OmsGoal(motor_lift=3, servo_nod=90)
+            OmsGoal(motor_lift=3, servo_nod=90, sleep=0.5)
         )
     elif num == 2:
         plan_list.append(
@@ -311,7 +331,7 @@ def put_basket_to_robot(num):
     else:
         raise ValueError("不正确的框子位置")
 
-    plan_list.append(OmsGoal(motor_lift=0))
+    plan_list.append(OmsGoal(motor_lift=0, sleep=0.5))
     plan_list.append(OmsGoal(motor_lift=10))
     plan_list.append(OmsGoal(motor_lift=0, servo_gripper=OPEN_GRIPPER))
     plan_list.append(OmsGoal(servo_nod=0))

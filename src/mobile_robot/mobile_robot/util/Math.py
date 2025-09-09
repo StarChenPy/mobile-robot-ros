@@ -147,6 +147,41 @@ def cartesian_to_polar(a: tuple[float, float], b: tuple[float, float]) -> tuple[
     return r, normalize_angle(theta)
 
 
+def relative_polar_with_rotation(a: tuple[float, float], b: tuple[float, float]) -> tuple[float, float]:
+    """
+    输入:
+        a, b: (r, θ) 极坐标, 单位 (米, 度)
+    输出:
+        b' 在以a为基准，且a的方向作为0°的极坐标 (r'', θ'')
+    """
+    r_a, theta_a = a
+    r_b, theta_b = b
+
+    # 角度转弧度
+    rad_a = math.radians(theta_a)
+    rad_b = math.radians(theta_b)
+
+    # 转换到笛卡尔坐标
+    x_a = r_a * math.cos(rad_a)
+    y_a = r_a * math.sin(rad_a)
+    x_b = r_b * math.cos(rad_b)
+    y_b = r_b * math.sin(rad_b)
+
+    # 平移，使a为原点
+    dx = x_b - x_a
+    dy = y_b - y_a
+
+    # 旋转，使a的方向对齐到0°
+    x_rot = dx * math.cos(rad_a) + dy * math.sin(rad_a)
+    y_rot = -dx * math.sin(rad_a) + dy * math.cos(rad_a)
+
+    # 转回极坐标
+    r_rel = math.sqrt(x_rot ** 2 + y_rot ** 2)
+    theta_rel = math.degrees(math.atan2(y_rot, x_rot))
+
+    return r_rel, theta_rel
+
+
 def fit_polar_line_and_get_angle(polar_points: list[tuple[float, float]]) -> float:
     """
     给定一组极坐标点 (r, theta)，其中 theta 的单位为度，
