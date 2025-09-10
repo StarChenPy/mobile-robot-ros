@@ -56,14 +56,16 @@ class TaskDController:
 
     def grab_baskets(self):
         Station.YELLOW_3.nav_and_grab(self.node)
-        self.arm.plan_list(ArmMovement.put_basket_to_robot(1) + ArmMovement.motion(), block=False)
+        self.arm.plan_list(ArmMovement.put_basket_to_robot(1))
+        Station.YELLOW_3.grab_basket(self.node, again=True)
+        self.arm.plan_list(ArmMovement.put_basket_to_robot(2))
 
         Station.YELLOW_2.nav_and_grab(self.node)
-        self.arm.plan_list(ArmMovement.put_basket_to_robot(2) + ArmMovement.motion(), block=False)
+        self.arm.plan_list(ArmMovement.put_basket_to_robot(3) + ArmMovement.motion(), block=False)
 
-        Station.YELLOW_1.nav_and_grab(self.node)
-        self.arm.plan_list(ArmMovement.put_basket_to_robot(3))
-        self.arm.plan_list(ArmMovement.motion(), block=False)
+        # Station.YELLOW_1.nav_and_grab(self.node)
+        # self.arm.plan_list(ArmMovement.put_basket_to_robot(3))
+        # self.arm.plan_list(ArmMovement.motion(), block=False)
 
     def grab_grapes(self):
         grab_grape_wall = GrabGrapeWall(self.node)

@@ -148,47 +148,86 @@ controller_server:
     min_theta_velocity_threshold: 0.001
     controller_plugins: ["FollowPath"]
     
-    # DWB parameters
     FollowPath:
-      # cmd_vel_topic: "/chassis/cmd_vel"
-      plugin: "dwb_core::DWBLocalPlanner"
-      debug_trajectory_details: True
-      min_vel_x: 0.0
-      min_vel_y: 0.0
-      max_vel_x: 0.25
-      max_vel_y: 0.0
-      max_vel_theta: 0.6
-      min_speed_xy: 0.0
-      max_speed_xy: 1.0
-      min_speed_theta: 0.03
-      acc_lim_x: 2.5
-      acc_lim_y: 0.0
-      acc_lim_theta: 0.8
-      decel_lim_x: -2.5
-      decel_lim_y: 0.0
-      decel_lim_theta: -0.8
-      vx_samples: 30 # 20
-      vy_samples: 0
-      vtheta_samples: 60 # 40
-      sim_time: 4.0
-      linear_granularity: 0.05
-      angular_granularity: 0.025
-      transform_tolerance: 1.0
-      xy_goal_tolerance: 0.2
-      trans_stopped_velocity: 0.3
-      short_circuit_trajectory_evaluation: False
-      stateful: True
-      critics: ["BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist", "RotateToGoal"]
-      BaseObstacle.scale: 0.05
-      PathAlign.scale: 32.0 #32
-      PathAlign.forward_point_distance: 0.1
-      GoalAlign.scale: 24.0
-      GoalAlign.forward_point_distance: 0.1
-      PathDist.scale: 32.0
-      GoalDist.scale: 24.0
-      RotateToGoal.scale: 24.0
-      RotateToGoal.slowing_factor: 5.0
-      RotateToGoal.lookahead_time: -1.0
+      plugin: "nav2_mppi_controller::MPPIController"
+
+      # 保持预测参数不变
+      time_steps: 40
+      model_dt: 0.05
+      batch_size: 1000
+      iteration_count: 1
+      temperature: 0.3
+      gamma: 0.015
+
+      motion_model: "DiffDrive"
+      vx_max: 0.25
+      vx_min: -0.35
+      vy_max: 0.0
+      wz_max: 0.6
+      vx_std: 0.15       # ↑ 增大采样标准差，让探索范围更大
+      wz_std: 0.3        # ↑ 增大角速度探索
+
+      critics: ["ConstraintCritic",
+                "CostCritic",
+                "GoalCritic",
+                "GoalAngleCritic",
+                "PathAlignCritic",
+                "PathFollowCritic",
+                "PathAngleCritic",
+                "PreferForwardCritic"]
+
+      ConstraintCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 2.0   # ↓ 降低约束权重 (原来 4.0)
+
+      CostCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 1.5   # ↓ 降低障碍物代价权重 (原来 3.0)
+        critical_cost: 200.0   # ↓ 放宽临界代价值 (原来 300.0)
+        consider_footprint: true
+        collision_cost: 500000.0  # ↓ 碰撞代价降低一半（还是极大）
+        near_goal_distance: 0.5   # ↓ 近目标时更放松
+        trajectory_point_step: 2
+
+      GoalCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 6.0   # ↑ 稍微加强朝向目标
+
+      GoalAngleCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 3.0
+
+      PreferForwardCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 3.0   # ↓ 降低“必须向前”的惩罚，允许更灵活
+
+      PathAlignCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 10.0  # ↓ 减弱路径严格对齐 (原来 12.0)
+        trajectory_point_step: 4
+        threshold_to_consider: 0.5
+        offset_from_furthest: 20
+        use_path_orientations: false
+
+      PathFollowCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 6.0   # ↑ 更重视跟随路径
+
+      PathAngleCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 2.0
+        offset_from_furthest: 4
+        threshold_to_consider: 0.5
+        max_angle_to_furthest: 1.0
+        mode: 0
 
 #
 #    # 旋转控制器

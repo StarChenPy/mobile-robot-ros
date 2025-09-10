@@ -309,21 +309,30 @@ def put_basket_to_robot(num):
 
     if num == 1:
         plan_list.append(
-            OmsGoal(motor_rotary=21, servo_rotary=69, servo_telescopic=4)
+            OmsGoal(motor_rotary=21, servo_telescopic=0)
+        )
+        plan_list.append(
+            OmsGoal(servo_rotary=69, servo_telescopic=4)
         )
         plan_list.append(
             OmsGoal(motor_lift=3, servo_nod=90, sleep=0.5)
         )
     elif num == 2:
         plan_list.append(
-            OmsGoal(motor_rotary=7, servo_rotary=-97, servo_telescopic=3)
+            OmsGoal(motor_rotary=7, servo_telescopic=0)
+        )
+        plan_list.append(
+            OmsGoal(servo_rotary=-97, servo_telescopic=3)
         )
         plan_list.append(
             OmsGoal(motor_lift=3, servo_nod=90, sleep=0.5)
         )
     elif num == 3:
         plan_list.append(
-            OmsGoal(motor_rotary=-19, servo_rotary=-69, servo_telescopic=4.5)
+            OmsGoal(motor_rotary=-19, servo_telescopic=0)
+        )
+        plan_list.append(
+            OmsGoal(servo_rotary=-69, servo_telescopic=4.5)
         )
         plan_list.append(
             OmsGoal(motor_lift=3, servo_nod=90, sleep=0.5)
@@ -338,8 +347,8 @@ def put_basket_to_robot(num):
     return plan_list
 
 
-def put_basket_to_station(direction: Direction, lift):
-    plan_list = station_basket_top(direction, 5) + [
+def put_basket_to_station(direction: Direction, lift, telescopic):
+    plan_list = station_basket_top(direction, telescopic) + [
         OmsGoal(motor_lift=lift),
         OmsGoal(motor_lift=0, servo_gripper=OPEN_GRIPPER)
     ]

@@ -112,11 +112,12 @@ class Station(enum.Enum):
 
         logger.info(f"到达站台 {self.name} {'副路径点' if is_sub else '主路径点'}.")
 
-    def grab_basket(self, node: rclpy.node.Node, is_sub: bool = False, block=True):
+    def grab_basket(self, node: rclpy.node.Node, is_sub: bool = False, again=False, block=True):
         """
         抓取站台篮子
         :param node: ROS2节点
         :param is_sub: 是否使用副路径点
+        :param again: 这个站台是否有2个框子
         :param block: 是否阻塞
         :return: None
         """
@@ -137,11 +138,17 @@ class Station(enum.Enum):
             direction = self.main_direction
 
         distance_from_wall = sensor.get_distance_from_wall(direction)
+        telescopic = (distance_from_wall - 0.25) * 100
+        if again:
+            telescopic += 12
 
-        arm.plan_list(ArmMovement.grab_basket_from_station(direction, 16 if self.on_slope else 10,
-                                             (distance_from_wall - 0.25) * 100), block=block)
+        arm.plan_list(ArmMovement.grab_basket_from_station(direction, 16 if self.on_slope else 10, telescopic), block=block)
 
-    def put_basket(self, node: rclpy.node.Node, is_sub: bool = False):
+    def put_basket(self, node: rclpy.node.Node, is_sub: bool = False, again=False):
+        """
+        向站台上放篮子
+        """
+
         logger = Logger()
         arm = ArmService(node)
 
@@ -155,4 +162,6 @@ class Station(enum.Enum):
         else:
             direction = self.main_direction
 
-        arm.plan_list(ArmMovement.put_basket_to_station(direction, 16 if self.on_slope else 10))
+
+
+        arm.plan_list(ArmMovement.put_basket_to_station(direction, 16 if self.on_slope else 10, 17 if again else 5))
