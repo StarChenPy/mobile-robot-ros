@@ -25,6 +25,8 @@ class AbstractMotorDao(ABC):
         self.__service.wait_for_service()
 
         motor_config = self._get_motor_config()
+        if target:
+            self.__logger.debug(f"目标位置: {target}")
 
         request = position_motor_ros2.srv.CtrlImpl.Request(
             cmd=cmd.value,
@@ -72,5 +74,5 @@ class AbstractMotorDao(ABC):
                 continue
 
             if future.result().feedback.reached:
-                self.__logger.debug("电机运动服务已结束")
+                self.__logger.info("电机运动服务已结束")
                 return

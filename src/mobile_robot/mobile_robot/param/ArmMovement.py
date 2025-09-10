@@ -263,7 +263,7 @@ def grab_grape_on_wall(direction: Direction, lift_height: float, angle: float, t
             OmsGoal(motor_lift=16, servo_rotary=-angle, servo_nod=90, servo_telescopic=0)
         )
         plan_list.append(
-            OmsGoal(motor_lift=lift_height, servo_telescopic=telescopic, servo_gripper=OPEN_GRAPE_GRIPPER)
+            OmsGoal(motor_lift=lift_height, servo_telescopic=telescopic, servo_gripper=OPEN_GRAPE_GRIPPER, sleep=0.3)
         )
     elif direction == Direction.LEFT:
         plan_list.append(
@@ -276,7 +276,7 @@ def grab_grape_on_wall(direction: Direction, lift_height: float, angle: float, t
             OmsGoal(motor_rotary=180 - angle)
         )
         plan_list.append(
-            OmsGoal(motor_lift=lift_height, servo_telescopic=telescopic, servo_gripper=OPEN_GRAPE_GRIPPER)
+            OmsGoal(motor_lift=lift_height, servo_telescopic=telescopic, servo_gripper=OPEN_GRAPE_GRIPPER, sleep=0.3)
         )
     elif direction == Direction.RIGHT:
         plan_list.append(
@@ -289,7 +289,7 @@ def grab_grape_on_wall(direction: Direction, lift_height: float, angle: float, t
             OmsGoal(motor_rotary=-180 - angle)
         )
         plan_list.append(
-            OmsGoal(motor_lift=lift_height, servo_telescopic=telescopic, servo_gripper=OPEN_GRAPE_GRIPPER)
+            OmsGoal(motor_lift=lift_height, servo_telescopic=telescopic, servo_gripper=OPEN_GRAPE_GRIPPER, sleep=0.3)
         )
 
     plan_list.append(OmsGoal(servo_nod=60, sleep=0.3))

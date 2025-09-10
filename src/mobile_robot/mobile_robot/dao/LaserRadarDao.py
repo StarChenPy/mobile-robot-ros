@@ -7,6 +7,8 @@ import rclpy.qos
 from sensor_msgs.msg import LaserScan
 
 from corn_robot_toolbox.util.MedianFilter import MedianFilter
+
+from ..param import RobotConstant
 from ..popo.Direction import Direction
 from ..util import Math
 from ..util.Logger import Logger
@@ -76,11 +78,11 @@ class LaserRadarDao:
         start_angle = 0
 
         if direction == Direction.RIGHT:
-            start_angle = 0
+            start_angle = 2
         elif direction == Direction.FRONT:
             start_angle = 90 - (scan_angle / 2)
         elif direction == Direction.LEFT:
-            start_angle = 180 - scan_angle
+            start_angle = 178 - scan_angle
 
         rclpy.spin_once(self.node)
         rclpy.spin_once(self.node)
@@ -127,10 +129,10 @@ class LaserRadarDao:
         distance = Math.fit_polar_line_and_get_distance(points)
 
         if direction == Direction.FRONT:
-            distance += 0.23
+            distance += RobotConstant.ROBOT_CENTER_TO_LIDAR
         else:
             angle_from_wall = self.get_angle_from_wall(direction)
-            side = Math.calculate_right_angle_side(0.2, abs(angle_from_wall))
+            side = Math.calculate_right_angle_side(RobotConstant.ROBOT_CENTER_TO_LIDAR, abs(angle_from_wall))
             if direction == Direction.LEFT:
                 side = -side
             if angle_from_wall > 0:

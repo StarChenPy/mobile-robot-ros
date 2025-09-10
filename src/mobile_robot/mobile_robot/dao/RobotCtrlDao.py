@@ -1,6 +1,7 @@
 import rclpy
 
 from web_message_transform_ros2.msg import RobotCtrl
+from web_message_transform_ros2.srv import RobotCtrlSrv
 from ..util.Logger import Logger
 from ..util.Singleton import singleton
 
@@ -11,7 +12,7 @@ class RobotCtrlDao(object):
         self.__node = node
         self.__logger = Logger()
 
-        # self.service = self.__node.create_client(RobotCtrlSrv, '/web_transform_node/robot_ctrl_srv')
+        self.service = self.__node.create_client(RobotCtrlSrv, '/web_transform_node/robot_ctrl_srv')
         self.__topic = node.create_publisher(RobotCtrl, '/web_transform_node/robot_ctrl', 10)
 
         self.__robot_ctrl = RobotCtrl()
@@ -27,12 +28,23 @@ class RobotCtrlDao(object):
         self.__topic.publish(self.__robot_ctrl)
 
     def publish(self):
-        self.__topic.publish(self.__robot_ctrl)
-        rclpy.spin_once(self.__node)
-        self.__topic.publish(self.__robot_ctrl)
-        rclpy.spin_once(self.__node)
-        self.__topic.publish(self.__robot_ctrl)
-        rclpy.spin_once(self.__node)
+        req = RobotCtrlSrv.Request()
+        req.ctrl = self.__robot_ctrl
+        future = self.service.call_async(req)
+
+        while rclpy.ok():
+            rclpy.spin_once(self.__node)
+
+            if not future.done():
+                continue
+
+            result = future.result()
+            if result.ret:
+                self.__logger.debug("发布控制信息成功.")
+            else:
+                self.__logger.error("发布控制信息失败.")
+
+            return
 
     # 设置DO输出(端口: 0-2, 电平: T/F)
     def write_do(self, port: int, state: bool):

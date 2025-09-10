@@ -69,11 +69,11 @@ class LidarToolbox:
         start_angle = 0
 
         if direction == Direction.RIGHT:
-            start_angle = 0
+            start_angle = 2
         elif direction == Direction.FRONT:
             start_angle = 90 - (scan_angle / 2)
         elif direction == Direction.LEFT:
-            start_angle = 180 - scan_angle
+            start_angle = 178 - scan_angle
 
         for i in range(scan_angle * 2):
             angle = Math.normalize_angle(start_angle + (i * 0.5))

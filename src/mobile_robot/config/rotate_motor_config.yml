@@ -10,7 +10,7 @@ origin_param:
   origin_max_step: 1000
 
 ctrl_param:
-  kp: 0.1
+  kp: 0.15
   ti: 0.0
   td: 0.001
   max_acc: 800.0

@@ -11,12 +11,12 @@ from ..service.SensorService import SensorService
 
 
 class Station(enum.Enum):
-    YELLOW_1 = enum.auto(), "s_y_1_l", Direction.LEFT, 1.74, False, "s_y_1_r", Direction.RIGHT, 1.87
-    YELLOW_2 = enum.auto(), "s_y_2_l", Direction.LEFT, 1.9, True, "s_y_2_r", Direction.RIGHT
-    YELLOW_3 = enum.auto(), "s_y_3_f", Direction.FRONT, 0.4, False
-    RED_1 = enum.auto(), "s_r_1_r", Direction.RIGHT, 1.61, True
-    RED_2 = enum.auto(), "s_r_2_r", Direction.RIGHT, 1.53, False, "s_r_2_l", Direction.LEFT
-    RED_3 = enum.auto(), "s_r_3_l", Direction.LEFT, 1.69, False
+    YELLOW_1 = enum.auto(), "s_y_1_f", Direction.FRONT, 0.4, False
+    YELLOW_2 = enum.auto(), "s_y_2_l", Direction.LEFT, 2, False, "s_y_2_r", Direction.RIGHT
+    YELLOW_3 = enum.auto(), "s_y_3_l", Direction.LEFT, 1.91, False
+    RED_1 = enum.auto(), "s_r_1_l", Direction.LEFT, 1.7, False
+    RED_2 = enum.auto(), "s_r_2_r", Direction.RIGHT, 0, False
+    RED_3 = enum.auto(), "s_r_3_r", Direction.RIGHT, 1.1, True
 
     def __new__(cls, key, main_waypoint: str, main_direction: Direction, main_revise: float, on_slope: bool,
                 sub_waypoint=None, sub_direction: Direction=None, sub_revise: float = 0):
