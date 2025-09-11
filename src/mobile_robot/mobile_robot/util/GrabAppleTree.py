@@ -96,7 +96,6 @@ class GrabAppleTree:
             return False
 
         self.close_tree()
-        self.move.rotation_correction()
         ArmMovement.identify_tree_fruit(self.arm, self.direction)
         time.sleep(1)
         fruits = self.find_apples_you_need()
@@ -173,6 +172,27 @@ class GrabAppleTree:
         self.arm.plan_list(ArmMovement.motion())
         return True
 
+    def get_lidar_min_point(self) -> tuple[float, float]:
+        # 获取指定角度范围内距离最小点
+        rclpy.spin_once(self.node)
+        time.sleep(0.3)
+        rclpy.spin_once(self.node)
+        start_angle = 178 if self.direction == Direction.LEFT else 32
+        radar_data = self.sensor.get_lidar_data(start_angle - 30, start_angle)
+        min_tree_1 = min(radar_data, key=lambda i: i[0])
+
+        time.sleep(0.3)
+        rclpy.spin_once(self.node)
+
+        radar_data = self.sensor.get_lidar_data(start_angle - 30, start_angle)
+        min_tree_2 = min(radar_data, key=lambda i: i[0])
+
+        if abs(min_tree_1.distance - min_tree_2.distance) < 0.03:
+            return min_tree_2
+        else:
+            return 0, 0
+
+
     def close_tree(self):
         """
         使用激光雷达找树，并靠近到想要的位置
@@ -184,8 +204,9 @@ class GrabAppleTree:
 
         # 获取指定角度范围内距离最小点
         rclpy.spin_once(self.node)
+        time.sleep(0.3)
         rclpy.spin_once(self.node)
-        start_angle = 180 if self.direction == Direction.LEFT else 30
+        start_angle = 178 if self.direction == Direction.LEFT else 32
         radar_data = self.sensor.get_lidar_data(start_angle - 30, start_angle)
         min_tree = min(radar_data, key=lambda i: i[0])
 

@@ -175,6 +175,9 @@ def grab_basket_from_station(direction, lift, telescopic):
     plan_list = [
         OmsGoal(servo_gripper=OPEN_GRIPPER)
     ] + station_basket_top(direction, telescopic) + [
+        OmsGoal(motor_lift=lift - 6),
+        OmsGoal(servo_gripper=CLOSE_GRIPPER_BASKET, sleep=0.3),
+        OmsGoal(servo_gripper=OPEN_GRIPPER, sleep=0.3),
         OmsGoal(motor_lift=lift),
         OmsGoal(servo_gripper=CLOSE_GRIPPER_BASKET),
         OmsGoal(motor_lift=0)

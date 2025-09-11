@@ -80,12 +80,14 @@ class ArmService:
         if block:
             self.wait_once_finish()
 
-    def wait_plan_finish(self):
+    def wait_plan_finish(self) -> bool:
         if self.task:
             self.loop.run_until_complete(self.task)
             self.task = None
+            return True
         else:
             self.logger.warn("没有任务在执行")
+            return False
 
     def wait_once_finish(self):
         self.lift_motor.wait_finish()

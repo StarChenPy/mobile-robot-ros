@@ -107,6 +107,8 @@ class GrabGrapeWall:
         real_x += RobotConstant.IDENTIFY_GRAPE_DISTANCE - self.extra_move_distance
         if self.direction == Direction.LEFT:
             real_x += 0.03
+        elif self.direction == Direction.RIGHT:
+            real_x += 0.02
 
         self.logger.debug(f"{grape.class_id} 距离OMS中心的真实 x 距离为: {real_x}")
 
@@ -223,6 +225,10 @@ class GrabGrapeWall:
         fruits = self.find_grapes_you_need()
         if not fruits:
             self.logger.warn("没有检测到水果!")
+            if continuous:
+                self.arm.plan_list(ArmMovement.identify_grape(self.direction), block=False)
+            else:
+                self.arm.plan_list(ArmMovement.motion(), block=False)
             return False
         else:
             self.logger.info(f"检测到 {len(fruits)} 个水果")

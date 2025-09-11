@@ -11,12 +11,12 @@ from ..service.SensorService import SensorService
 
 
 class Station(enum.Enum):
-    YELLOW_1 = enum.auto(), "s_y_1_f", Direction.FRONT, 0.4, False
-    YELLOW_2 = enum.auto(), "s_y_2_l", Direction.LEFT, 2, False, "s_y_2_r", Direction.RIGHT
-    YELLOW_3 = enum.auto(), "s_y_3_l", Direction.LEFT, 1.91, False
-    RED_1 = enum.auto(), "s_r_1_l", Direction.LEFT, 1.7, False
-    RED_2 = enum.auto(), "s_r_2_r", Direction.RIGHT, 0, False
-    RED_3 = enum.auto(), "s_r_3_r", Direction.RIGHT, 1.1, True
+    YELLOW_1 = enum.auto(), "s_y_1_l", Direction.LEFT, 0, False
+    YELLOW_2 = enum.auto(), "s_y_2_l", Direction.LEFT, 0, False
+    YELLOW_3 = enum.auto(), "s_y_3_f", Direction.FRONT, 0, False
+    RED_1 = enum.auto(), "s_r_1_f", Direction.FRONT, 0, False
+    RED_2 = enum.auto(), "s_r_2_l", Direction.LEFT, 0, False
+    RED_3 = enum.auto(), "s_r_3_r", Direction.RIGHT, 0, False
 
     def __new__(cls, key, main_waypoint: str, main_direction: Direction, main_revise: float, on_slope: bool,
                 sub_waypoint=None, sub_direction: Direction=None, sub_revise: float = 0):
@@ -48,19 +48,20 @@ class Station(enum.Enum):
         self.correction(node, is_sub)
         self.grab_basket(node, is_sub)
 
-    def nav_and_put(self, node: rclpy.node.Node, basket_num: int, is_sub: bool = False):
+    def nav_and_put(self, node: rclpy.node.Node, basket_num: int, is_sub: bool = False, again=False):
         """
         导航至站台并放置篮子
         :param node: ROS2节点
         :param basket_num: 要放置的篮子编号
         :param is_sub: 是否使用副路径点
+        :param again: 这个站台是否有2个框子
         :return: None
         """
         arm = ArmService(node)
 
         self.nav_to_station(node, is_sub)
         ArmMovement.grab_basket_from_robot(arm, basket_num)
-        self.put_basket(node, is_sub)
+        self.put_basket(node, is_sub, again)
 
     def correction(self, node: rclpy.node.Node, is_sub: bool = False):
         logger = Logger()
@@ -151,6 +152,7 @@ class Station(enum.Enum):
 
         logger = Logger()
         arm = ArmService(node)
+        sensor = SensorService(node)
 
         if is_sub:
             if self.sub_waypoint and self.sub_direction:
@@ -162,6 +164,9 @@ class Station(enum.Enum):
         else:
             direction = self.main_direction
 
+        distance_from_wall = sensor.get_distance_from_wall(direction)
+        telescopic = (distance_from_wall - 0.25) * 100
+        if again:
+            telescopic += 12
 
-
-        arm.plan_list(ArmMovement.put_basket_to_station(direction, 16 if self.on_slope else 10, 17 if again else 5))
+        arm.plan_list(ArmMovement.put_basket_to_station(direction, telescopic, 17 if again else 5))

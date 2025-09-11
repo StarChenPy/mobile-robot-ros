@@ -73,7 +73,7 @@ class TaskDController:
         grab_grape_wall.basket_2 = [FruitType.YELLOW_GRAPE] * 6
         grab_grape_wall.basket_3 = [FruitType.PURPLE_GRAPE] * 6
 
-        def grab_graph_wall(_path: list, _direction: Direction, target_waypoint: str, _continuous: bool):
+        def grab_grape_wall_func(_path: list, _direction: Direction, target_waypoint: str, _continuous: bool):
             # now_time = time.time()
             # use_time = now_time - self.start_time
             # if use_time > (8 * 60):
@@ -108,8 +108,10 @@ class TaskDController:
 
         for path, direction, waypoint, continuous in plans:
             self.logger.info(f"尝试到 {waypoint} 抓葡萄")
-            if grab_graph_wall(path, direction, waypoint, continuous):
+            if grab_grape_wall_func(path, direction, waypoint, continuous):
                 self.logger.info("葡萄抓取完成!")
+                if self.arm.wait_plan_finish():
+                    self.arm.plan_list(ArmMovement.motion())
                 break
 
     def put_baskets(self):

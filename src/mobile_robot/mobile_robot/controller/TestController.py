@@ -34,7 +34,7 @@ class TestController:
 
     def run(self):
         self.robot.with_robot_connect()
-        # self.arm.back_origin()
+        self.arm.back_origin()
 
         # while True:
         # input("等待...")
@@ -88,21 +88,21 @@ class TestController:
         #     input("等待...")
 
 
-        # # 抓苹果树测试
-        # tree = GrabAppleTree(self.node)
-        # tree.direction = Direction.RIGHT
-        # tree.basket_1 = [FruitType.RED_APPLE, FruitType.GREEN_APPLE]
-        # tree.basket_2 = [FruitType.GREEN_APPLE, FruitType.YELLOW_APPLE]
-        # tree.basket_3 = [FruitType.YELLOW_APPLE, FruitType.PURPLE_APPLE]
-        #
-        # while True:
-        #     input("Press Enter to continue...")
-        #     tree.grab_apple_from_tree()
+        # 抓苹果树测试
+        tree = GrabAppleTree(self.node)
+        tree.direction = Direction.RIGHT
+        tree.basket_1 = [FruitType.RED_APPLE, FruitType.GREEN_APPLE]
+        tree.basket_2 = [FruitType.GREEN_APPLE, FruitType.YELLOW_APPLE]
+        tree.basket_3 = [FruitType.YELLOW_APPLE, FruitType.PURPLE_APPLE]
+
+        while True:
+            input("Press Enter to continue...")
+            tree.grab_apple_from_tree()
 
 
         # # 抓葡萄墙测试
         # wall = GrabGrapeWall(self.node)
-        # wall.direction = Direction.LEFT
+        # wall.direction = Direction.RIGHT
         # wall.basket_1 = [FruitType.GREEN_GRAPE] * 3
         # wall.basket_2 = [FruitType.YELLOW_GRAPE] * 3
         # wall.basket_3 = [FruitType.PURPLE_GRAPE] * 3

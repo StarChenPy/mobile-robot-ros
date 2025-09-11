@@ -1,5 +1,6 @@
 from ..dao.RobotDataDao import RobotDataDao
 from ..param import ArmMovement
+from ..popo.OmsGoal import OmsGoal
 from ..service.ArmService import ArmService
 from ..service.MoveService import MoveService
 from ..service.RobotService import RobotService
@@ -34,6 +35,7 @@ class DebugController:
             choice = input("请输入指令，或输入q退出:")
             if choice == "0":
                 self.arm.back_origin()
+                self.arm.plan_once(OmsGoal(servo_rotary=0, servo_nod=0, servo_telescopic=0, servo_gripper=20))
                 print("已复位")
             if choice == "1":
                 self.servo_rotary()
