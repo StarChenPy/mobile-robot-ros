@@ -11,12 +11,12 @@ from ..service.SensorService import SensorService
 
 
 class Station(enum.Enum):
-    YELLOW_1 = enum.auto(), "s_y_1_l", Direction.LEFT, 0, False
-    YELLOW_2 = enum.auto(), "s_y_2_l", Direction.LEFT, 0, False
-    YELLOW_3 = enum.auto(), "s_y_3_f", Direction.FRONT, 0, False
-    RED_1 = enum.auto(), "s_r_1_f", Direction.FRONT, 0, False
-    RED_2 = enum.auto(), "s_r_2_l", Direction.LEFT, 0, False
-    RED_3 = enum.auto(), "s_r_3_r", Direction.RIGHT, 0, False
+    YELLOW_1 = enum.auto(), "s_y_1_r", Direction.RIGHT, 1.87, False, "s_y_1_l", Direction.LEFT, 1.74
+    YELLOW_2 = enum.auto(), "s_y_2_r", Direction.RIGHT, 1.52, True
+    YELLOW_3 = enum.auto(), "s_y_3_l", Direction.LEFT, 1.84, False
+    RED_1 = enum.auto(), "s_r_1_l", Direction.LEFT, 1.48, True
+    RED_2 = enum.auto(), "s_r_2_r", Direction.RIGHT, 0, False
+    RED_3 = enum.auto(), "s_r_3_r", Direction.RIGHT, 1.74, False
 
     def __new__(cls, key, main_waypoint: str, main_direction: Direction, main_revise: float, on_slope: bool,
                 sub_waypoint=None, sub_direction: Direction=None, sub_revise: float = 0):
@@ -143,7 +143,7 @@ class Station(enum.Enum):
         if again:
             telescopic += 12
 
-        arm.plan_list(ArmMovement.grab_basket_from_station(direction, 16 if self.on_slope else 10, telescopic), block=block)
+        arm.plan_list(ArmMovement.grab_basket_from_station(direction, 17 if self.on_slope else 11, telescopic), block=block)
 
     def put_basket(self, node: rclpy.node.Node, is_sub: bool = False, again=False):
         """
@@ -169,4 +169,4 @@ class Station(enum.Enum):
         if again:
             telescopic += 12
 
-        arm.plan_list(ArmMovement.put_basket_to_station(direction, telescopic, 17 if again else 5))
+        arm.plan_list(ArmMovement.put_basket_to_station(direction, 17 if self.on_slope else 11, telescopic))

@@ -52,7 +52,7 @@ class PubWaypointsNode(rclpy.node.Node):
             waypoints_path = resolve_waypoints_path(raw_path)
             with open(waypoints_path, 'r', encoding='utf-8') as f:
                 self.raw_waypoints = yaml.safe_load(f)
-                self.get_logger().info(f"读取路径点 YAML 文件 {raw_path}")
+                self.get_logger().info(f"读取路径点 YAML 文件 {raw_path}, 共 {len(self.raw_waypoints)} 个点.")
         except Exception as e:
             self.get_logger().error(f"读取路径点 YAML 文件失败: {e}")
             self.raw_waypoints = {}

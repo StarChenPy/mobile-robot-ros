@@ -45,9 +45,7 @@ class RobotService:
         end_time = datetime.datetime.now()
         if (end_time - start_time).seconds < 1:
             return False
-        print((end_time - start_time).seconds)
         return True
 
     def set_start_led(self, state: bool):
-        for _ in range(20):
-            self.__robot_ctrl.write_do(0, state)
+        self.__robot_ctrl.write_do(0, state)

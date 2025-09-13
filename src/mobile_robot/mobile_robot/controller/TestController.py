@@ -34,7 +34,12 @@ class TestController:
 
     def run(self):
         self.robot.with_robot_connect()
-        self.arm.back_origin()
+        # self.arm.back_origin()
+
+        # while True:
+        #     input("等待...")
+        #     fruit = self.vision.find_fruit(FruitType.all())
+        #     print(fruit)
 
         # while True:
         # input("等待...")
@@ -42,35 +47,35 @@ class TestController:
         # self.move.my_navigation("s_y_2_r")
         # self.sensor.correction("c_2")
 
-        # # 矫正雷达
-        # while True:
-        #     input("等待")
-        #     print("----------------左墙----------------")
-        #     li = []
-        #     for i in range(10):
-        #         wall = self.sensor.get_angle_from_wall(Direction.LEFT)
-        #         li.append(wall)
-        #         print(wall)
-        #         time.sleep(0.3)
-        #     print(Math.average_without_extremes(li))
-        #
-        #     print("----------------前墙----------------")
-        #     li = []
-        #     for i in range(10):
-        #         wall = self.sensor.get_angle_from_wall(Direction.FRONT)
-        #         li.append(wall)
-        #         print(wall)
-        #         time.sleep(0.3)
-        #     print(Math.average_without_extremes(li))
-        #
-        #     print("----------------右墙----------------")
-        #     li = []
-        #     for i in range(10):
-        #         wall = self.sensor.get_angle_from_wall(Direction.RIGHT)
-        #         li.append(wall)
-        #         print(wall)
-        #         time.sleep(0.3)
-        #     print(Math.average_without_extremes(li))
+        # 矫正雷达
+        while True:
+            input("等待")
+            print("----------------左墙----------------")
+            li = []
+            for i in range(10):
+                wall = self.sensor.get_angle_from_wall(Direction.LEFT)
+                li.append(wall)
+                print(wall)
+                time.sleep(0.3)
+            print(Math.average_without_extremes(li))
+
+            print("----------------前墙----------------")
+            li = []
+            for i in range(10):
+                wall = self.sensor.get_angle_from_wall(Direction.FRONT)
+                li.append(wall)
+                print(wall)
+                time.sleep(0.3)
+            print(Math.average_without_extremes(li))
+
+            print("----------------右墙----------------")
+            li = []
+            for i in range(10):
+                wall = self.sensor.get_angle_from_wall(Direction.RIGHT)
+                li.append(wall)
+                print(wall)
+                time.sleep(0.3)
+            print(Math.average_without_extremes(li))
 
         # dao = RobotDataDao(self.node)
         # while len(dao.imu_data) < 20:
@@ -87,17 +92,21 @@ class TestController:
         #     self.vision.show_photo(photograph, True)
         #     input("等待...")
 
+        # while True:
+        #     input("等待...")
+        #     Station.YELLOW_1.grab_basket(self.node)
+        #     self.arm.plan_list(ArmMovement.put_basket_to_robot(1))
 
-        # 抓苹果树测试
-        tree = GrabAppleTree(self.node)
-        tree.direction = Direction.RIGHT
-        tree.basket_1 = [FruitType.RED_APPLE, FruitType.GREEN_APPLE]
-        tree.basket_2 = [FruitType.GREEN_APPLE, FruitType.YELLOW_APPLE]
-        tree.basket_3 = [FruitType.YELLOW_APPLE, FruitType.PURPLE_APPLE]
-
-        while True:
-            input("Press Enter to continue...")
-            tree.grab_apple_from_tree()
+        # # 抓苹果树测试
+        # tree = GrabAppleTree(self.node)
+        # tree.direction = Direction.RIGHT
+        # tree.basket_1 = [FruitType.RED_APPLE, FruitType.GREEN_APPLE]
+        # tree.basket_2 = [FruitType.GREEN_APPLE, FruitType.YELLOW_APPLE]
+        # tree.basket_3 = [FruitType.YELLOW_APPLE, FruitType.PURPLE_APPLE]
+        #
+        # while True:
+        #     input("Press Enter to continue...")
+        #     tree.grab_apple_from_tree()
 
 
         # # 抓葡萄墙测试
@@ -111,12 +120,12 @@ class TestController:
         #     wall.grab_grape_from_wall()
 
 
-        # # 抓地板水果测试
-        # ground_fruit = GrabGroundFruit(self.node)
-        # self.vision.set_other_fruit_weight()
-        # ArmMovement.identify_ground_fruit(self.arm)
-        # while True:
-        #     input("等待...")
-        #     print(ground_fruit.grab_ground_fruit())
-        #     time.sleep(1)
-        #     ArmMovement.identify_ground_fruit(self.arm)
+        # 抓地板水果测试
+        ground_fruit = GrabGroundFruit(self.node)
+        self.vision.set_other_fruit_weight()
+        ArmMovement.identify_ground_fruit(self.arm)
+        while True:
+            input("等待...")
+            print(ground_fruit.grab_ground_fruit())
+            time.sleep(1)
+            ArmMovement.identify_ground_fruit(self.arm)

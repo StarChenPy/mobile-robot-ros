@@ -23,7 +23,7 @@ class GrabAppleTree:
         self.node = node
 
         self.direction = None
-        self.max_grab_distance = 0.48  # 最大抓取距离，单位米
+        self.max_grab_distance = 0.39  # 最大抓取距离，单位米
 
         self.basket_1 = []
         self.basket_2 = []
@@ -74,7 +74,7 @@ class GrabAppleTree:
 
     def find_apples_you_need(self) -> list[IdentifyResult]:
         """
-        获取所需的葡萄识别结果
+        获取所需的苹果识别结果
         """
 
         def get_result() -> list[IdentifyResult]:
@@ -90,12 +90,15 @@ class GrabAppleTree:
                 return result  # 数量一致，返回
             result = new_result  # 更新结果，继续循环
 
-    def grab_apple_from_tree(self):
+    def grab_apple_from_tree(self, close_tree=True):
         if self.direction is None:
             self.logger.error("方向未设置。无法抓苹果!")
             return False
 
-        self.close_tree()
+        # 对树矫正，到达合适位置
+        if close_tree:
+            self.close_tree()
+
         ArmMovement.identify_tree_fruit(self.arm, self.direction)
         time.sleep(1)
         fruits = self.find_apples_you_need()
@@ -114,10 +117,10 @@ class GrabAppleTree:
                 width_center = RobotConstant.CAMERA_WIDTH / 2
                 if width_center - 100 < i.box.get_rectangle_center().x < width_center + 100:
                     self.logger.warn(f"{i.class_id} 没有深度信息，跳过")
+                    continue
                 else:
                     self.logger.warn(f"{i.class_id} 没有深度信息，但在画面中间，使用默认深度")
                     i.distance = 0.25
-                    continue
 
             if FruitType(i.class_id) not in (self.basket_1 + self.basket_2 + self.basket_3):
                 self.logger.info(f"已经抓够的的水果，跳过 {i.class_id}")
@@ -156,7 +159,7 @@ class GrabAppleTree:
             self.move.line(actual_move_len, is_block=False)
             prev_move_len = move_distance
 
-            ArmMovement.grab_apple_on_tree(self.arm, self.direction, (i.distance - 0.26) * 100, is_low, extra_swing_angle)
+            ArmMovement.grab_apple_on_tree(self.arm, self.direction, (i.distance - 0.28) * 100, is_low, extra_swing_angle)
             for j in range(1, 4):
                 basket = getattr(self, f"basket_{j}")
                 if fruit_type in basket:
@@ -203,19 +206,23 @@ class GrabAppleTree:
             return
 
         # 获取指定角度范围内距离最小点
+        start_angle = 179 if self.direction == Direction.LEFT else 31
         rclpy.spin_once(self.node)
+        radar_data_1 = self.sensor.get_lidar_data(start_angle - 30, start_angle)
         time.sleep(0.3)
         rclpy.spin_once(self.node)
-        start_angle = 178 if self.direction == Direction.LEFT else 32
-        radar_data = self.sensor.get_lidar_data(start_angle - 30, start_angle)
-        min_tree = min(radar_data, key=lambda i: i[0])
+        radar_data_2 = self.sensor.get_lidar_data(start_angle - 30, start_angle)
+        time.sleep(0.3)
+        rclpy.spin_once(self.node)
+        radar_data_3 = self.sensor.get_lidar_data(start_angle - 30, start_angle)
+        min_tree = min(radar_data_1 + radar_data_2 + radar_data_3, key=lambda i: i[0])
 
         if not min_tree[0] or not min_tree[1]:
             self.logger.warn("无雷达数据!")
             return
         x, y = Math.polar_to_cartesian(min_tree)
         self.logger.info(f"雷达数据: {min_tree}, 转换为坐标: ({x}, {y})")
-        x -= 0.11
+        x -= 0.1
         y -= 0.56 if self.direction == Direction.LEFT else -0.56
 
         l, angle = Math.cartesian_to_polar((0, 0), (x, y))

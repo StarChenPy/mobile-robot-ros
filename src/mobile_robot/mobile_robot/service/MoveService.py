@@ -61,7 +61,7 @@ class MoveService:
 
         return angle
 
-    def my_navigation(self, waypoint: str, speed=0.6, start_name: str="", block=True):
+    def my_navigation(self, waypoint: str, speed=0.65, start_name: str="", block=True):
         self.__navigation.navigation(waypoint, speed, start_name)
         if block:
             self.__navigation.wait_finish()

@@ -51,7 +51,7 @@ class SensorDao(object):
         request.deviation_w = 0.5  # 允许误差w(cm)
         request.sensor_type = 0  # 传感器类型 0: ping   1: ir
         request.correction_mode = 2  # 修正模式   0：传感器0  1：传感器1  2：传感器0 && 1
-        request.speed_reversal = False
+        request.speed_reversal = True
         request.start = True
 
         self.__logger.debug(f"请求超声矫正.")

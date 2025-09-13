@@ -42,7 +42,7 @@ class GrabGroundFruit:
         ArmMovement.identify_ground_fruit(self.arm)
         self.move.my_navigation(goal, 0.15, start_name=goal, block=False)
         while self.move.get_my_status():
-            fruit = self.vision.find_fruit(FruitType.all(), inverted=False)
+            fruit = self.vision.find_fruit(FruitType.all())
             if fruit:
                 self.move.stop_my_navigation()
                 time.sleep(0.5)
@@ -59,7 +59,6 @@ class GrabGroundFruit:
                     ArmMovement.identify_ground_fruit(self.arm, 60)
 
                 self.move.my_navigation(goal, 0.15, start_name=goal, block=False)
-                self.move.rotation_correction(Direction.RIGHT)
 
         return False
 
@@ -100,7 +99,7 @@ class GrabGroundFruit:
 
             # 先移动到水果前面，使其在相机下方
             move_dis = Math.pixel_to_distance_from_center(center.y, distance)
-            self.move.line(move_dis - 0.03)
+            self.move.line(move_dis)
 
             # 计算水果的左右偏移
             x_dis = Math.pixel_to_horizontal_distance_x_centered(RobotConstant.CAMERA_WIDTH / 2 - center.x, distance)
@@ -113,12 +112,11 @@ class GrabGroundFruit:
             rotary_angle = -Math.calculate_right_triangle_angle(x_dis, photo_telescopic_len)
 
             # 修复一下因为夹爪特性导致的多余数值
-            rotary_angle *= 0.95
+            rotary_angle *= 0.8
 
-            is_small = "grape" in fruit.class_id or "kiwifruit" in fruit.class_id
+            is_small = "grape" in fruit.class_id or "kiwifruit" in fruit.class_id or "lotus_fruit" in fruit.class_id
 
-            print(telescopic_len, rotary_angle, is_small)
-            ArmMovement.grab_fruit_from_ground(self.arm, rotary_angle, ((telescopic_len - photo_telescopic_len) * 100) + 8, is_small)
+            ArmMovement.grab_fruit_from_ground(self.arm, rotary_angle, ((telescopic_len - photo_telescopic_len) * 100) + 10, is_small)
 
             return True
         return False

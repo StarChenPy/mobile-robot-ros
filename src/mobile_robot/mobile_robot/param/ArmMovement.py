@@ -175,7 +175,7 @@ def grab_basket_from_station(direction, lift, telescopic):
     plan_list = [
         OmsGoal(servo_gripper=OPEN_GRIPPER)
     ] + station_basket_top(direction, telescopic) + [
-        OmsGoal(motor_lift=lift - 6),
+        OmsGoal(motor_lift=lift - 5),
         OmsGoal(servo_gripper=CLOSE_GRIPPER_BASKET, sleep=0.3),
         OmsGoal(servo_gripper=OPEN_GRIPPER, sleep=0.3),
         OmsGoal(motor_lift=lift),
@@ -230,7 +230,7 @@ def grab_apple_on_tree(arm: 'ArmService', direction: Direction, telescopic: floa
         raise ValueError("不支持的方向")
 
     # 抬升高度
-    lift_height = 33 if is_low else 20
+    lift_height = 38 if is_low else 21
     servo_nod = 10 if is_low else 0
 
     plan_list = [
@@ -238,7 +238,7 @@ def grab_apple_on_tree(arm: 'ArmService', direction: Direction, telescopic: floa
         OmsGoal(motor_rotary=rotate_angle + extra_swing_angle, motor_lift=0,
                 servo_rotary=0, servo_nod=servo_nod, servo_telescopic=0, servo_gripper=OPEN_HALF_GRIPPER),
         OmsGoal(motor_lift=lift_height),
-        OmsGoal(servo_telescopic=telescopic, servo_nod=45 if extra_swing_angle else servo_nod, sleep=0.3),
+        OmsGoal(servo_telescopic=telescopic, servo_nod=35 if extra_swing_angle else servo_nod, sleep=0.3),
         OmsGoal(motor_rotary=rotate_angle),
         OmsGoal(servo_nod=servo_nod, sleep=0.5),
         OmsGoal(servo_gripper=CLOSE_GRIPPER_APPLE, sleep=0.2),

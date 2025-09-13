@@ -9,7 +9,7 @@ nod:
   pin: 1
   min_value: -60
   max_value: 150
-  zero_duty: 25.334
+  zero_duty: 25.91
   deg90_duty: 38.3
 
 telescopic:

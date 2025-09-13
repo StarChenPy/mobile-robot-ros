@@ -21,7 +21,7 @@ pub_waypoints:
   ros__parameters:
     use_sim_time: False
 
-    waypoints_path: 9.11_4.yaml
+    waypoints_path: 9.12.yaml
     waypoints_topic: /waypoints
 
 generate_path:
@@ -45,7 +45,7 @@ navigation_to_waypoint:
     navigation_ptp_action: /nav2_ptp_action
 
     speed: 0.6
-    uphill_offset: 0.14
+    uphill_offset: 0.1
     reverse_uphill: True
     distance_threshold: 0.05
     skip_start_point_correction: c_start

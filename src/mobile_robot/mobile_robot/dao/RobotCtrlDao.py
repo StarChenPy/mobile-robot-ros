@@ -13,7 +13,7 @@ class RobotCtrlDao(object):
         self.__logger = Logger()
 
         self.service = self.__node.create_client(RobotCtrlSrv, '/web_transform_node/robot_ctrl_srv')
-        self.__topic = node.create_publisher(RobotCtrl, '/web_transform_node/robot_ctrl', 10)
+        # self.__topic = node.create_publisher(RobotCtrl, '/web_transform_node/robot_ctrl', 10)
 
         self.__robot_ctrl = RobotCtrl()
         self.__robot_ctrl.do0 = False
@@ -25,9 +25,10 @@ class RobotCtrlDao(object):
         self.__robot_ctrl.pwm3 = 0.0
         self.__robot_ctrl.pwm4 = 0.0
 
-        self.__topic.publish(self.__robot_ctrl)
-
     def publish(self):
+        if not self.service.wait_for_service(timeout_sec=10.0):
+            self.__logger.error('机器人控制服务未启动...')
+
         req = RobotCtrlSrv.Request()
         req.ctrl = self.__robot_ctrl
         future = self.service.call_async(req)

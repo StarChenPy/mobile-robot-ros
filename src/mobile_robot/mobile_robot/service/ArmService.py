@@ -114,7 +114,7 @@ class ArmService:
         原 gripper_rz
         """
         if angle < 0:
-            angle *= 0.96
+            angle *= 0.97
         self.__ctrl_servo(Servo.ROTARY, angle, enable, publish)
 
     def servo_nod(self, angle: float, enable=True, publish=True):

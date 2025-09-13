@@ -36,7 +36,7 @@ class VisionService:
 
     def set_grape_and_apple_weight(self):
         share_directory = ament_index_python.packages.get_package_share_directory("mobile_robot")
-        self.__weight_path = share_directory + "/weights/other_fruit.onnx"
+        self.__weight_path = share_directory + "/weights/grape_and_apple.onnx"
         self.__names = ["red_apple", "green_apple", "yellow_apple", "purple_apple", "purple_grape", "green_grape", "yellow_grape"]
 
     def get_mnn_identify_result(self) -> list[IdentifyResult]:
@@ -50,7 +50,7 @@ class VisionService:
     def photograph(self):
         return self.__camera.photograph_color(True)
 
-    def show_photo(self, photo, inverted=False) -> None:
+    def show_photo(self, photo, inverted=True):
         if inverted:
             photo = cv2.rotate(photo, cv2.ROTATE_180)
         result = infer_onnx_model(self.__weight_path, self.__names, photo)
@@ -61,10 +61,12 @@ class VisionService:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-    def get_onnx_identify_depth(self, inverted=False, kernel_size=11) -> list[IdentifyResult]:
+    def get_onnx_identify_depth(self, inverted=False, kernel_size=35, photo=None, depth=None) -> list[IdentifyResult]:
         half_k = kernel_size // 2
 
-        photo, depth = self.__camera.photograph_all(True)
+        if photo is None or depth is None:
+            photo, depth = self.__camera.photograph_all(True)
+
         if inverted:
             photo = cv2.rotate(photo, cv2.ROTATE_180)
             depth = cv2.rotate(depth, cv2.ROTATE_180)
@@ -125,7 +127,7 @@ class VisionService:
         y2 = min(depth.shape[0], cy + half_k + 1)
 
         roi = depth[y1:y2, x1:x2]
-        valid_depths = roi[roi > 0]  # 自动忽略0深度
+        valid_depths = roi[roi > 0]  # 自动忽略为0的深度
         valid_depths = valid_depths[valid_depths < 1000]  # 自动忽略大于1000的深度
 
         if valid_depths.size > 0:
@@ -133,8 +135,22 @@ class VisionService:
         else:
             return -1
 
-    def find_fruit(self, fruit: list[FruitType]=None, inverted=True, kernel_size=35) -> IdentifyResult | None:
-        identify = self.get_onnx_identify_depth(inverted, kernel_size)
+    def find_fruit(self, fruit: list[FruitType]=None, inverted=True, kernel_size=35):
+        photo, depth = self.__camera.photograph_all(True)
+
+        fruit_set = set(fruit)
+        is_apple_and_grape = fruit_set.intersection(FruitType.apples() + FruitType.grapes())
+        is_other_fruit = fruit_set.intersection(FruitType.others())
+
+        identify = []
+        if is_other_fruit:
+            self.set_other_fruit_weight()
+            identify += self.get_onnx_identify_depth(inverted, kernel_size, photo, depth)
+
+        if is_apple_and_grape and not identify:
+            self.set_grape_and_apple_weight()
+            identify += self.get_onnx_identify_depth(inverted, kernel_size, photo, depth)
+
         if not fruit:
             return None
 

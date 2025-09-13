@@ -9,9 +9,9 @@ from sensor_msgs.msg import LaserScan
 from .type.Direction import Direction
 from .util import Math
 
-RADAR_ERROR_LEFT = 1.83
-RADAR_ERROR_FRONT = 1.21
-RADAR_ERROR_RIGHT = 1.75
+RADAR_ERROR_LEFT = 1.42
+RADAR_ERROR_FRONT = 0.65
+RADAR_ERROR_RIGHT = 1.66
 
 class LidarToolbox:
     def __init__(self, node: rclpy.node.Node):

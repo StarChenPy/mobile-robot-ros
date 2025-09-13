@@ -4,6 +4,8 @@ from ..popo.OmsGoal import OmsGoal
 from ..service.ArmService import ArmService
 from ..service.MoveService import MoveService
 from ..service.RobotService import RobotService
+from ..service.SensorService import SensorService
+from ..service.VisionService import VisionService
 from ..util.Logger import Logger
 
 
@@ -15,6 +17,8 @@ class DebugController:
         self.robot = RobotService(node)
         self.robot_data = RobotDataDao(node)
         self.move = MoveService(node)
+        self.sensor = SensorService(node)
+        self.vision = VisionService(node)
 
     def run(self):
         self.robot.with_robot_connect()
@@ -29,7 +33,8 @@ class DebugController:
             print("6. 机械臂旋转控制")
             print("7. 直线运动")
             print("8. 旋转运动")
-            print("9. 已有动作")
+            print("9. 矫正")
+            print("a. 拍照并识别")
             print("q. 退出")
 
             choice = input("请输入指令，或输入q退出:")
@@ -54,26 +59,33 @@ class DebugController:
             elif choice == "8":
                 self.rotate()
             elif choice == "9":
-                self.arm_movement()
+                self.correction()
+            elif choice == "a":
+                self.photograph()
             elif choice == "q":
                 exit(0)
             else:
                 print("无效的指令，请重新输入")
 
-    def arm_movement(self):
+    def correction(self):
         while True:
-            # 动态获取任务，拒绝重复代码
-            task = input("输入动作名称, q 退出: ")
-            if task == "q":
-                return
+            i = input("输入矫正点名称，或输入q退出: ")
+            if i == "q":
+                break
+            self.sensor.correction(i)
 
-            task_method = getattr(ArmMovement, f"{task}")
-            if callable(task_method):
-                self.logger.info(f"开始执行{task}")
-                task_method()
-                self.logger.info(f"动作{task}完成")
+    def photograph(self):
+        while True:
+            i = input("拍照，输入1识别苹果葡萄，输入其他数字识别其它水果，或输入q退出: ")
+            if i == "q":
+                break
+            color = self.vision.photograph()
+            if i == "1":
+                self.vision.set_grape_and_apple_weight()
+                self.vision.show_photo(color)
             else:
-                self.logger.error(f"{task}不存在")
+                self.vision.set_other_fruit_weight()
+                self.vision.show_photo(color)
 
     def servo_rotary(self):
         while True:
